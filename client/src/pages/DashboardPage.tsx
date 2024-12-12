@@ -46,16 +46,17 @@ export default function DashboardPage() {
   }
 
   const gameweekData = {
-    currentGameweek: team.entry.gameweek,
-    points: team.entry.gameweek_points,
-    rank: team.entry.overall_rank,
-    totalPoints: team.entry.overall_points
+    currentGameweek: team?.entry?.gameweek || 0,
+    points: team?.entry?.gameweek_points || 0,
+    rank: team?.entry?.overall_rank || 0,
+    totalPoints: team?.entry?.overall_points || 0,
+    lastRank: team?.entry?.overall_rank || 0 // Using same rank as we don't have previous rank data yet
   };
 
   // TODO: Fetch real points history when API endpoint is available
-  const pointsData = Array.from({ length: gameweekData.currentGameweek }, (_, i) => ({
+  const pointsData = Array.from({ length: gameweekData.currentGameweek || 0 }, (_, i) => ({
     gameweek: i + 1,
-    points: team.entry.gameweek_points,
+    points: team?.entry?.gameweek_points || 0,
     average: 0 // Will be updated when we have the API endpoint
   }));
 
