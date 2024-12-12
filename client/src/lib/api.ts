@@ -43,15 +43,6 @@ export async function updateCaptains(captainId: number, viceCaptainId: number): 
   if (!res.ok) throw new Error("Failed to update captains");
 }
 
-export async function makeSubstitution(playerId: number, starterPosition: number): Promise<void> {
-  const res = await fetch(`${API_BASE}/substitutions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ playerId, starterPosition }),
-  });
-  if (!res.ok) throw new Error("Failed to make substitution");
-}
-
 export async function fetchLeagues(managerId: number): Promise<League[]> {
   const res = await fetch(`${API_BASE}/leagues/${managerId}`);
   if (!res.ok) throw new Error("Failed to fetch leagues");
