@@ -81,9 +81,9 @@ export function registerRoutes(app: Express): Server {
         average: gw.average_entry_score
       }));
 
-      // Get the most recent team value and bank
-      const teamValue = entryData.last_deadline_value || lastGw.value || 0;
-      const bankValue = entryData.last_deadline_bank || lastGw.bank || 0;
+      // Get the most recent team value and bank, maintaining decimal precision
+      const teamValue = parseFloat((entryData.last_deadline_value || lastGw.value || 0).toFixed(1));
+      const bankValue = parseFloat((entryData.last_deadline_bank || lastGw.bank || 0).toFixed(1));
 
       // Get ranks from last completed gameweek
       const currentRank = lastGw.overall_rank || entryData.summary_overall_rank || 0;

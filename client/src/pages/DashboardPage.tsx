@@ -56,11 +56,11 @@ export default function DashboardPage() {
   };
 
   // Points data for the history chart
-  const pointsData = Array.from({ length: team?.last_deadline_event || 0 }, (_, i) => ({
-    gameweek: i + 1,
-    points: team?.stats?.event_points || 0,
-    average: Math.round((team?.stats?.event_points || 0) * 0.85) // Using 85% as league average
-  }));
+  const pointsData = team?.points_history?.map(gw => ({
+    gameweek: gw.event,
+    points: gw.points,
+    average: gw.average
+  })) || [];
 
   // In a real app, this would come from the API
   const nextDeadline = new Date();
