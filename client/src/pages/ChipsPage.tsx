@@ -25,7 +25,7 @@ const chipAnalytics: ChipAnalysis[] = [
     bestGameweek: 8,
     recommendedGameweek: 16,
     status: "available",
-    description: "Complete team overhaul - best used during fixture swings or to capitalize on price changes",
+    description: "Complete team overhaul - Ideal for upcoming fixture swings (GW16-20) with Arsenal, Liverpool, and Man City having favorable runs",
     icon: Star
   },
   {
@@ -58,8 +58,20 @@ const chipAnalytics: ChipAnalysis[] = [
 ];
 
 const doubleGameweeks = [
-  { week: 25, teams: ["ARS", "CHE", "LIV", "MUN"], potential: 85 },
-  { week: 34, teams: ["MCI", "NEW", "TOT", "WHU"], potential: 78 },
+  { 
+    week: 25, 
+    teams: ["ARS", "CHE", "LIV", "MUN"], 
+    potential: 85,
+    chips: ["Triple Captain", "Bench Boost"],
+    reasoning: "High-scoring teams with strong fixtures, ideal for TC on premium assets"
+  },
+  { 
+    week: 34, 
+    teams: ["MCI", "NEW", "TOT", "WHU"], 
+    potential: 78,
+    chips: ["Bench Boost", "Free Hit"],
+    reasoning: "Multiple teams with good fixtures, maximize points with full squad"
+  },
 ];
 
 const blankGameweeks = [
@@ -67,7 +79,10 @@ const blankGameweeks = [
   { week: 32, teams: ["MCI", "NEW"], impact: "Medium" },
 ];
 
-function ChipCard({ chip }: { chip: ChipAnalysis }) {
+function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGameweeks: any[] }) {
+  const recommendedWeeks = doubleGameweeks
+    .filter(gw => gw.chips.includes(chip.name))
+    .map(gw => gw.week);
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
