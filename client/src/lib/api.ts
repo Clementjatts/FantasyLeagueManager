@@ -23,6 +23,12 @@ export async function fetchFixtures(): Promise<Fixture[]> {
   return res.json();
 }
 
+export async function fetchBootstrapStatic(): Promise<any> {
+  const res = await fetch(`${API_BASE}/bootstrap-static`);
+  if (!res.ok) throw new Error("Failed to fetch bootstrap data");
+  return res.json();
+}
+
 export async function makeTransfer(playerId: number, outId: number): Promise<void> {
   const res = await fetch(`${API_BASE}/transfers`, {
     method: "POST",

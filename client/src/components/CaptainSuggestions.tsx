@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Crown } from "lucide-react";
 import { type Player } from "../types/fpl";
-import { fetchFixtures } from "../lib/api";
+import { fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { cn } from "@/lib/utils";
 
 interface CaptainSuggestionsProps {
@@ -25,9 +25,19 @@ export function CaptainSuggestions({
     queryFn: fetchFixtures
   });
 
+  const { data: bootstrapData } = useQuery({
+    queryKey: ["/api/fpl/bootstrap-static"],
+    queryFn: fetchBootstrapStatic
+  });
+
   // Calculate player scores based on form and upcoming fixture difficulty
   const viableCaptains = useMemo(() => {
-    if (!fixtures) return [];
+    if (!fixtures || !bootstrapData) return [];
+
+    const teamMap = bootstrapData.teams.reduce((acc: Record<number, string>, team: any) => {
+      acc[team.id] = team.short_name;
+      return acc;
+    }, {});
 
     return allPlayers
       .filter(p => p.minutes > 180) // Players with significant minutes
@@ -119,7 +129,7 @@ export function CaptainSuggestions({
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Next:</span>
                     <span className="text-sm font-semibold">
-                      {player.isHome ? 'vs' : '@'} Team {player.nextOpponent}
+                      {player.isHome ? 'vs' : '@'} {teamMap[player.nextOpponent] || 'TBD'}
                     </span>
                   </div>
                   <Badge 
