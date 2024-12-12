@@ -46,21 +46,20 @@ export default function DashboardPage() {
   }
 
   const gameweekData = {
-    currentGameweek: team?.entry?.gameweek || 0,
-    points: team?.entry?.gameweek_points || 0,
-    rank: team?.entry?.overall_rank || 0,
-    totalPoints: team?.entry?.overall_points || 0,
-    lastRank: (team?.entry?.overall_rank || 0) + 1000, // Temporary: show improvement from last rank
-    teamValue: ((team?.transfers?.value || 0) / 10).toFixed(1),
-    bankValue: ((team?.transfers?.bank || 0) / 10).toFixed(1),
-    averagePoints: Math.round((team?.entry?.overall_points || 0) / (team?.entry?.gameweek || 1))
+    currentGameweek: team?.last_deadline_event || 0,
+    points: team?.stats?.event_points || 0,
+    rank: team?.stats?.overall_rank || 0,
+    totalPoints: team?.stats?.overall_points || 0,
+    lastRank: team?.stats?.rank_sort || 0,
+    teamValue: ((team?.stats?.value || 0) / 10).toFixed(1),
+    bankValue: ((team?.stats?.bank || 0) / 10).toFixed(1),
   };
 
-  // Create points history data
-  const pointsData = Array.from({ length: gameweekData.currentGameweek || 0 }, (_, i) => ({
+  // Points data for the history chart
+  const pointsData = Array.from({ length: team?.current_event || 0 }, (_, i) => ({
     gameweek: i + 1,
-    points: gameweekData.averagePoints,
-    average: Math.round(gameweekData.averagePoints * 0.9) // Estimate league average as 90% of user's average
+    points: team?.stats?.event_points || 0,
+    average: Math.round((team?.stats?.event_points || 0) * 0.85) // Using 85% as league average
   }));
 
   // In a real app, this would come from the API
@@ -110,7 +109,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-3xl font-bold">{gameweekData.points}</div>
             <div className="text-sm text-muted-foreground">
-              Average: {gameweekData.averagePoints}
+              Average: {Math.round(gameweekData.points * 0.85)}
             </div>
           </CardContent>
         </Card>
@@ -144,7 +143,7 @@ export default function DashboardPage() {
               {team?.transfers?.limit || 0} Free
             </div>
             <div className="text-sm text-muted-foreground">
-              Cost: {team?.transfers?.cost || 0} pts
+              Cost: {team?.transfers?.made || 0} pts
             </div>
           </CardContent>
         </Card>

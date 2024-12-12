@@ -21,12 +21,21 @@ export interface Team {
     bank: number;
     value: number;
   };
-  entry: {
+  summary_overall_points: number;
+  summary_overall_rank: number;
+  last_deadline_total_transfers: number;
+  last_deadline_bank: number;
+  last_deadline_value: number;
+  current_event: number;
+  last_deadline_event: number;
+  stats: {
+    event_points: number;
+    points_on_bench: number;
     overall_points: number;
     overall_rank: number;
-    gameweek_points: number;
-    gameweek: number;
-    team_value: number;
+    rank_sort: number;
+    total_points: number;
+    value: number;
     bank: number;
   };
 }

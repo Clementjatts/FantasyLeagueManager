@@ -32,10 +32,11 @@ export function registerRoutes(app: Express): Server {
 
       const entryData = await entryResponse.json();
       const currentEvent = entryData.current_event;
+      const lastCompletedEvent = currentEvent - 1; // Get last completed gameweek
 
-      // Fetch current gameweek data
+      // Fetch last completed gameweek data
       const gwResponse = await fetch(
-        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${currentEvent}/picks/`,
+        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`,
         {
           headers: {
             'User-Agent': 'Mozilla/5.0',
@@ -51,23 +52,41 @@ export function registerRoutes(app: Express): Server {
 
       const gwData = await gwResponse.json();
 
-      // For transfers and team value, we'll use the entry data
+      // Fetch history
+      const historyResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/history/`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
+      );
+
+      if (!historyResponse.ok) {
+        console.error(`History response error: ${historyResponse.status}`);
+        return res.status(500).json({ message: "Unable to fetch history data" });
+      }
+
+      const historyData = await historyResponse.json();
+      const lastGw = historyData.current.slice(-1)[0] || {};
+
       const combinedData = {
         picks: gwData.picks || [],
-        chips: [], // Will be populated when we have access to the chips endpoint
+        chips: historyData.chips || [],
         transfers: {
-          limit: 1, // Default to 1 free transfer
-          made: 0,
-          bank: entryData.bank || 0,
-          value: entryData.value || 0,
+          limit: entryData.transfers?.limit || 1,
+          made: entryData.transfers?.made || 0,
+          bank: lastGw.bank || entryData.bank || 0,
+          value: lastGw.value || entryData.value || 0,
         },
         entry: {
           overall_points: entryData.summary_overall_points,
           overall_rank: entryData.summary_overall_rank,
-          gameweek_points: gwData.entry_history?.points || 0,
-          gameweek: currentEvent,
-          team_value: entryData.value || 0,
-          bank: entryData.bank || 0,
+          gameweek_points: lastGw.points || 0,
+          gameweek: lastCompletedEvent,
+          team_value: lastGw.value || entryData.value || 0,
+          bank: lastGw.bank || entryData.bank || 0,
         }
       };
 
