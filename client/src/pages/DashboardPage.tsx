@@ -7,6 +7,8 @@ import { PerformanceTimeline } from "../components/PerformanceTimeline";
 import { DeadlineCountdown } from "../components/DeadlineCountdown";
 import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
+import { TeamQuickView } from "../components/TeamQuickView";
+import { ChipsStatus } from "../components/ChipsStatus";
 import { fetchMyTeam } from "../lib/api";
 
 export default function DashboardPage() {
@@ -167,6 +169,11 @@ export default function DashboardPage() {
           hasTransfers={hasTransfers}
           transfersAvailable={team?.transfers?.limit || 0}
         />
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <TeamQuickView picks={team.picks} />
+        <ChipsStatus chips={team.chips} />
       </div>
 
       <Card>
