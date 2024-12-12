@@ -32,26 +32,30 @@ export function CaptainSuggestions({
 
   // Calculate player scores based on form and upcoming fixture difficulty
   const viableCaptains = useMemo(() => {
-    if (!fixtures || !bootstrapData) return [];
+    if (!fixtures || !bootstrapData || !bootstrapData.teams) return [];
 
+    // Create team mapping
     const teamMap = bootstrapData.teams.reduce((acc: Record<number, string>, team: any) => {
       acc[team.id] = team.short_name;
       return acc;
-    }, {});
+    }, {} as Record<number, string>);
+
+    // Get next gameweek's fixtures
+    const nextGameweek = fixtures[0]?.event;
+    const nextFixtures = fixtures.filter(f => f.event === nextGameweek);
 
     return allPlayers
       .filter(p => p.minutes > 180) // Players with significant minutes
       .map(player => {
-        const nextFixture = fixtures.find(f => 
-          (f.team_h === player.team || f.team_a === player.team) &&
-          f.event === fixtures[0]?.event // Next gameweek
+        const nextFixture = nextFixtures.find(f => 
+          f.team_h === player.team || f.team_a === player.team
         );
         
         const isHome = nextFixture?.team_h === player.team;
         const opponent = isHome ? nextFixture?.team_a : nextFixture?.team_h;
         const difficulty = nextFixture?.difficulty || 3;
         
-        // Calculate captain score: form * 2 + points per game - difficulty/2
+        // Calculate captain score based on form and fixture difficulty
         const captainScore = 
           parseFloat(player.form) * 2 + 
           parseFloat(player.points_per_game) - 
@@ -62,12 +66,15 @@ export function CaptainSuggestions({
           nextOpponent: opponent,
           isHome,
           captainScore,
-          difficulty
+          difficulty,
+          opponentName: opponent ? teamMap[opponent] : 'TBD'
         };
       })
       .sort((a, b) => b.captainScore - a.captainScore)
       .slice(0, 5);
-  }, [allPlayers, fixtures]);
+  }, [allPlayers, fixtures, bootstrapData]);
+
+  const isLoading = !fixtures || !bootstrapData;
 
   return (
     <Card className="bg-gradient-to-br from-background to-muted/5">
@@ -76,13 +83,23 @@ export function CaptainSuggestions({
           <Crown className="w-5 h-5 text-primary" />
           <div>
             <CardTitle>Captain Picks</CardTitle>
-            <p className="text-sm text-muted-foreground">Top form players for your armband</p>
+            <p className="text-sm text-muted-foreground">
+              {isLoading ? "Loading suggestions..." : "Top form players for your armband"}
+            </p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-2">
-          {viableCaptains.map(player => (
+          {isLoading ? (
+            // Loading skeleton
+            Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-24 rounded-lg bg-muted animate-pulse"
+              />
+            ))
+          ) : viableCaptains.map(player => (
             <div
               key={player.id}
               onClick={() => onSelectCaptain(player)}
@@ -129,7 +146,7 @@ export function CaptainSuggestions({
                   <div className="flex items-center gap-2">
                     <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Next:</span>
                     <span className="text-sm font-semibold">
-                      {player.isHome ? 'vs' : '@'} {teamMap[player.nextOpponent] || 'TBD'}
+                      {player.isHome ? 'vs' : '@'} {player.opponentName}
                     </span>
                   </div>
                   <Badge 
