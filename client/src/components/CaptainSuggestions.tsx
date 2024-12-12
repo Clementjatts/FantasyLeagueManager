@@ -54,28 +54,24 @@ export function CaptainSuggestions({
                 )}
                 onClick={() => onSelectCaptain(player)}
               >
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-semibold">{player.web_name}</span>
+                      <span className="text-lg font-semibold truncate">{player.web_name}</span>
                       {player.id === currentCaptainId && (
-                        <Badge variant="default" className="bg-primary/90 text-primary-foreground px-2">
-                          C
-                        </Badge>
+                        <Badge variant="default" className="bg-primary/90 text-primary-foreground px-2">C</Badge>
                       )}
                       {player.id === currentViceCaptainId && (
-                        <Badge variant="outline" className="border-primary/70 text-primary px-2">
-                          VC
-                        </Badge>
+                        <Badge variant="outline" className="border-primary/70 text-primary px-2">VC</Badge>
                       )}
                     </div>
                     <div className="text-right">
-                      <span className="text-lg font-bold text-primary">{player.total_points}</span>
+                      <span className="text-2xl font-bold text-primary">{player.total_points}</span>
                       <span className="text-sm text-muted-foreground ml-1">pts</span>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-primary" />
                       <span className="text-sm">
@@ -85,19 +81,22 @@ export function CaptainSuggestions({
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-primary" />
-                      <span className="text-sm">
+                      <span className="text-sm whitespace-nowrap">
                         <span className="font-medium">{player.team}</span>
                         <span className="text-muted-foreground ml-1">Next</span>
                       </span>
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center mt-3 text-sm text-muted-foreground">
-                    <span>
-                      Value: <span className="font-medium text-foreground">£{(player.now_cost / 10).toFixed(1)}m</span>
-                      <span className="mx-2">•</span>
-                      Selected: <span className="font-medium text-foreground">{player.selected_by_percent}%</span>
-                    </span>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                      <span className="whitespace-nowrap">
+                        Value: <span className="font-medium text-foreground">£{(player.now_cost / 10).toFixed(1)}m</span>
+                      </span>
+                      <span className="whitespace-nowrap">
+                        Selected: <span className="font-medium text-foreground">{player.selected_by_percent}%</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
