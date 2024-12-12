@@ -44,3 +44,42 @@ export interface Fixture {
   difficulty: number;
   event: number;
 }
+
+export interface League {
+  id: number;
+  name: string;
+  standings: LeagueStanding[];
+  type: 'classic' | 'h2h';
+  admin_entry: number;
+  started: boolean;
+  closed: boolean;
+}
+
+export interface LeagueStanding {
+  entry: number;
+  entry_name: string;
+  player_name: string;
+  rank: number;
+  last_rank: number;
+  total: number;
+  points_behind_leader: number;
+  matches_played?: number;
+  matches_won?: number;
+  matches_drawn?: number;
+  matches_lost?: number;
+}
+
+export interface CupMatch {
+  id: number;
+  entry_1_entry: number;
+  entry_1_name: string;
+  entry_1_player_name: string;
+  entry_1_points: number;
+  entry_2_entry: number;
+  entry_2_name: string;
+  entry_2_player_name: string;
+  entry_2_points: number;
+  is_knockout: boolean;
+  winner: number;
+  round: number;
+}

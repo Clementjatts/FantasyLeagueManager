@@ -162,6 +162,78 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ message: "Failed to update captains" });
     }
   });
+  app.get("/api/fpl/leagues/:managerId", async (req, res) => {
+    const { managerId } = req.params;
+    try {
+      // Mock data for leagues
+      const leagues = [
+        {
+          id: 1,
+          name: "Classic League",
+          type: "classic",
+          admin_entry: 1,
+          started: true,
+          closed: false
+        },
+        {
+          id: 2,
+          name: "Head-to-Head League",
+          type: "h2h",
+          admin_entry: 1,
+          started: true,
+          closed: false
+        }
+      ];
+      res.json(leagues);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch leagues" });
+    }
+  });
+
+  app.get("/api/fpl/leagues/:leagueId/standings", async (req, res) => {
+    const { leagueId } = req.params;
+    try {
+      // Mock data for league standings
+      const standings = Array.from({ length: 10 }, (_, i) => ({
+        entry: i + 1,
+        entry_name: `Team ${i + 1}`,
+        player_name: `Manager ${i + 1}`,
+        rank: i + 1,
+        last_rank: i + 1,
+        total: Math.floor(Math.random() * 1000),
+        points_behind_leader: i * 10
+      }));
+      res.json(standings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch standings" });
+    }
+  });
+
+  app.get("/api/fpl/cup/:managerId", async (req, res) => {
+    const { managerId } = req.params;
+    try {
+      // Mock data for cup matches
+      const matches = [
+        {
+          id: 1,
+          entry_1_entry: 1,
+          entry_1_name: "Team A",
+          entry_1_player_name: "Manager A",
+          entry_1_points: 65,
+          entry_2_entry: 2,
+          entry_2_name: "Team B",
+          entry_2_player_name: "Manager B",
+          entry_2_points: 55,
+          is_knockout: true,
+          winner: 1,
+          round: 1
+        }
+      ];
+      res.json(matches);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch cup matches" });
+    }
+  });
 
   return httpServer;
 }

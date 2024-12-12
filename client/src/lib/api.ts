@@ -42,3 +42,21 @@ export async function updateCaptains(captainId: number, viceCaptainId: number): 
   });
   if (!res.ok) throw new Error("Failed to update captains");
 }
+
+export async function fetchLeagues(managerId: number): Promise<League[]> {
+  const res = await fetch(`${API_BASE}/leagues/${managerId}`);
+  if (!res.ok) throw new Error("Failed to fetch leagues");
+  return res.json();
+}
+
+export async function fetchLeagueStandings(leagueId: number): Promise<LeagueStanding[]> {
+  const res = await fetch(`${API_BASE}/leagues/${leagueId}/standings`);
+  if (!res.ok) throw new Error("Failed to fetch league standings");
+  return res.json();
+}
+
+export async function fetchCupMatches(managerId: number): Promise<CupMatch[]> {
+  const res = await fetch(`${API_BASE}/cup/${managerId}`);
+  if (!res.ok) throw new Error("Failed to fetch cup matches");
+  return res.json();
+}
