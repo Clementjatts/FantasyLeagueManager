@@ -27,12 +27,12 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
 
         return (
           <div key={gw.event} className="relative flex items-center">
-            <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg">
-              <span className="text-lg font-bold text-white">{gw.event}</span>
+            <div className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-primary to-blue-500 shadow-lg ring-2 ring-background">
+              <span className="text-2xl font-black text-white">{gw.event}</span>
             </div>
 
             <Card className={cn(
-              "ml-16 w-full transition-all duration-200",
+              "ml-20 w-full transition-all duration-200",
               "hover:shadow-lg hover:scale-[1.02]",
               index === 0 && "ring-2 ring-primary ring-offset-2"
             )}>
