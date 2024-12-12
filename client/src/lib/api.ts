@@ -33,3 +33,12 @@ export async function makeTransfer(playerId: number, outId: number): Promise<voi
   });
   if (!res.ok) throw new Error("Failed to make transfer");
 }
+
+export async function updateCaptains(captainId: number, viceCaptainId: number): Promise<void> {
+  const res = await fetch(`${API_BASE}/captains`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ captainId, viceCaptainId }),
+  });
+  if (!res.ok) throw new Error("Failed to update captains");
+}

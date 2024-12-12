@@ -64,5 +64,35 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/fpl/captains", async (req, res) => {
+    const { captainId, viceCaptainId } = req.body;
+    
+    try {
+      const team = await db.query.teams.findFirst({
+        where: eq(teams.userId, 1),
+      });
+
+      if (!team) {
+        res.status(404).json({ message: "Team not found" });
+        return;
+      }
+
+      const picks = team.picks as any[];
+      const updatedPicks = picks.map(pick => ({
+        ...pick,
+        is_captain: pick.element === captainId,
+        is_vice_captain: pick.element === viceCaptainId,
+      }));
+
+      await db.update(teams)
+        .set({ picks: updatedPicks })
+        .where(eq(teams.userId, 1));
+
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update captains" });
+    }
+  });
+
   return httpServer;
 }

@@ -35,6 +35,7 @@ export function TeamPitch({ players, captainId, viceCaptainId, onPlayerClick }: 
                   isCaptain={player.id === captainId}
                   isViceCaptain={player.id === viceCaptainId}
                   onClick={() => onPlayerClick?.(player)}
+                  className="transition-transform hover:scale-105"
                 />
               </div>
             ))}

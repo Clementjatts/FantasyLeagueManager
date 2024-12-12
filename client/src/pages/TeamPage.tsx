@@ -1,10 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TeamPitch } from "../components/TeamPitch";
-import { fetchMyTeam, fetchPlayers } from "../lib/api";
+import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CaptainDialog } from "../components/CaptainDialog";
+import { Player } from "../types/fpl";
+import { useToast } from "@/hooks/use-toast";
 
 export default function TeamPage() {
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ["/api/fpl/my-team/1"],
     queryFn: () => fetchMyTeam(1)
@@ -59,11 +66,60 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <TeamPitch 
-        players={teamPlayers}
-        captainId={captainId}
-        viceCaptainId={viceCaptainId}
-      />
+      <>
+        <TeamPitch 
+          players={teamPlayers}
+          captainId={captainId}
+          viceCaptainId={viceCaptainId}
+          onPlayerClick={setSelectedPlayer}
+        />
+        
+        {selectedPlayer && (
+          <CaptainDialog
+            player={selectedPlayer}
+            isOpen={!!selectedPlayer}
+            onClose={() => setSelectedPlayer(null)}
+            isCaptain={selectedPlayer.id === captainId}
+            isViceCaptain={selectedPlayer.id === viceCaptainId}
+            onMakeCaptain={() => {
+              updateCaptains(selectedPlayer.id, viceCaptainId || 0)
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team"] });
+                  toast({
+                    title: "Captain Updated",
+                    description: `${selectedPlayer.web_name} is now your captain`,
+                  });
+                  setSelectedPlayer(null);
+                })
+                .catch(() => {
+                  toast({
+                    title: "Error",
+                    description: "Failed to update captain",
+                    variant: "destructive",
+                  });
+                });
+            }}
+            onMakeViceCaptain={() => {
+              updateCaptains(captainId || 0, selectedPlayer.id)
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team"] });
+                  toast({
+                    title: "Vice Captain Updated",
+                    description: `${selectedPlayer.web_name} is now your vice captain`,
+                  });
+                  setSelectedPlayer(null);
+                })
+                .catch(() => {
+                  toast({
+                    title: "Error",
+                    description: "Failed to update vice captain",
+                    variant: "destructive",
+                  });
+                });
+            }}
+          />
+        )}
+      </>
     </div>
   );
 }
