@@ -186,7 +186,7 @@ export default function TeamPage() {
           {/* Captain Suggestions Section - Beside on desktop, below on mobile */}
           <div className="space-y-6">
             <CaptainSuggestions 
-              players={teamPlayers}
+              allPlayers={players}
               onSelectCaptain={setSelectedPlayer}
               currentCaptainId={captainId}
               currentViceCaptainId={viceCaptainId}
