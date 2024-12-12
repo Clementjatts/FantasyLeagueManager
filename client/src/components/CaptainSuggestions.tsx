@@ -50,24 +50,26 @@ export function CaptainSuggestions({
                 "ring-1 ring-primary/50"
               )}
             >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-medium">{player.web_name}</span>
-                  {player.id === currentCaptainId && (
-                    <Badge variant="default" className="bg-primary/90 h-5 min-w-[24px] flex items-center justify-center">
-                      C
-                    </Badge>
-                  )}
-                  {player.id === currentViceCaptainId && (
-                    <Badge variant="outline" className="border-primary/50 text-primary h-5 min-w-[28px] flex items-center justify-center">
-                      VC
-                    </Badge>
-                  )}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-sm">{player.web_name}</span>
+                    {player.id === currentCaptainId && (
+                      <Badge variant="default" className="bg-primary/90 h-[18px] min-w-[18px] flex items-center justify-center text-[11px] font-bold px-0">
+                        C
+                      </Badge>
+                    )}
+                    {player.id === currentViceCaptainId && (
+                      <Badge variant="outline" className="border-primary/50 text-primary h-[18px] min-w-[22px] flex items-center justify-center text-[11px] font-bold px-0">
+                        VC
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <Badge 
                   variant="secondary" 
                   className={cn(
-                    "h-5 px-2 flex items-center",
+                    "h-[18px] px-1.5 flex items-center text-[11px] font-semibold",
                     parseFloat(player.form) > 5 && "bg-green-500/10 text-green-500",
                     parseFloat(player.form) < 3 && "bg-red-500/10 text-red-500"
                   )}
@@ -76,26 +78,22 @@ export function CaptainSuggestions({
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-4 gap-x-6 text-sm">
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">Points</span>
-                  <span className="tabular-nums font-medium">{player.total_points}</span>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="flex flex-col items-center px-2 py-1 rounded-md bg-muted/40">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Points</span>
+                  <span className="text-sm tabular-nums font-semibold">{player.total_points}</span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">Position</span>
-                  <span className="font-medium">
+                <div className="flex flex-col items-center px-2 py-1 rounded-md bg-muted/40">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Position</span>
+                  <span className="text-sm font-semibold">
                     {player.element_type === 1 ? "GK" : 
                      player.element_type === 2 ? "DEF" :
                      player.element_type === 3 ? "MID" : "FWD"}
                   </span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">Price</span>
-                  <span className="tabular-nums font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs text-muted-foreground">Selected</span>
-                  <span className="tabular-nums font-medium">{player.selected_by_percent}%</span>
+                <div className="flex flex-col items-center px-2 py-1 rounded-md bg-muted/40">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Selected</span>
+                  <span className="text-sm tabular-nums font-semibold">{player.selected_by_percent}%</span>
                 </div>
               </div>
             </div>
