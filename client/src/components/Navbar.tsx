@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Users, Repeat } from "lucide-react";
+import { Home, Users, Repeat, BarChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -9,6 +9,7 @@ export function Navbar() {
     { href: "/", label: "Dashboard", icon: Home },
     { href: "/team", label: "Team", icon: Users },
     { href: "/transfers", label: "Transfers", icon: Repeat },
+    { href: "/statistics", label: "Statistics", icon: BarChart },
   ];
 
   return (

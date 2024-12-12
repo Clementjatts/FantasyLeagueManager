@@ -3,6 +3,7 @@ import { Navbar } from "./components/Navbar";
 import DashboardPage from "./pages/DashboardPage";
 import TeamPage from "./pages/TeamPage";
 import TransfersPage from "./pages/TransfersPage";
+import StatisticsPage from "./pages/StatisticsPage";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" component={DashboardPage} />
           <Route path="/team" component={TeamPage} />
           <Route path="/transfers" component={TransfersPage} />
+          <Route path="/statistics" component={StatisticsPage} />
           <Route>404 Page Not Found</Route>
         </Switch>
       </main>
