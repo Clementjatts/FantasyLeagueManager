@@ -36,20 +36,26 @@ export default function DashboardPage() {
     );
   }
 
-  // API data simulation
+  if (!team) {
+    return (
+      <Alert variant="destructive">
+        <AlertDescription>Failed to load team data</AlertDescription>
+      </Alert>
+    );
+  }
+
   const gameweekData = {
-    currentGameweek: 16,
-    points: 65,
-    averagePoints: 52,
-    highestPoints: 102,
-    rank: 1200000,
-    lastRank: 1500000,
+    currentGameweek: team.entry.gameweek,
+    points: team.entry.gameweek_points,
+    rank: team.entry.overall_rank,
+    totalPoints: team.entry.overall_points
   };
 
-  const mockPointsData = Array.from({ length: 15 }, (_, i) => ({
+  // TODO: Fetch real points history when API endpoint is available
+  const pointsData = Array.from({ length: gameweekData.currentGameweek }, (_, i) => ({
     gameweek: i + 1,
-    points: Math.floor(Math.random() * 30) + 40, // Random points between 40-70
-    average: Math.floor(Math.random() * 20) + 40, // Random average between 40-60
+    points: team.entry.gameweek_points,
+    average: 0 // Will be updated when we have the API endpoint
   }));
 
   // In a real app, this would come from the API

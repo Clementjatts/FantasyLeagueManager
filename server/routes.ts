@@ -16,25 +16,46 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/fpl/my-team/:managerId", async (req, res) => {
     const { managerId } = req.params;
-    
     try {
-      const team = await db.query.teams.findFirst({
-        where: eq(teams.userId, parseInt(managerId)),
-      });
-
-      if (!team) {
-        res.status(404).json({ message: "Team not found" });
-        return;
+      // Fetch base team data
+      const teamResponse = await fetch(`https://fantasy.premierleague.com/api/my-team/${managerId}/`);
+      if (!teamResponse.ok) {
+        return res.status(404).json({ message: "Team not found" });
       }
+      const teamData = await teamResponse.json();
 
-      // Ensure picks is an array
-      const picks = Array.isArray(team.picks) ? team.picks : [];
-      
-      res.json({
-        ...team,
-        picks
-      });
+      // Fetch entry/manager data for overall stats
+      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`);
+      if (!entryResponse.ok) {
+        return res.status(404).json({ message: "Entry not found" });
+      }
+      const entryData = await entryResponse.json();
+
+      // Fetch current gameweek data
+      const currentEvent = entryData.current_event;
+      const gwResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${currentEvent}/picks/`
+      );
+      const gwData = await gwResponse.json();
+
+      // Combine all data
+      const combinedData = {
+        picks: teamData.picks,
+        chips: teamData.chips,
+        transfers: teamData.transfers,
+        entry: {
+          overall_points: entryData.summary_overall_points,
+          overall_rank: entryData.summary_overall_rank,
+          gameweek_points: gwData.entry_history.points,
+          gameweek: currentEvent,
+          team_value: entryData.value,
+          bank: entryData.bank,
+        }
+      };
+
+      res.json(combinedData);
     } catch (error) {
+      console.error("Error fetching team data:", error);
       res.status(500).json({ message: "Failed to fetch team" });
     }
   });
