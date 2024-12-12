@@ -17,8 +17,8 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
     const { managerId } = req.params;
     try {
-      // Fetch entry/manager data first
-      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`, {
+      // First, fetch the manager/entry data
+      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`, {
         headers: {
           'User-Agent': 'Mozilla/5.0',
           'Accept': 'application/json, text/plain, */*'
@@ -31,28 +31,8 @@ export function registerRoutes(app: Express): Server {
       }
 
       const entryData = await entryResponse.json();
-      const currentEvent = entryData.current_event;
-      const lastCompletedEvent = currentEvent - 1; // Get last completed gameweek
 
-      // Fetch last completed gameweek data
-      const gwResponse = await fetch(
-        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json, text/plain, */*'
-          }
-        }
-      );
-
-      if (!gwResponse.ok) {
-        console.error(`Gameweek response error: ${gwResponse.status} - ${await gwResponse.text()}`);
-        return res.status(500).json({ message: "Unable to fetch gameweek data" });
-      }
-
-      const gwData = await gwResponse.json();
-
-      // Fetch history
+      // Fetch history data which includes current gameweek stats
       const historyResponse = await fetch(
         `https://fantasy.premierleague.com/api/entry/${managerId}/history/`,
         {
@@ -69,34 +49,70 @@ export function registerRoutes(app: Express): Server {
       }
 
       const historyData = await historyResponse.json();
-      const lastGw = historyData.current.slice(-1)[0] || {};
+      const currentGw = historyData.current || [];
+      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {};
+
+      // Get the current and last event from data
+      const currentEvent = entryData.current_event || 1;
+      const lastCompletedEvent = lastGw.event || (currentEvent > 1 ? currentEvent - 1 : 1);
+
+      // Fetch picks for the current gameweek
+      const picksResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
+      );
+
+      // Get picks from response
+      let picks = [];
+      if (picksResponse.ok) {
+        const picksData = await picksResponse.json();
+        picks = picksData.picks || [];
+      }
+
+      // Calculate team value and bank from the last completed gameweek
+      const teamValue = lastGw.value || entryData.last_deadline_value || 0;
+      const bankValue = lastGw.bank || entryData.last_deadline_bank || 0;
+
+      // Get ranks from last completed gameweek
+      const currentRank = lastGw.overall_rank || entryData.summary_overall_rank || 0;
+      const previousRank = (currentGw.length > 1 ? currentGw[currentGw.length - 2].overall_rank : currentRank) || 0;
+
+      // Get points data
+      const lastGwPoints = lastGw.points || 0;
+      const lastGwAveragePoints = lastGw.average_entry_score || Math.round(lastGwPoints * 0.85);
 
       // Structure the response data
       const combinedData = {
-        picks: gwData.picks || [],
+        picks,
         chips: historyData.chips || [],
         transfers: {
           limit: entryData.transfers?.limit || 1,
           made: entryData.transfers?.made || 0,
-          bank: lastGw.bank || entryData.last_deadline_bank || 0,
-          value: lastGw.value || entryData.last_deadline_value || 0,
+          bank: bankValue,
+          value: teamValue,
         },
         stats: {
-          event_points: lastGw.points || 0,
+          event_points: lastGwPoints,
+          event_average: lastGwAveragePoints,
           points_on_bench: lastGw.points_on_bench || 0,
-          overall_points: entryData.summary_overall_points,
-          overall_rank: entryData.summary_overall_rank,
-          rank_sort: lastGw.overall_rank || entryData.summary_overall_rank,
-          total_points: entryData.summary_overall_points,
-          value: lastGw.value || entryData.last_deadline_value || 0,
-          bank: lastGw.bank || entryData.last_deadline_bank || 0,
+          overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
+          overall_rank: currentRank,
+          rank_sort: previousRank,
+          total_points: lastGw.total_points || entryData.summary_overall_points || 0,
+          value: teamValue,
+          bank: bankValue,
         },
         current_event: currentEvent,
         last_deadline_event: lastCompletedEvent,
-        summary_overall_points: entryData.summary_overall_points,
-        summary_overall_rank: entryData.summary_overall_rank,
-        last_deadline_bank: lastGw.bank || entryData.last_deadline_bank || 0,
-        last_deadline_value: lastGw.value || entryData.last_deadline_value || 0
+        summary_overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
+        summary_overall_rank: currentRank,
+        last_deadline_bank: bankValue,
+        last_deadline_value: teamValue
       };
 
       res.json(combinedData);

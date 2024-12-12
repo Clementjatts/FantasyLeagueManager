@@ -4,13 +4,11 @@ const API_BASE = "/api/fpl";
 
 export async function fetchMyTeam(managerId: number): Promise<Team> {
   const res = await fetch(`${API_BASE}/my-team/${managerId}/`);
-  if (!res.ok) throw new Error("Failed to fetch team");
-  const data = await res.json();
-  return {
-    picks: data.picks,
-    chips: data.chips,
-    transfers: data.transfers
-  };
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to fetch team");
+  }
+  return res.json();
 }
 
 export async function fetchPlayers(): Promise<Player[]> {
