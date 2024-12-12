@@ -19,7 +19,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
   const sortedData = [...data].sort((a, b) => b.event - a.event);
 
   return (
-    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-primary before:to-primary/20 before:content-['']">
+    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-6 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary before:to-primary/20 before:content-['']">
       {sortedData.map((gw, index) => {
         const pointsDiff = gw.points - gw.average;
         const performanceColor = pointsDiff >= 0 ? "text-green-500" : "text-red-500";
@@ -27,8 +27,8 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
 
         return (
           <div key={gw.event} className="relative flex items-center">
-            <div className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-primary to-blue-500 shadow-lg ring-2 ring-background">
-              <span className="text-2xl font-black text-white">{gw.event}</span>
+            <div className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-primary to-blue-500 shadow-md ring-4 ring-background">
+              <span className="text-2xl font-black text-white select-none">{gw.event}</span>
             </div>
 
             <Card className={cn(
