@@ -74,9 +74,16 @@ export function registerRoutes(app: Express): Server {
         picks = picksData.picks || [];
       }
 
-      // Calculate team value and bank from the last completed gameweek
-      const teamValue = lastGw.value || entryData.last_deadline_value || 0;
-      const bankValue = lastGw.bank || entryData.last_deadline_bank || 0;
+      // Ensure all gameweeks history is available for points graph
+      const pointsHistory = currentGw.map(gw => ({
+        event: gw.event,
+        points: gw.points,
+        average: gw.average_entry_score
+      }));
+
+      // Get the most recent team value and bank
+      const teamValue = entryData.last_deadline_value || lastGw.value || 0;
+      const bankValue = entryData.last_deadline_bank || lastGw.bank || 0;
 
       // Get ranks from last completed gameweek
       const currentRank = lastGw.overall_rank || entryData.summary_overall_rank || 0;
@@ -96,6 +103,7 @@ export function registerRoutes(app: Express): Server {
           bank: bankValue,
           value: teamValue,
         },
+        points_history: pointsHistory,
         stats: {
           event_points: lastGwPoints,
           event_average: lastGwAveragePoints,
