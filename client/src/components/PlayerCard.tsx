@@ -32,21 +32,36 @@ function predictNextMatchPoints(player: Player, fixtures: any[] = [], teams: any
   if (!nextFixture) return 0;
 
   // Base prediction from form and points per game
-  const formPoints = parseFloat(player.form || "0") * 2;
-  const historyPoints = parseFloat(player.points_per_game || "0") * 2;
+  const formPoints = parseFloat(player.form || "0") * 0.8;
+  const historyPoints = parseFloat(player.points_per_game || "0") * 0.7;
   
-  // Fixture difficulty adjustment
+  // Position-specific base points
+  const positionBase = {
+    1: 2.5, // GK: Clean sheet potential
+    2: 2.0, // DEF: Clean sheet potential
+    3: 2.0, // MID: Mix of attack and defense
+    4: 2.0  // FWD: Goal potential
+  }[player.element_type] || 2.0;
+  
+  // Fixture difficulty has more impact
   const difficulty = nextFixture.difficulty || 3;
-  const difficultyFactor = (5 - difficulty) / 2; // Easier fixtures give bonus
+  const difficultyFactor = Math.max(0, 3 - difficulty) * 0.5; // Easier fixtures give smaller bonus
   
-  // Minutes factor (favor regular starters)
-  const minutesFactor = player.minutes > 450 ? 1.2 : // Regular starter
+  // Minutes factor (slightly reduced impact)
+  const minutesFactor = player.minutes > 450 ? 1.1 : // Regular starter
                        player.minutes > 270 ? 1.0 : // Often plays
-                       player.minutes > 90 ? 0.8 : // Sometimes plays
-                       0.5; // Rarely plays
+                       player.minutes > 90 ? 0.7 : // Sometimes plays
+                       0.4; // Rarely plays
   
-  const prediction = Math.round((formPoints + historyPoints + difficultyFactor) * minutesFactor);
-  return Math.max(1, Math.min(prediction, 20)); // Cap between 1-20 points
+  // Calculate base prediction
+  const prediction = (
+    (formPoints + historyPoints + positionBase) * 
+    minutesFactor + 
+    difficultyFactor
+  );
+  
+  // Round and cap between 1-12 points
+  return Math.max(1, Math.min(12, Math.round(prediction)));
 }
 
 export function PlayerCard({ 
@@ -59,8 +74,8 @@ export function PlayerCard({
   teams = []
 }: PlayerCardProps) {
   const nextPoints = predictNextMatchPoints(player, fixtures, teams);
-  const isHighPoints = nextPoints >= 8;
-  const isLowPoints = nextPoints <= 3;
+  const isHighPoints = nextPoints >= 6;
+  const isLowPoints = nextPoints <= 2;
   
   // Get team abbreviation from teams data
   const teamInfo = teams?.find(t => t.id === player.team);
