@@ -36,32 +36,32 @@ export function PlayerCard({ player, isCaptain, isViceCaptain, onClick, classNam
         </div>
       </CardHeader>
       <CardContent className="p-3 pt-0">
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>
-            <span className="text-muted-foreground">Form: </span>
-            <span className="font-medium">{player.form}</span>
+        <div className="flex flex-col space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Form:</span>
+              <span className="font-medium">{player.form}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Points:</span>
+              <span className="font-medium">{player.total_points}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Position:</span>
+              <span className="font-medium">
+                {player.element_type === 1 ? "GK" : 
+                 player.element_type === 2 ? "DEF" :
+                 player.element_type === 3 ? "MID" : "FWD"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Price:</span>
+              <span className="font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Selected:</span>
+              <span className="font-medium">{player.selected_by_percent}%</span>
+            </div>
           </div>
-          <div>
-            <span className="text-muted-foreground">Points: </span>
-            <span className="font-medium">{player.total_points}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Price: </span>
-            <span className="font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Position: </span>
-            <span className="font-medium">
-              {player.element_type === 1 ? "GK" : 
-               player.element_type === 2 ? "DEF" :
-               player.element_type === 3 ? "MID" : "FWD"}
-            </span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Selected: </span>
-            <span className="font-medium">{player.selected_by_percent}%</span>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

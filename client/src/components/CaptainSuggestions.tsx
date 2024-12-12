@@ -67,26 +67,31 @@ export function CaptainSuggestions({
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs">
-                    <span className="whitespace-nowrap">
-                      Form: <span className="font-medium">{player.form}</span>
-                    </span>
-                    <span className="whitespace-nowrap">
-                      Points: <span className="font-medium">{player.total_points}</span>
-                    </span>
-                    <span className="whitespace-nowrap">
-                      Position: <span className="font-medium">
+                  <div className="flex flex-col space-y-1.5 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Form:</span>
+                      <span className="font-medium">{player.form}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Points:</span>
+                      <span className="font-medium">{player.total_points}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Position:</span>
+                      <span className="font-medium">
                         {player.element_type === 1 ? "GK" : 
                          player.element_type === 2 ? "DEF" :
                          player.element_type === 3 ? "MID" : "FWD"}
                       </span>
-                    </span>
-                    <span className="whitespace-nowrap">
-                      Price: <span className="font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
-                    </span>
-                    <span className="whitespace-nowrap">
-                      Selected: <span className="font-medium">{player.selected_by_percent}%</span>
-                    </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Price:</span>
+                      <span className="font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Selected:</span>
+                      <span className="font-medium">{player.selected_by_percent}%</span>
+                    </div>
                   </div>
                 </div>
               </div>

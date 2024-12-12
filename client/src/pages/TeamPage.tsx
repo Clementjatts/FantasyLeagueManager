@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
 import { CaptainSuggestions } from "../components/CaptainSuggestions";
@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
-import { Player } from "../types/fpl";
+import { type Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, Users, Coins, AlertCircle } from "lucide-react";
 
@@ -31,7 +31,7 @@ export default function TeamPage() {
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
-    queryFn: () => fetchPlayers()
+    queryFn: fetchPlayers
   });
 
   if (!teamId) {
@@ -121,95 +121,93 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="grid gap-6 lg:grid-cols-[1fr,300px]">
-          <div className="space-y-6">
-            <TeamPitch 
-              players={teamPlayers}
-              captainId={captainId}
-              viceCaptainId={viceCaptainId}
-              onPlayerClick={setSelectedPlayer}
+      <div className="space-y-8">
+        {/* Team Pitch */}
+        <TeamPitch 
+          players={teamPlayers}
+          captainId={captainId}
+          viceCaptainId={viceCaptainId}
+          onPlayerClick={setSelectedPlayer}
+        />
+
+        {/* Selected Player Stats */}
+        {selectedPlayer && (
+          <>
+            <PlayerStats player={selectedPlayer} />
+            <CaptainDialog
+              player={selectedPlayer}
+              isOpen={!!selectedPlayer}
+              onClose={() => setSelectedPlayer(null)}
+              isCaptain={selectedPlayer.id === captainId}
+              isViceCaptain={selectedPlayer.id === viceCaptainId}
+              onMakeCaptain={() => {
+                updateCaptains(selectedPlayer.id, viceCaptainId || 0)
+                  .then(() => {
+                    queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                    toast({
+                      title: "Captain Updated",
+                      description: `${selectedPlayer.web_name} is now your captain`,
+                    });
+                    setSelectedPlayer(null);
+                  })
+                  .catch(() => {
+                    toast({
+                      title: "Error",
+                      description: "Failed to update captain",
+                      variant: "destructive",
+                    });
+                  });
+              }}
+              onMakeViceCaptain={() => {
+                updateCaptains(captainId || 0, selectedPlayer.id)
+                  .then(() => {
+                    queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                    toast({
+                      title: "Vice Captain Updated",
+                      description: `${selectedPlayer.web_name} is now your vice captain`,
+                    });
+                    setSelectedPlayer(null);
+                  })
+                  .catch(() => {
+                    toast({
+                      title: "Error",
+                      description: "Failed to update vice captain",
+                      variant: "destructive",
+                    });
+                  });
+              }}
             />
+          </>
+        )}
 
-            {selectedPlayer && (
-              <>
-                <PlayerStats player={selectedPlayer} />
-                <CaptainDialog
-                  player={selectedPlayer}
-                  isOpen={!!selectedPlayer}
-                  onClose={() => setSelectedPlayer(null)}
-                  isCaptain={selectedPlayer.id === captainId}
-                  isViceCaptain={selectedPlayer.id === viceCaptainId}
-                  onMakeCaptain={() => {
-                    updateCaptains(selectedPlayer.id, viceCaptainId || 0)
-                      .then(() => {
-                        queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                        toast({
-                          title: "Captain Updated",
-                          description: `${selectedPlayer.web_name} is now your captain`,
-                        });
-                        setSelectedPlayer(null);
-                      })
-                      .catch(() => {
-                        toast({
-                          title: "Error",
-                          description: "Failed to update captain",
-                          variant: "destructive",
-                        });
-                      });
-                  }}
-                  onMakeViceCaptain={() => {
-                    updateCaptains(captainId || 0, selectedPlayer.id)
-                      .then(() => {
-                        queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                        toast({
-                          title: "Vice Captain Updated",
-                          description: `${selectedPlayer.web_name} is now your vice captain`,
-                        });
-                        setSelectedPlayer(null);
-                      })
-                      .catch(() => {
-                        toast({
-                          title: "Error",
-                          description: "Failed to update vice captain",
-                          variant: "destructive",
-                        });
-                      });
-                  }}
-                />
-              </>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Value Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Starting XI</p>
-                      <p className="text-lg font-semibold">
-                        £{(teamPlayers.filter(p => p.position <= 11)
-                          .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Bench</p>
-                      <p className="text-lg font-semibold">
-                        £{(teamPlayers.filter(p => p.position > 11)
-                          .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
-                      </p>
-                    </div>
-                  </div>
+        {/* Team Value Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Value Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Starting XI</p>
+                  <p className="text-lg font-semibold">
+                    £{(teamPlayers.filter(p => p.position <= 11)
+                      .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Bench</p>
+                  <p className="text-lg font-semibold">
+                    £{(teamPlayers.filter(p => p.position > 11)
+                      .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
+        {/* Captain Suggestions */}
         <CaptainSuggestions 
           players={teamPlayers}
           onSelectCaptain={setSelectedPlayer}
