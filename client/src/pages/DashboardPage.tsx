@@ -57,9 +57,9 @@ export default function DashboardPage() {
 
   // Points data for the history chart
   const pointsData = team?.points_history?.map(gw => ({
-    gameweek: gw.event,
-    points: gw.points,
-    average: gw.average
+    gameweek: gw.event || 0,
+    points: gw.points || 0,
+    average: gw.average || 0
   })) || [];
 
   // In a real app, this would come from the API

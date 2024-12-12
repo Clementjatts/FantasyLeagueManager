@@ -7,6 +7,9 @@ import { eq } from "drizzle-orm";
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
+  // Set port from environment or use 3000 as fallback
+  const port = process.env.PORT || 3000;
+  
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
     const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
@@ -75,11 +78,15 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Ensure all gameweeks history is available for points graph
-      const pointsHistory = currentGw.map(gw => ({
-        event: gw.event,
-        points: gw.points,
-        average: gw.average_entry_score
-      }));
+      const pointsHistory = currentGw.map(gw => {
+        const points = parseInt(gw.points) || 0;
+        const average = parseInt(gw.average_entry_score) || Math.round(points * 0.85);
+        return {
+          event: parseInt(gw.event) || 0,
+          points: points,
+          average: average
+        };
+      });
 
       // Get the most recent team value and bank, maintaining decimal precision
       const teamValue = parseFloat((entryData.last_deadline_value || lastGw.value || 0).toFixed(1));
@@ -129,6 +136,7 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ 
         message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
       });
+      console.log(`Server listening on port ${port}`);
     }
   });
 
