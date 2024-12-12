@@ -14,11 +14,11 @@ export function registerRoutes(app: Express): Server {
     res.json(data);
   });
 
-  app.get("/api/fpl/my-team/:managerId", async (req, res) => {
+  app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
     const { managerId } = req.params;
     try {
       // Fetch entry/manager data first
-      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`, {
+      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`, {
         headers: {
           'User-Agent': 'Mozilla/5.0',
           'Accept': 'application/json, text/plain, */*'

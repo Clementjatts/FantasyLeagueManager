@@ -3,7 +3,7 @@ import { Player, Team, Fixture } from "../types/fpl";
 const API_BASE = "/api/fpl";
 
 export async function fetchMyTeam(managerId: number): Promise<Team> {
-  const res = await fetch(`${API_BASE}/my-team/${managerId}`);
+  const res = await fetch(`${API_BASE}/my-team/${managerId}/`);
   if (!res.ok) throw new Error("Failed to fetch team");
   const data = await res.json();
   return {
