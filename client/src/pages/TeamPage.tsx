@@ -225,30 +225,7 @@ export default function TeamPage() {
             </>
           )}
 
-          {/* Team Value Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Team Value Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Starting XI</p>
-                    <p className="text-lg font-semibold">
-                      £{(startingXI.reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Bench</p>
-                    <p className="text-lg font-semibold">
-                      £{(substitutes.reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          
         </div>
 
         {/* Right Column - Captain Suggestions */}
