@@ -14,6 +14,11 @@ interface CaptainSuggestionsProps {
   currentViceCaptainId?: number;
 }
 
+interface TeamData {
+  id: number;
+  short_name: string;
+}
+
 export function CaptainSuggestions({ 
   allPlayers, 
   onSelectCaptain,
@@ -32,35 +37,48 @@ export function CaptainSuggestions({
 
   // Calculate player scores based on form and upcoming fixture difficulty
   const viableCaptains = useMemo(() => {
-    if (!fixtures || !bootstrapData || !bootstrapData.teams) return [];
+    if (!fixtures || !bootstrapData?.teams) {
+      console.log("Missing data:", { fixtures: !!fixtures, bootstrapData: !!bootstrapData });
+      return [];
+    }
 
     // Create team mapping
-    const teamMap = bootstrapData.teams.reduce((acc: Record<number, string>, team: any) => {
+    const teamMap = bootstrapData.teams.reduce((acc: Record<number, string>, team: TeamData) => {
       acc[team.id] = team.short_name;
       return acc;
-    }, {} as Record<number, string>);
+    }, {});
 
     // Get next gameweek's fixtures
-    const nextGameweek = fixtures.find(f => !f.finished)?.event;
-    if (!nextGameweek) return [];
-
+    const nextGameweek = Math.min(...fixtures.map(f => f.event || 38));
     const nextFixtures = fixtures.filter(f => f.event === nextGameweek);
-    
+
+    console.log("Processing fixtures:", {
+      nextGameweek,
+      fixturesCount: nextFixtures.length,
+      teamMap
+    });
+
     return allPlayers
-      .filter(p => p.minutes > 180) // Players with significant minutes
+      .filter(p => p.minutes > 0) // Only players who have played
       .map(player => {
         const nextFixture = nextFixtures.find(f => 
           f.team_h === player.team || f.team_a === player.team
         );
         
-        if (!nextFixture) return null;
+        if (!nextFixture) {
+          console.log("No fixture found for player:", player.web_name);
+          return null;
+        }
 
         const isHome = nextFixture.team_h === player.team;
         const opponent = isHome ? nextFixture.team_a : nextFixture.team_h;
         const difficulty = nextFixture.difficulty || 3;
         const opponentName = teamMap[opponent];
         
-        if (!opponentName) return null;
+        if (!opponentName) {
+          console.log("No team name found for opponent:", opponent);
+          return null;
+        }
 
         // Calculate captain score based on form and fixture difficulty
         const captainScore = 
@@ -83,6 +101,8 @@ export function CaptainSuggestions({
   }, [allPlayers, fixtures, bootstrapData]);
 
   const isLoading = !fixtures || !bootstrapData;
+
+  console.log("Viable captains:", viableCaptains.length);
 
   return (
     <Card className="bg-gradient-to-br from-background to-muted/5">
