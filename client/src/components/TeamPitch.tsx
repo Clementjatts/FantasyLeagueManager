@@ -22,18 +22,12 @@ export function TeamPitch({
   const starters = players.filter(p => p.position <= 11);
   const substitutes = players.filter(p => p.position > 11);
 
-  // Organize players by position type
-  const gk = starters.filter(p => p.element_type === 1).sort((a, b) => a.position - b.position);
-  const def = starters.filter(p => p.element_type === 2).sort((a, b) => a.position - b.position);
-  const mid = starters.filter(p => p.element_type === 3).sort((a, b) => a.position - b.position);
-  const fwd = starters.filter(p => p.element_type === 4).sort((a, b) => a.position - b.position);
-
-  // Ensure we have valid formation (1-3-5-2, 1-4-4-2, 1-4-3-3, etc.)
+  // Group players by their actual positions (1-11 for starters)
   const positions = {
-    1: gk.slice(0, 1),      // 1 goalkeeper
-    2: def.slice(0, 5),     // 3-5 defenders
-    3: mid.slice(0, 5),     // 3-5 midfielders
-    4: fwd.slice(0, 3),     // 1-3 forwards
+    1: starters.filter(p => p.position === 1),  // GK
+    2: starters.filter(p => p.position >= 2 && p.position <= 5),  // DEF
+    3: starters.filter(p => p.position >= 6 && p.position <= 8),  // MID
+    4: starters.filter(p => p.position >= 9 && p.position <= 11), // FWD
   };
 
   return (
