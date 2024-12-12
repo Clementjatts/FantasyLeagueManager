@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
-import { FormationAnalysis } from "../components/FormationAnalysis";
+
 import { PlayerStats } from "../components/PlayerStats";
 import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -181,8 +181,6 @@ export default function TeamPage() {
         </div>
 
         <div className="space-y-6">
-          <FormationAnalysis picks={team.picks} />
-          
           <Card>
             <CardHeader>
               <CardTitle>Team Value Breakdown</CardTitle>
