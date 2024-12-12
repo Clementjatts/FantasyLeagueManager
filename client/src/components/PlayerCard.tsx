@@ -72,12 +72,6 @@ export function PlayerCard({
             </span>
           </div>
         </div>
-        
-        <div className="flex items-center justify-end text-sm">
-          <span className="text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity">
-            {teamAbbr}
-          </span>
-        </div>
       </div>
     </Card>
   );
