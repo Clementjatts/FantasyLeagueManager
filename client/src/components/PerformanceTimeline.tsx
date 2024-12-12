@@ -28,7 +28,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
         return (
           <div key={gw.event} className="relative flex items-center">
             <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow">
-              <span className="font-bold text-white">GW{gw.event}</span>
+              <span className="text-sm font-bold text-white">Gameweek {gw.event}</span>
             </div>
 
             <Card className={cn(
@@ -41,16 +41,16 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">Points</p>
                     <p className="text-2xl font-bold">{gw.points}</p>
-                    <div className={cn("flex items-center gap-1 text-sm", performanceColor)}>
-                      {pointsDiff > 0 ? (
-                        <TrendingUp className="h-4 w-4" />
-                      ) : pointsDiff < 0 ? (
-                        <TrendingDown className="h-4 w-4" />
-                      ) : (
-                        <Minus className="h-4 w-4" />
-                      )}
-                      {Math.abs(pointsDiff)} vs avg
-                    </div>
+                    {pointsDiff !== 0 && (
+                      <div className={cn("flex items-center gap-1 text-sm", performanceColor)}>
+                        {pointsDiff > 0 ? (
+                          <TrendingUp className="h-4 w-4" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4" />
+                        )}
+                        {Math.abs(pointsDiff)} vs avg
+                      </div>
+                    )}
                   </div>
 
                   <div className="col-span-2">
@@ -78,7 +78,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
 
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Average</p>
-                    <p className="text-lg font-medium">{gw.average}</p>
+                    <p className="text-2xl font-bold">{gw.average}</p>
                   </div>
                 </div>
               </CardContent>
