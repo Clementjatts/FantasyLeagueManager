@@ -18,12 +18,12 @@ export function Navbar() {
     <nav className="border-b bg-gradient-to-r from-background/95 via-background to-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex-shrink-0 mr-8">
             <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent select-none">
               FPLManager
             </div>
           </div>
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="flex items-center gap-2 md:gap-4">
             {links.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <a
