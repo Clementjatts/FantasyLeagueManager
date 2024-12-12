@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { TrendingUp, TrendingDown, Minus, Trophy } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface GameweekData {
-  event: number;
+  gameweek: number;
   points: number;
   average: number;
 }
@@ -16,34 +16,39 @@ interface PerformanceTimelineProps {
 
 export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
   // Sort data by gameweek in ascending order
-  const sortedData = [...data].sort((a, b) => a.event - b.event);
+  const sortedData = [...data].sort((a, b) => a.gameweek - b.gameweek);
 
   return (
-    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-6 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary before:to-primary/20 before:content-['']">
+    <div className="space-y-6">
       {sortedData.map((gw, index) => {
         const pointsDiff = gw.points - gw.average;
-        const performanceColor = pointsDiff >= 0 ? "text-green-500" : "text-red-500";
-        const progressValue = (gw.points / Math.max(...data.map(d => d.points))) * 100;
-
+        const isPositive = pointsDiff >= 0;
+        
         return (
-          <div key={gw.event} className="relative flex items-center">
-            <div className="absolute left-0 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 via-primary to-blue-500 shadow-md ring-4 ring-background">
-              <span className="text-2xl font-black text-white select-none">{gw.event}</span>
+          <div key={gw.gameweek} className="flex items-start gap-4">
+            {/* Gameweek Circle */}
+            <div className="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 via-primary to-blue-500 flex items-center justify-center shadow-lg">
+              <span className="text-2xl font-bold text-white">{gw.gameweek}</span>
             </div>
 
+            {/* Performance Card */}
             <Card className={cn(
-              "ml-20 w-full transition-all duration-200",
-              "hover:shadow-lg hover:scale-[1.02]",
-              index === sortedData.length - 1 && "ring-2 ring-primary ring-offset-2"
+              "flex-grow transition-all duration-200",
+              "hover:shadow-lg",
+              index === sortedData.length - 1 && "ring-2 ring-primary"
             )}>
               <CardContent className="p-4">
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-3 gap-4">
+                  {/* Points */}
                   <div>
                     <p className="text-sm text-muted-foreground">Points</p>
                     <p className="text-2xl font-bold">{gw.points}</p>
                     {pointsDiff !== 0 && (
-                      <div className={cn("flex items-center gap-1 text-sm", performanceColor)}>
-                        {pointsDiff > 0 ? (
+                      <div className={cn(
+                        "flex items-center gap-1 text-sm",
+                        isPositive ? "text-green-500" : "text-red-500"
+                      )}>
+                        {isPositive ? (
                           <TrendingUp className="h-4 w-4" />
                         ) : (
                           <TrendingDown className="h-4 w-4" />
@@ -53,37 +58,30 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
                     )}
                   </div>
 
-                  <div className="col-span-2">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Performance</span>
-                        <span className="font-medium">{progressValue.toFixed(0)}%</span>
-                      </div>
-                      <Progress value={progressValue} className="h-2" />
-                      <div className="flex gap-2">
-                        {pointsDiff >= 10 && (
-                          <Badge variant="default" className="bg-green-500">
-                            <Trophy className="w-3 h-3 mr-1" />
-                            Great Week
-                          </Badge>
-                        )}
-                        {gw.points > gw.average && (
-                          <Badge variant="outline" className="border-green-500 text-green-500">
-                            Above Average
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                  {/* Performance Indicator */}
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">Performance</p>
+                    <Progress 
+                      value={(gw.points / Math.max(...data.map(d => d.points))) * 100} 
+                      className="h-2 mb-2"
+                    />
+                    {pointsDiff >= 10 && (
+                      <Badge variant="default" className="bg-green-500">
+                        High Score
+                      </Badge>
+                    )}
                   </div>
 
+                  {/* Average */}
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Average</p>
                     <p className="text-2xl font-bold">{gw.average}</p>
-                    {pointsDiff !== 0 && (
-                      <div className={cn("text-sm", performanceColor)}>
-                        {gw.points > gw.average ? "Above" : "Below"} average
-                      </div>
-                    )}
+                    <p className={cn(
+                      "text-sm",
+                      isPositive ? "text-green-500" : "text-red-500"
+                    )}>
+                      {isPositive ? "Above" : "Below"} average
+                    </p>
                   </div>
                 </div>
               </CardContent>
