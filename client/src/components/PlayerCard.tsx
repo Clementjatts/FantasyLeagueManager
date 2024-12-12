@@ -21,30 +21,32 @@ const positionMap: Record<number, string> = {
   4: "FWD"
 };
 
-function predictPlayerPoints(player: Player, fixtures: any[] = []): number {
-  // Base points from current form
-  const formPoints = parseFloat(player.form) * 4;
+function predictNextMatchPoints(player: Player, fixtures: any[] = [], teams: any[] = []): number {
+  if (!fixtures.length || !teams.length) return 0;
   
-  // Historical performance points
-  const historyPoints = parseFloat(player.points_per_game) * 3;
+  // Find next fixture for player's team
+  const nextFixture = fixtures.find(f => 
+    f.team_h === player.team || f.team_a === player.team
+  );
   
-  // Minutes prediction
-  const minutesFactor = player.minutes > 450 ? 1.3 : // Over 5 full games
-                       player.minutes > 270 ? 1.1 : // Over 3 full games
-                       player.minutes > 90 ? 0.8 : // At least 1 full game
-                       0.4; // Bench/irregular player
+  if (!nextFixture) return 0;
+
+  // Base prediction from form and points per game
+  const formPoints = parseFloat(player.form || "0") * 2;
+  const historyPoints = parseFloat(player.points_per_game || "0") * 2;
   
-  // Fixture difficulty impact
-  const fixturePoints = fixtures.reduce((acc, f, index) => {
-    const difficultyFactor = 5 - (f.difficulty || 3);
-    const gameweekWeight = Math.max(1 - (index * 0.15), 0.4);
-    return acc + (difficultyFactor * 2 * gameweekWeight);
-  }, 0) / Math.max(fixtures.length, 1);
+  // Fixture difficulty adjustment
+  const difficulty = nextFixture.difficulty || 3;
+  const difficultyFactor = (5 - difficulty) / 2; // Easier fixtures give bonus
   
-  // Recent trend bonus
-  const trendBonus = parseFloat(player.form) > parseFloat(player.points_per_game) ? 1.2 : 1.0;
+  // Minutes factor (favor regular starters)
+  const minutesFactor = player.minutes > 450 ? 1.2 : // Regular starter
+                       player.minutes > 270 ? 1.0 : // Often plays
+                       player.minutes > 90 ? 0.8 : // Sometimes plays
+                       0.5; // Rarely plays
   
-  return Math.round((formPoints + historyPoints + fixturePoints) * minutesFactor * trendBonus);
+  const prediction = Math.round((formPoints + historyPoints + difficultyFactor) * minutesFactor);
+  return Math.max(1, Math.min(prediction, 20)); // Cap between 1-20 points
 }
 
 export function PlayerCard({ 
@@ -56,9 +58,13 @@ export function PlayerCard({
   fixtures = [],
   teams = []
 }: PlayerCardProps) {
-  const psp = predictPlayerPoints(player, fixtures);
-  const isHighPSP = psp >= 15;
-  const isLowPSP = psp < 8;
+  const nextPoints = predictNextMatchPoints(player, fixtures, teams);
+  const isHighPoints = nextPoints >= 8;
+  const isLowPoints = nextPoints <= 3;
+  
+  // Get team abbreviation from teams data
+  const teamInfo = teams?.find(t => t.id === player.team);
+  const teamAbbr = teamInfo?.short_name || player.team?.toString();
 
   return (
     <Card 
@@ -93,18 +99,18 @@ export function PlayerCard({
             variant="secondary" 
             className={cn(
               "h-5 px-1.5 flex items-center gap-1 text-xs font-medium",
-              isHighPSP && "bg-green-500/10 text-green-500",
-              isLowPSP && "bg-red-500/10 text-red-500"
+              isHighPoints && "bg-green-500/10 text-green-500",
+              isLowPoints && "bg-red-500/10 text-red-500"
             )}
           >
             <TrendingUp className="w-3 h-3" />
-            PSP {psp}
+            Pred: {nextPoints}
           </Badge>
         </div>
         
         <div className="flex items-center justify-end text-sm">
           <span className="text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity">
-            {player.team}
+            {teamAbbr}
           </span>
         </div>
       </div>
