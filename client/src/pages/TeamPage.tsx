@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function TeamPage() {
   const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ["/api/fpl/my-team/1"],
+    queryFn: () => fetchMyTeam(1)
   });
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
