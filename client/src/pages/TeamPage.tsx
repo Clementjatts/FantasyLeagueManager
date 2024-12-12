@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
-
+import { CaptainSuggestions } from "../components/CaptainSuggestions";
 import { PlayerStats } from "../components/PlayerStats";
 import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -181,6 +181,13 @@ export default function TeamPage() {
         </div>
 
         <div className="space-y-6">
+          <CaptainSuggestions 
+            players={teamPlayers}
+            onSelectCaptain={setSelectedPlayer}
+            currentCaptainId={captainId}
+            currentViceCaptainId={viceCaptainId}
+          />
+          
           <Card>
             <CardHeader>
               <CardTitle>Team Value Breakdown</CardTitle>
