@@ -41,9 +41,11 @@ export function CaptainSuggestions({
     }, {} as Record<number, string>);
 
     // Get next gameweek's fixtures
-    const nextGameweek = fixtures[0]?.event;
-    const nextFixtures = fixtures.filter(f => f.event === nextGameweek);
+    const nextGameweek = fixtures.find(f => !f.finished)?.event;
+    if (!nextGameweek) return [];
 
+    const nextFixtures = fixtures.filter(f => f.event === nextGameweek);
+    
     return allPlayers
       .filter(p => p.minutes > 180) // Players with significant minutes
       .map(player => {
@@ -51,10 +53,15 @@ export function CaptainSuggestions({
           f.team_h === player.team || f.team_a === player.team
         );
         
-        const isHome = nextFixture?.team_h === player.team;
-        const opponent = isHome ? nextFixture?.team_a : nextFixture?.team_h;
-        const difficulty = nextFixture?.difficulty || 3;
+        if (!nextFixture) return null;
+
+        const isHome = nextFixture.team_h === player.team;
+        const opponent = isHome ? nextFixture.team_a : nextFixture.team_h;
+        const difficulty = nextFixture.difficulty || 3;
+        const opponentName = teamMap[opponent];
         
+        if (!opponentName) return null;
+
         // Calculate captain score based on form and fixture difficulty
         const captainScore = 
           parseFloat(player.form) * 2 + 
@@ -67,9 +74,10 @@ export function CaptainSuggestions({
           isHome,
           captainScore,
           difficulty,
-          opponentName: opponent ? teamMap[opponent] : 'TBD'
+          opponentName
         };
       })
+      .filter((p): p is NonNullable<typeof p> => p !== null)
       .sort((a, b) => b.captainScore - a.captainScore)
       .slice(0, 5);
   }, [allPlayers, fixtures, bootstrapData]);
