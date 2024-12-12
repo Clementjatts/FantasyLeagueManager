@@ -3,12 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchPlayers } from "../lib/api";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function StatisticsPage() {
   const { data: players, isLoading } = useQuery({
     queryKey: ["/api/fpl/players"],
     queryFn: fetchPlayers,
   });
+
+  if (isLoading) {
+    return <Skeleton className="h-[600px] w-full" />;
+  }
+
+  if (!players) {
+    return <div>Failed to load player statistics</div>;
+  }
 
   // Calculate top performers by points
   const topPerformers = players
