@@ -179,7 +179,11 @@ export default function ChipsPage() {
         <TabsContent value="chips">
           <div className="grid gap-6 md:grid-cols-2">
             {chipAnalytics.map(chip => (
-              <ChipCard key={chip.name} chip={chip} />
+              <ChipCard 
+                key={chip.name} 
+                chip={chip} 
+                doubleGameweeks={doubleGameweeks}
+              />
             ))}
           </div>
         </TabsContent>
