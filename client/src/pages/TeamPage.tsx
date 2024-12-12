@@ -79,10 +79,20 @@ export default function TeamPage() {
     );
   }
 
-  const teamPlayers = team.picks.map(pick => ({
-    ...players.find(p => p.id === pick.element)!,
-    position: pick.position,
-  }));
+  // Split players into starting XI and substitutes
+  const startingXI = team.picks
+    .filter(pick => pick.position <= 11)
+    .map(pick => ({
+      ...players.find(p => p.id === pick.element)!,
+      position: pick.position,
+    }));
+  
+  const substitutes = team.picks
+    .filter(pick => pick.position > 11)
+    .map(pick => ({
+      ...players.find(p => p.id === pick.element)!,
+      position: pick.position,
+    }));
 
   const captainId = team.picks.find(p => p.is_captain)?.element;
   const viceCaptainId = team.picks.find(p => p.is_vice_captain)?.element;
@@ -139,10 +149,12 @@ export default function TeamPage() {
         <div className="space-y-6">
           {/* Team View */}
           <TeamPitch 
-            players={teamPlayers}
+            players={startingXI}
+            substitutes={substitutes}
             captainId={captainId}
             viceCaptainId={viceCaptainId}
             onPlayerClick={setSelectedPlayer}
+            onSubstituteClick={setSelectedPlayer}
             fixtures={fixtures}
             teams={bootstrapData?.teams}
           />
