@@ -54,7 +54,7 @@ export function CaptainSuggestions({
                 )}
                 onClick={() => onSelectCaptain(player)}
               >
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-semibold truncate">{player.web_name}</span>
@@ -65,38 +65,28 @@ export function CaptainSuggestions({
                         <Badge variant="outline" className="border-primary/70 text-primary px-2">VC</Badge>
                       )}
                     </div>
-                    <div className="text-right">
-                      <span className="text-2xl font-bold text-primary">{player.total_points}</span>
-                      <span className="text-sm text-muted-foreground ml-1">pts</span>
-                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-primary" />
-                      <span className="text-sm">
-                        <span className="font-medium">{player.form}</span>
-                        <span className="text-muted-foreground ml-1">Form</span>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <span className="whitespace-nowrap">
+                      Form: <span className="font-medium">{player.form}</span>
+                    </span>
+                    <span className="whitespace-nowrap">
+                      Points: <span className="font-medium">{player.total_points}</span>
+                    </span>
+                    <span className="whitespace-nowrap">
+                      Position: <span className="font-medium">
+                        {player.element_type === 1 ? "GK" : 
+                         player.element_type === 2 ? "DEF" :
+                         player.element_type === 3 ? "MID" : "FWD"}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-primary" />
-                      <span className="text-sm whitespace-nowrap">
-                        <span className="font-medium">{player.team}</span>
-                        <span className="text-muted-foreground ml-1">Next</span>
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-4">
-                      <span className="whitespace-nowrap">
-                        Value: <span className="font-medium text-foreground">£{(player.now_cost / 10).toFixed(1)}m</span>
-                      </span>
-                      <span className="whitespace-nowrap">
-                        Selected: <span className="font-medium text-foreground">{player.selected_by_percent}%</span>
-                      </span>
-                    </div>
+                    </span>
+                    <span className="whitespace-nowrap">
+                      Price: <span className="font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
+                    </span>
+                    <span className="whitespace-nowrap">
+                      Selected: <span className="font-medium">{player.selected_by_percent}%</span>
+                    </span>
                   </div>
                 </div>
               </div>
