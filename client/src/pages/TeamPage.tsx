@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
+import { TransferSuggestions } from "../components/TransferSuggestions";
 import { CaptainSuggestions } from "../components/CaptainSuggestions";
 import { PlayerStats } from "../components/PlayerStats";
-import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
+import { fetchMyTeam, fetchPlayers, updateCaptains, fetchBootstrapStatic, fetchFixtures } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,16 @@ export default function TeamPage() {
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
     queryFn: fetchPlayers
+  });
+
+  const { data: bootstrapData } = useQuery({
+    queryKey: ["/api/fpl/bootstrap-static"],
+    queryFn: fetchBootstrapStatic
+  });
+
+  const { data: fixtures } = useQuery({
+    queryKey: ["/api/fpl/fixtures"],
+    queryFn: fetchFixtures
   });
 
   if (!teamId) {
@@ -82,6 +93,7 @@ export default function TeamPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header Section */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">My Team</h1>
         <div className="flex gap-4">
@@ -121,105 +133,121 @@ export default function TeamPage() {
         </div>
       </div>
 
-      <div className="space-y-8">
-        {/* Main Content */}
-        <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
-          {/* Team View Section */}
-          <div className="space-y-6">
-            <TeamPitch 
-              players={teamPlayers}
-              captainId={captainId}
-              viceCaptainId={viceCaptainId}
-              onPlayerClick={setSelectedPlayer}
-            />
-
-            {selectedPlayer && (
-              <>
-                <PlayerStats player={selectedPlayer} />
-                <CaptainDialog
-                  player={selectedPlayer}
-                  isOpen={!!selectedPlayer}
-                  onClose={() => setSelectedPlayer(null)}
-                  isCaptain={selectedPlayer.id === captainId}
-                  isViceCaptain={selectedPlayer.id === viceCaptainId}
-                  onMakeCaptain={() => {
-                    updateCaptains(selectedPlayer.id, viceCaptainId || 0)
-                      .then(() => {
-                        queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                        toast({
-                          title: "Captain Updated",
-                          description: `${selectedPlayer.web_name} is now your captain`,
-                        });
-                        setSelectedPlayer(null);
-                      })
-                      .catch(() => {
-                        toast({
-                          title: "Error",
-                          description: "Failed to update captain",
-                          variant: "destructive",
-                        });
-                      });
-                  }}
-                  onMakeViceCaptain={() => {
-                    updateCaptains(captainId || 0, selectedPlayer.id)
-                      .then(() => {
-                        queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                        toast({
-                          title: "Vice Captain Updated",
-                          description: `${selectedPlayer.web_name} is now your vice captain`,
-                        });
-                        setSelectedPlayer(null);
-                      })
-                      .catch(() => {
-                        toast({
-                          title: "Error",
-                          description: "Failed to update vice captain",
-                          variant: "destructive",
-                        });
-                      });
-                  }}
-                />
-              </>
-            )}
-          </div>
-
-          {/* Captain Suggestions Section - Beside on desktop, below on mobile */}
-          <div className="space-y-6">
-            <CaptainSuggestions 
+      {/* Main Content Grid */}
+      <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
+        {/* Left Column - Team and Transfers */}
+        <div className="space-y-6">
+          {/* Transfer Suggestions */}
+          {teamPlayers.length > 0 && bootstrapData?.teams && fixtures && (
+            <TransferSuggestions
+              currentPlayers={teamPlayers}
               allPlayers={players}
-              onSelectCaptain={setSelectedPlayer}
-              currentCaptainId={captainId}
-              currentViceCaptainId={viceCaptainId}
+              fixtures={fixtures}
+              teams={bootstrapData.teams}
+              onTransferClick={(inPlayer, outPlayer) => {
+                toast({
+                  title: "Transfer Initiated",
+                  description: `${outPlayer.web_name} ➜ ${inPlayer.web_name}`,
+                });
+              }}
             />
-          </div>
-        </div>
+          )}
 
-        {/* Team Value Breakdown - Always at bottom */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Team Value Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Starting XI</p>
-                  <p className="text-lg font-semibold">
-                    £{(teamPlayers.filter(p => p.position <= 11)
-                      .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Bench</p>
-                  <p className="text-lg font-semibold">
-                    £{(teamPlayers.filter(p => p.position > 11)
-                      .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
-                  </p>
+          {/* Team View */}
+          <TeamPitch 
+            players={teamPlayers}
+            captainId={captainId}
+            viceCaptainId={viceCaptainId}
+            onPlayerClick={setSelectedPlayer}
+          />
+
+          {/* Player Stats Dialog */}
+          {selectedPlayer && (
+            <>
+              <PlayerStats player={selectedPlayer} />
+              <CaptainDialog
+                player={selectedPlayer}
+                isOpen={!!selectedPlayer}
+                onClose={() => setSelectedPlayer(null)}
+                isCaptain={selectedPlayer.id === captainId}
+                isViceCaptain={selectedPlayer.id === viceCaptainId}
+                onMakeCaptain={() => {
+                  updateCaptains(selectedPlayer.id, viceCaptainId || 0)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                      toast({
+                        title: "Captain Updated",
+                        description: `${selectedPlayer.web_name} is now your captain`,
+                      });
+                      setSelectedPlayer(null);
+                    })
+                    .catch(() => {
+                      toast({
+                        title: "Error",
+                        description: "Failed to update captain",
+                        variant: "destructive",
+                      });
+                    });
+                }}
+                onMakeViceCaptain={() => {
+                  updateCaptains(captainId || 0, selectedPlayer.id)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                      toast({
+                        title: "Vice Captain Updated",
+                        description: `${selectedPlayer.web_name} is now your vice captain`,
+                      });
+                      setSelectedPlayer(null);
+                    })
+                    .catch(() => {
+                      toast({
+                        title: "Error",
+                        description: "Failed to update vice captain",
+                        variant: "destructive",
+                      });
+                    });
+                }}
+              />
+            </>
+          )}
+
+          {/* Team Value Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Value Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Starting XI</p>
+                    <p className="text-lg font-semibold">
+                      £{(teamPlayers.filter(p => p.position <= 11)
+                        .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bench</p>
+                    <p className="text-lg font-semibold">
+                      £{(teamPlayers.filter(p => p.position > 11)
+                        .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Captain Suggestions */}
+        <div className="space-y-6">
+          <CaptainSuggestions 
+            allPlayers={players}
+            onSelectCaptain={setSelectedPlayer}
+            currentCaptainId={captainId}
+            currentViceCaptainId={viceCaptainId}
+          />
+        </div>
       </div>
     </div>
   );
