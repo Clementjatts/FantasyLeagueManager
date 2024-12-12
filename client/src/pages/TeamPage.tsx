@@ -84,7 +84,7 @@ export default function TeamPage() {
             onMakeCaptain={() => {
               updateCaptains(selectedPlayer.id, viceCaptainId || 0)
                 .then(() => {
-                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
                   toast({
                     title: "Captain Updated",
                     description: `${selectedPlayer.web_name} is now your captain`,
@@ -102,7 +102,7 @@ export default function TeamPage() {
             onMakeViceCaptain={() => {
               updateCaptains(captainId || 0, selectedPlayer.id)
                 .then(() => {
-                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
                   toast({
                     title: "Vice Captain Updated",
                     description: `${selectedPlayer.web_name} is now your vice captain`,
