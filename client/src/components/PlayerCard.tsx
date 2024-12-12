@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "../types/fpl";
 import { cn } from "@/lib/utils";
+import { TrendingUp } from "lucide-react";
 
 interface PlayerCardProps {
   player: Player;
@@ -9,6 +10,8 @@ interface PlayerCardProps {
   isViceCaptain?: boolean;
   onClick?: () => void;
   className?: string;
+  fixtures?: any[];
+  teams?: any[];
 }
 
 const positionMap: Record<number, string> = {
@@ -18,7 +21,45 @@ const positionMap: Record<number, string> = {
   4: "FWD"
 };
 
-export function PlayerCard({ player, isCaptain, isViceCaptain, onClick, className }: PlayerCardProps) {
+function predictPlayerPoints(player: Player, fixtures: any[] = []): number {
+  // Base points from current form
+  const formPoints = parseFloat(player.form) * 4;
+  
+  // Historical performance points
+  const historyPoints = parseFloat(player.points_per_game) * 3;
+  
+  // Minutes prediction
+  const minutesFactor = player.minutes > 450 ? 1.3 : // Over 5 full games
+                       player.minutes > 270 ? 1.1 : // Over 3 full games
+                       player.minutes > 90 ? 0.8 : // At least 1 full game
+                       0.4; // Bench/irregular player
+  
+  // Fixture difficulty impact
+  const fixturePoints = fixtures.reduce((acc, f, index) => {
+    const difficultyFactor = 5 - (f.difficulty || 3);
+    const gameweekWeight = Math.max(1 - (index * 0.15), 0.4);
+    return acc + (difficultyFactor * 2 * gameweekWeight);
+  }, 0) / Math.max(fixtures.length, 1);
+  
+  // Recent trend bonus
+  const trendBonus = parseFloat(player.form) > parseFloat(player.points_per_game) ? 1.2 : 1.0;
+  
+  return Math.round((formPoints + historyPoints + fixturePoints) * minutesFactor * trendBonus);
+}
+
+export function PlayerCard({ 
+  player, 
+  isCaptain, 
+  isViceCaptain, 
+  onClick, 
+  className,
+  fixtures = [],
+  teams = []
+}: PlayerCardProps) {
+  const psp = predictPlayerPoints(player, fixtures);
+  const isHighPSP = psp >= 15;
+  const isLowPSP = psp < 8;
+
   return (
     <Card 
       className={cn(
@@ -48,6 +89,20 @@ export function PlayerCard({ player, isCaptain, isViceCaptain, onClick, classNam
           <span className="text-muted-foreground">
             {positionMap[player.element_type]}
           </span>
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              "h-5 px-1.5 flex items-center gap-1 text-xs font-medium",
+              isHighPSP && "bg-green-500/10 text-green-500",
+              isLowPSP && "bg-red-500/10 text-red-500"
+            )}
+          >
+            <TrendingUp className="w-3 h-3" />
+            PSP {psp}
+          </Badge>
+        </div>
+        
+        <div className="flex items-center justify-end text-sm">
           <span className="text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity">
             {player.team}
           </span>

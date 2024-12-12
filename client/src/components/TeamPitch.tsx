@@ -9,6 +9,8 @@ interface TeamPitchProps {
   viceCaptainId?: number;
   onPlayerClick?: (player: Player) => void;
   onSubstituteClick?: (player: Player) => void;
+  fixtures?: any[];
+  teams?: any[];
 }
 
 export function TeamPitch({ 
@@ -16,7 +18,9 @@ export function TeamPitch({
   captainId, 
   viceCaptainId, 
   onPlayerClick,
-  onSubstituteClick 
+  onSubstituteClick,
+  fixtures = [],
+  teams = []
 }: TeamPitchProps) {
   // Split players into starting 11 and substitutes
   const starters = players.filter(p => p.position <= 11);
@@ -51,6 +55,8 @@ export function TeamPitch({
                     isViceCaptain={player.id === viceCaptainId}
                     onClick={() => onPlayerClick?.(player)}
                     className="transition-transform hover:scale-105"
+                    fixtures={fixtures}
+                    teams={teams}
                   />
                 </div>
               ))}

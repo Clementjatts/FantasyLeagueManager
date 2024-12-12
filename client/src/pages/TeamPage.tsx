@@ -143,6 +143,8 @@ export default function TeamPage() {
             captainId={captainId}
             viceCaptainId={viceCaptainId}
             onPlayerClick={setSelectedPlayer}
+            fixtures={fixtures}
+            teams={bootstrapData?.teams}
           />
 
           {/* Transfer Suggestions */}
