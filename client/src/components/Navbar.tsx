@@ -15,31 +15,35 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="border-b bg-gradient-to-r from-background/95 via-background to-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-md">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex-shrink-0 mr-8">
-            <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent select-none">
+    <nav className="border-b bg-gradient-to-r from-background/95 via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-lg">
+      <div className="container mx-auto px-6 sm:px-8">
+        <div className="flex h-18 items-center justify-between">
+          <div className="flex-shrink-0 mr-10">
+            <div className="text-3xl font-black tracking-tighter bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent select-none hover:scale-105 transition-transform duration-200">
               FPLManager
             </div>
           </div>
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-3 md:gap-6">
             {links.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <a
                   className={cn(
-                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
-                    "hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20 hover:shadow-lg hover:scale-105",
+                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
+                    "transition-all duration-300 ease-in-out",
+                    "hover:bg-gradient-to-r hover:from-purple-500/15 hover:to-blue-500/15",
+                    "hover:shadow-lg hover:scale-105 hover:text-white",
+                    "active:scale-95 active:shadow-inner",
                     location === href
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
+                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg scale-105"
                       : "text-zinc-400 hover:text-white"
                   )}
                 >
                   <Icon className={cn(
-                    "w-4 h-4 transition-transform",
-                    location === href ? "scale-110" : ""
+                    "w-4 h-4 transition-all duration-300",
+                    location === href ? "scale-110 animate-pulse" : "",
+                    "group-hover:rotate-3"
                   )} />
-                  <span className="hidden sm:inline">{label}</span>
+                  <span className="hidden sm:inline font-medium">{label}</span>
                 </a>
               </Link>
             ))}
