@@ -28,7 +28,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
         return (
           <div key={gw.event} className="relative flex items-center">
             <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow">
-              <span className="text-sm font-bold text-white">Gameweek {gw.event}</span>
+              <span className="text-lg font-bold text-white">{gw.event}</span>
             </div>
 
             <Card className={cn(
