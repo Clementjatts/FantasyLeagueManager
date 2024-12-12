@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TeamPitch } from "../components/TeamPitch";
+import { FormationAnalysis } from "../components/FormationAnalysis";
+import { PlayerStats } from "../components/PlayerStats";
 import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
+import { TrendingUp, Users, Coins } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -51,75 +55,131 @@ export default function TeamPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">My Team</h1>
         <div className="flex gap-4">
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Team Value</p>
-            <p className="text-lg font-semibold">£{totalValue}m</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">In Bank</p>
-            <p className="text-lg font-semibold">£{bankValue}m</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Free Transfers</p>
-            <p className="text-lg font-semibold">{freeTransfers}</p>
-          </div>
+          <Card className="bg-gradient-to-br from-background/80 to-muted/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Users className="w-4 h-4 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Free Transfers</p>
+                  <p className="text-lg font-semibold">{freeTransfers}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-background/80 to-muted/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <Coins className="w-4 h-4 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Team Value</p>
+                  <p className="text-lg font-semibold">£{totalValue}m</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-gradient-to-br from-background/80 to-muted/50">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">In Bank</p>
+                  <p className="text-lg font-semibold">£{bankValue}m</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <>
-        <TeamPitch 
-          players={teamPlayers}
-          captainId={captainId}
-          viceCaptainId={viceCaptainId}
-          onPlayerClick={setSelectedPlayer}
-        />
-        
-        {selectedPlayer && (
-          <CaptainDialog
-            player={selectedPlayer}
-            isOpen={!!selectedPlayer}
-            onClose={() => setSelectedPlayer(null)}
-            isCaptain={selectedPlayer.id === captainId}
-            isViceCaptain={selectedPlayer.id === viceCaptainId}
-            onMakeCaptain={() => {
-              updateCaptains(selectedPlayer.id, viceCaptainId || 0)
-                .then(() => {
-                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                  toast({
-                    title: "Captain Updated",
-                    description: `${selectedPlayer.web_name} is now your captain`,
-                  });
-                  setSelectedPlayer(null);
-                })
-                .catch(() => {
-                  toast({
-                    title: "Error",
-                    description: "Failed to update captain",
-                    variant: "destructive",
-                  });
-                });
-            }}
-            onMakeViceCaptain={() => {
-              updateCaptains(captainId || 0, selectedPlayer.id)
-                .then(() => {
-                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                  toast({
-                    title: "Vice Captain Updated",
-                    description: `${selectedPlayer.web_name} is now your vice captain`,
-                  });
-                  setSelectedPlayer(null);
-                })
-                .catch(() => {
-                  toast({
-                    title: "Error",
-                    description: "Failed to update vice captain",
-                    variant: "destructive",
-                  });
-                });
-            }}
+      <div className="grid gap-6 lg:grid-cols-[1fr,300px]">
+        <div className="space-y-6">
+          <TeamPitch 
+            players={teamPlayers}
+            captainId={captainId}
+            viceCaptainId={viceCaptainId}
+            onPlayerClick={setSelectedPlayer}
           />
-        )}
-      </>
+
+          {selectedPlayer && (
+            <>
+              <PlayerStats player={selectedPlayer} />
+              <CaptainDialog
+                player={selectedPlayer}
+                isOpen={!!selectedPlayer}
+                onClose={() => setSelectedPlayer(null)}
+                isCaptain={selectedPlayer.id === captainId}
+                isViceCaptain={selectedPlayer.id === viceCaptainId}
+                onMakeCaptain={() => {
+                  updateCaptains(selectedPlayer.id, viceCaptainId || 0)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                      toast({
+                        title: "Captain Updated",
+                        description: `${selectedPlayer.web_name} is now your captain`,
+                      });
+                      setSelectedPlayer(null);
+                    })
+                    .catch(() => {
+                      toast({
+                        title: "Error",
+                        description: "Failed to update captain",
+                        variant: "destructive",
+                      });
+                    });
+                }}
+                onMakeViceCaptain={() => {
+                  updateCaptains(captainId || 0, selectedPlayer.id)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                      toast({
+                        title: "Vice Captain Updated",
+                        description: `${selectedPlayer.web_name} is now your vice captain`,
+                      });
+                      setSelectedPlayer(null);
+                    })
+                    .catch(() => {
+                      toast({
+                        title: "Error",
+                        description: "Failed to update vice captain",
+                        variant: "destructive",
+                      });
+                    });
+                }}
+              />
+            </>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          <FormationAnalysis picks={team.picks} />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Value Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Starting XI</p>
+                    <p className="text-lg font-semibold">
+                      £{(teamPlayers.filter(p => p.position <= 11)
+                        .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bench</p>
+                    <p className="text-lg font-semibold">
+                      £{(teamPlayers.filter(p => p.position > 11)
+                        .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

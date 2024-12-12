@@ -10,6 +10,24 @@ export interface Player {
   form: string;
   status: string;
   position: number;
+  goals_scored: number;
+  assists: number;
+  cost_change_event: number;
+  minutes: number;
+  clean_sheets: number;
+  goals_conceded: number;
+  own_goals: number;
+  penalties_saved: number;
+  penalties_missed: number;
+  yellow_cards: number;
+  red_cards: number;
+  saves: number;
+  bonus: number;
+  bps: number;
+  influence: string;
+  creativity: string;
+  threat: string;
+  ict_index: string;
 }
 
 export interface Team {
@@ -20,7 +38,16 @@ export interface Team {
     made: number;
     bank: number;
     value: number;
+    cost: number;
+    status: string;
   };
+  points_history: Array<{
+    event: number;
+    points: number;
+    average: number;
+    highest: number;
+    chip?: string;
+  }>;
   summary_overall_points: number;
   summary_overall_rank: number;
   last_deadline_total_transfers: number;
@@ -37,6 +64,9 @@ export interface Team {
     total_points: number;
     value: number;
     bank: number;
+    event_transfers: number;
+    event_transfers_cost: number;
+    average_entry_score: number;
   };
 }
 
