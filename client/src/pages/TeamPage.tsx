@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TeamPitch } from "../components/TeamPitch";
-import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
+import { fetchMyTeam, fetchPlayers, updateCaptains, makeSubstitution } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
