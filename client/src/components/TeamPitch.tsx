@@ -59,14 +59,17 @@ export function TeamPitch({
       </div>
 
       <div>
-        <div className="flex items-center space-x-2 mb-4">
-          <h3 className="text-lg font-semibold">Substitutes</h3>
-          <Separator className="flex-1" />
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center space-x-2">
+            <h3 className="text-xl font-bold">Substitutes</h3>
+            <Separator className="flex-1" />
+          </div>
+          <p className="text-sm text-muted-foreground">Numbers indicate substitution order (1-4)</p>
         </div>
         <div className="grid grid-cols-4 gap-4">
           {substitutes.map((player, index) => (
             <div key={player.id} className="relative">
-              <div className="absolute -top-3 -left-3 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+              <div className="absolute -top-2 -left-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-background">
                 {index + 1}
               </div>
               <PlayerCard
