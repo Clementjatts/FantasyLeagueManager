@@ -50,6 +50,14 @@ export function PlayerCard({ player, isCaptain, isViceCaptain, onClick, classNam
             <span className="font-medium">£{(player.now_cost / 10).toFixed(1)}m</span>
           </div>
           <div>
+            <span className="text-muted-foreground">Position: </span>
+            <span className="font-medium">
+              {player.element_type === 1 ? "GK" : 
+               player.element_type === 2 ? "DEF" :
+               player.element_type === 3 ? "MID" : "FWD"}
+            </span>
+          </div>
+          <div>
             <span className="text-muted-foreground">Selected: </span>
             <span className="font-medium">{player.selected_by_percent}%</span>
           </div>

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayerCard } from "../components/PlayerCard";
-import { fetchPlayers, makeTransfer } from "../lib/api";
+import { fetchPlayers, makeTransfer, fetchMyTeam } from "../lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 export default function TransfersPage() {
@@ -77,7 +78,16 @@ export default function TransfersPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-6">
+        <div className="bg-accent/50 rounded-lg p-4 space-y-2">
+          <h2 className="font-semibold">How to make transfers:</h2>
+          <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+            <li>Click on a player from your team to transfer out</li>
+            <li>Select a new player of the same position to transfer in</li>
+            <li>The transfer will be completed if you have available free transfers</li>
+          </ol>
+        </div>
+
         <div className="flex items-center gap-4">
           <Input
             placeholder="Search players..."
