@@ -16,19 +16,19 @@ export function Navbar() {
 
   return (
     <nav className="border-b bg-gradient-to-r from-background/95 via-background to-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-md">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent select-none">
               FPLManager
             </div>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center gap-1 md:gap-2">
             {links.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <a
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
+                    "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-200",
                     "hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20 hover:shadow-lg hover:scale-105",
                     location === href
                       ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
