@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
 import { FormationAnalysis } from "../components/FormationAnalysis";
 import { PlayerStats } from "../components/PlayerStats";
@@ -7,24 +8,53 @@ import { fetchMyTeam, fetchPlayers, updateCaptains } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, Users, Coins } from "lucide-react";
+import { TrendingUp, Users, Coins, AlertCircle } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [teamId, setTeamId] = useState(() => {
+    const savedId = localStorage.getItem("fpl_team_id");
+    return savedId ? parseInt(savedId, 10) : null;
+  });
+
   const { data: team, isLoading: isLoadingTeam } = useQuery({
-    queryKey: ["/api/fpl/my-team/1"],
-    queryFn: () => fetchMyTeam(1)
+    queryKey: ["/api/fpl/my-team", teamId],
+    queryFn: () => teamId ? fetchMyTeam(teamId) : null,
+    enabled: !!teamId
   });
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
     queryFn: () => fetchPlayers()
   });
+
+  if (!teamId) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">My Team</h1>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-2">
+              <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground" />
+              <h2 className="text-2xl font-semibold">No Team Selected</h2>
+              <p className="text-muted-foreground">
+                Please go to the Dashboard and enter your FPL team ID first
+              </p>
+              <Link href="/">
+                <Button className="mt-4">Go to Dashboard</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoadingTeam || isLoadingPlayers) {
     return <Skeleton className="h-[600px] w-full" />;
