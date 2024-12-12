@@ -1,17 +1,42 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, TrendingUp, Coins, Users } from "lucide-react";
+import { Trophy, TrendingUp, Coins, Users, AlertCircle } from "lucide-react";
 import { PointsChart } from "../components/PointsChart";
 import { DeadlineCountdown } from "../components/DeadlineCountdown";
 import { QuickActions } from "../components/QuickActions";
+import { TeamIdInput } from "../components/TeamIdInput";
 import { fetchMyTeam } from "../lib/api";
 
 export default function DashboardPage() {
+  const [teamId, setTeamId] = useState<number | null>(null);
   const { data: team } = useQuery({
-    queryKey: ["/api/fpl/my-team/1"],
+    queryKey: ["/api/fpl/my-team", teamId],
+    queryFn: () => teamId ? fetchMyTeam(teamId) : null,
+    enabled: !!teamId,
   });
 
-  // In a real app, this would come from the API
+  if (!teamId) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <TeamIdInput onTeamIdChange={setTeamId} />
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-2">
+              <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground" />
+              <h2 className="text-2xl font-semibold">No Team Selected</h2>
+              <p className="text-muted-foreground">
+                Enter your FPL team ID above to view your dashboard
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // API data simulation
   const gameweekData = {
     currentGameweek: 16,
     points: 65,
