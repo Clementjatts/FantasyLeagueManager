@@ -9,7 +9,7 @@ interface TeamPitchProps {
   viceCaptainId?: number;
   onPlayerClick?: (player: Player) => void;
   onSubstituteClick?: (benchPlayer: Player, starterPosition: number) => void;
-  substitutionMode: boolean;
+  substitutionMode?: boolean;
   selectedPosition?: number;
 }
 
