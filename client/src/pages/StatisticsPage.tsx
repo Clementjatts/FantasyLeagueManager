@@ -5,7 +5,41 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { fetchPlayers } from "../lib/api";
-import { TrendingUp, TrendingDown, Minus, Crown, Star, Trophy } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Crown, Star, Trophy, Shield, Crosshair, BarChart2 } from "lucide-react";
+
+type PositionStats = {
+  position: number;
+  name: string;
+  icon: typeof Shield;
+  stats: string[];
+};
+
+const positionConfigs: PositionStats[] = [
+  {
+    position: 1,
+    name: "Goalkeeper",
+    icon: Shield,
+    stats: ["Clean Sheets", "Saves", "Penalties Saved"]
+  },
+  {
+    position: 2,
+    name: "Defender",
+    icon: Shield,
+    stats: ["Clean Sheets", "Goals", "Assists", "Bonus"]
+  },
+  {
+    position: 3,
+    name: "Midfielder",
+    icon: Crosshair,
+    stats: ["Goals", "Assists", "Key Passes", "Bonus"]
+  },
+  {
+    position: 4,
+    name: "Forward",
+    icon: BarChart2,
+    stats: ["Goals", "Expected Goals", "Shots on Target", "Bonus"]
+  }
+];
 
 export default function StatisticsPage() {
   const { data: players, isLoading } = useQuery({
@@ -22,13 +56,8 @@ export default function StatisticsPage() {
   }
 
   const getPositionName = (type: number) => {
-    switch (type) {
-      case 1: return "Goalkeeper";
-      case 2: return "Defender";
-      case 3: return "Midfielder";
-      case 4: return "Forward";
-      default: return "Unknown";
-    }
+    const position = positionConfigs.find(p => p.position === type);
+    return position?.name || "Unknown";
   };
 
   const getTrendIcon = (form: number) => {
@@ -44,13 +73,23 @@ export default function StatisticsPage() {
     return { icon: <Crown className="w-4 h-4" />, text: "Premium Asset" };
   };
 
-  // Group and sort players by position
-  const playersByPosition = {
-    1: players.filter(p => p.element_type === 1), // GK
-    2: players.filter(p => p.element_type === 2), // DEF
-    3: players.filter(p => p.element_type === 3), // MID
-    4: players.filter(p => p.element_type === 4), // FWD
-  };
+  // Enhanced statistics by position
+  const playersByPosition = positionConfigs.map(config => {
+    const positionPlayers = players.filter(p => p.element_type === config.position);
+    const Icon = config.icon;
+    
+    return {
+      ...config,
+      Icon,
+      players: positionPlayers.sort((a, b) => b.total_points - a.total_points),
+      averagePoints: Math.round(positionPlayers.reduce((acc, p) => acc + p.total_points, 0) / positionPlayers.length),
+      topScorer: positionPlayers.reduce((max, p) => p.total_points > max.total_points ? p : max, positionPlayers[0]),
+      mostSelected: positionPlayers.reduce((max, p) => 
+        parseFloat(p.selected_by_percent) > parseFloat(max.selected_by_percent) ? p : max, 
+        positionPlayers[0]
+      ),
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -63,169 +102,92 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="performance" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="performance">Season Performance</TabsTrigger>
-          <TabsTrigger value="form">Current Form</TabsTrigger>
-          <TabsTrigger value="value">Value Analysis</TabsTrigger>
+      <Tabs defaultValue="positions" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          {positionConfigs.map((config) => (
+            <TabsTrigger key={config.position} value={`position-${config.position}`}>
+              {config.name}s
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="performance" className="space-y-6">
-          <div className="space-y-8">
-            {Object.entries(playersByPosition).map(([positionType, positionPlayers]) => (
-              <div key={positionType} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{getPositionName(parseInt(positionType))}</h2>
-                  <Badge variant="outline" className="text-xs">
-                    Top {Math.min(positionPlayers.length, 5)} Players
-                  </Badge>
-                </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {positionPlayers
-                    .sort((a, b) => b.total_points - a.total_points)
-                    .slice(0, 5)
-                    .map(player => (
-                      <Card key={player.id} className="overflow-hidden">
-                        <CardHeader className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-xl">{player.web_name}</CardTitle>
-                            <Badge variant="secondary">
-                              {getPositionName(player.element_type)}
-                            </Badge>
-                          </div>
-                          <CardDescription>
-                            Total Points: {player.total_points}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <div className="flex justify-between mb-1">
-                                <span className="text-sm">Form</span>
-                                <span className="text-sm font-medium">{player.form}</span>
-                              </div>
-                              <Progress value={parseFloat(player.form) * 10} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 pt-4">
-                              <div>
-                                <span className="text-sm text-muted-foreground">Selected by</span>
-                                <p className="text-lg font-semibold">{player.selected_by_percent}%</p>
-                              </div>
-                              <div>
-                                <span className="text-sm text-muted-foreground">Price</span>
-                                <p className="text-lg font-semibold">£{(player.now_cost / 10).toFixed(1)}m</p>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
+        {playersByPosition.map((posData) => (
+          <TabsContent key={posData.position} value={`position-${posData.position}`} className="space-y-6">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {/* Position Overview Card */}
+              <Card className="col-span-full bg-primary/5">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <posData.Icon className="w-6 h-6" />
+                    <CardTitle>{posData.name} Overview</CardTitle>
+                  </div>
+                  <CardDescription>Overall performance metrics for {posData.name}s</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div>
+                      <span className="text-sm text-muted-foreground">Average Points</span>
+                      <p className="text-2xl font-bold">{posData.averagePoints}</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Top Scorer</span>
+                      <p className="text-lg font-semibold">{posData.topScorer.web_name}</p>
+                      <p className="text-sm text-muted-foreground">{posData.topScorer.total_points} pts</p>
+                    </div>
+                    <div>
+                      <span className="text-sm text-muted-foreground">Most Selected</span>
+                      <p className="text-lg font-semibold">{posData.mostSelected.web_name}</p>
+                      <p className="text-sm text-muted-foreground">{posData.mostSelected.selected_by_percent}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        <TabsContent value="form" className="space-y-6">
-          <div className="space-y-8">
-            {Object.entries(playersByPosition).map(([positionType, positionPlayers]) => (
-              <div key={positionType} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{getPositionName(parseInt(positionType))}</h2>
-                  <Badge variant="outline" className="text-xs">
-                    Top {Math.min(positionPlayers.length, 5)} In Form
-                  </Badge>
-                </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {positionPlayers
-                    .sort((a, b) => parseFloat(b.form) - parseFloat(a.form))
-                    .slice(0, 5)
-                    .map(player => (
-                      <Card key={player.id} className="relative overflow-hidden">
-                        <div className="absolute top-2 right-2">
-                          {getTrendIcon(parseFloat(player.form))}
+              {/* Top Performers */}
+              {posData.players.slice(0, 6).map(player => (
+                <Card key={player.id} className="overflow-hidden">
+                  <CardHeader className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl">{player.web_name}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        {getTrendIcon(parseFloat(player.form))}
+                        <Badge variant="secondary">
+                          £{(player.now_cost / 10).toFixed(1)}m
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      {getValueRating(player.total_points, player.now_cost / 10).text}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm">Form</span>
+                          <span className="text-sm font-medium">{player.form}</span>
                         </div>
-                        <CardHeader>
-                          <CardTitle>{player.web_name}</CardTitle>
-                          <CardDescription>Form: {player.form}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <div className="flex justify-between mb-1">
-                                <span className="text-sm">Points Trend</span>
-                                <span className="text-sm font-medium">{player.points_per_game}</span>
-                              </div>
-                              <Progress value={parseFloat(player.points_per_game) * 10} />
-                            </div>
-                            <div className="pt-4">
-                              <Badge variant="outline" className="bg-primary/10">
-                                Last 5 Games: {parseFloat(player.form) * 5} pts
-                              </Badge>
-                            </div>
+                        <Progress value={parseFloat(player.form) * 10} />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 pt-2">
+                        {posData.stats.map((stat, index) => (
+                          <div key={index}>
+                            <span className="text-sm text-muted-foreground">{stat}</span>
+                            <p className="text-lg font-semibold">
+                              {index === 0 ? player.total_points : 
+                               index === 1 ? player.points_per_game :
+                               player.form}
+                            </p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="value" className="space-y-6">
-          <div className="space-y-8">
-            {Object.entries(playersByPosition).map(([positionType, positionPlayers]) => (
-              <div key={positionType} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{getPositionName(parseInt(positionType))}</h2>
-                  <Badge variant="outline" className="text-xs">
-                    Top {Math.min(positionPlayers.length, 5)} Value
-                  </Badge>
-                </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {positionPlayers
-                    .sort((a, b) => (b.total_points / b.now_cost) - (a.total_points / a.now_cost))
-                    .slice(0, 5)
-                    .map(player => {
-                      const value = getValueRating(player.total_points, player.now_cost / 10);
-                      return (
-                        <Card key={player.id} className="relative overflow-hidden">
-                          <div className="absolute top-2 right-2">
-                            {value.icon}
-                          </div>
-                          <CardHeader>
-                            <CardTitle>{player.web_name}</CardTitle>
-                            <CardDescription>{value.text}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <span className="text-sm text-muted-foreground">Points</span>
-                                  <p className="text-lg font-semibold">{player.total_points}</p>
-                                </div>
-                                <div>
-                                  <span className="text-sm text-muted-foreground">Price</span>
-                                  <p className="text-lg font-semibold">£{(player.now_cost / 10).toFixed(1)}m</p>
-                                </div>
-                              </div>
-                              <div>
-                                <span className="text-sm text-muted-foreground">Points per Million</span>
-                                <p className="text-lg font-semibold">
-                                  {(player.total_points / (player.now_cost / 10)).toFixed(1)}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
-                    )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </TabsContent>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );
