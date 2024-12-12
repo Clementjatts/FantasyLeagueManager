@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 
 interface TeamPitchProps {
   players: Player[];
+  substitutes: Player[]; // Added substitutes prop
   captainId?: number;
   viceCaptainId?: number;
   onPlayerClick?: (player: Player) => void;
@@ -15,6 +16,7 @@ interface TeamPitchProps {
 
 export function TeamPitch({ 
   players, 
+  substitutes, // Using the added substitutes prop
   captainId, 
   viceCaptainId, 
   onPlayerClick,
@@ -22,16 +24,15 @@ export function TeamPitch({
   fixtures = [],
   teams = []
 }: TeamPitchProps) {
-  // Split players into starting 11 and substitutes
-  const starters = players.filter(p => p.position <= 11);
-  const substitutes = players.filter(p => p.position > 11);
+  // Combine starting players and substitutes, maintaining original player order
+  const allPlayers = [...players, ...substitutes];
 
-  // Group players by their actual positions (1-11 for starters)
+  // Group all players by their element type (position)
   const positions = {
-    1: starters.filter(p => p.position === 1),  // GK
-    2: starters.filter(p => p.position >= 2 && p.position <= 5),  // DEF
-    3: starters.filter(p => p.position >= 6 && p.position <= 8),  // MID
-    4: starters.filter(p => p.position >= 9 && p.position <= 11), // FWD
+    1: allPlayers.filter(p => p.element_type === 1),  // GK
+    2: allPlayers.filter(p => p.element_type === 2),  // DEF
+    3: allPlayers.filter(p => p.element_type === 3),  // MID
+    4: allPlayers.filter(p => p.element_type === 4),  // FWD
   };
 
   return (
@@ -39,55 +40,35 @@ export function TeamPitch({
       <div className="relative bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-8 shadow-xl">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik01MCAwdjEwME0wIDUwaDEwMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIGZpbGw9Im5vbmUiLz48L3N2Zz4=')] opacity-20"/>
         <div className="relative grid gap-12">
-          {Object.entries(positions).map(([type, players]) => (
+          {Object.entries(positions).map(([type, playersInPosition]) => (
             <div 
               key={type}
               className="grid gap-4 justify-items-center"
               style={{
-                gridTemplateColumns: `repeat(${players.length}, minmax(0, 1fr))`
+                gridTemplateColumns: `repeat(${playersInPosition.length}, minmax(0, 1fr))`
               }}
             >
-              {players.map(player => (
-                <div key={player.id} className="w-full max-w-[200px]">
+              {playersInPosition.map((player, index) => (
+                <div key={player.id} className="w-full max-w-[200px] relative">
+                  {players.indexOf(player) === -1 && ( // Check if it's a substitute
+                    <div className="absolute -top-2 -left-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-background">
+                      {substitutes.indexOf(player) + 1}
+                    </div>
+                  )}
                   <PlayerCard
                     player={player}
                     isCaptain={player.id === captainId}
                     isViceCaptain={player.id === viceCaptainId}
-                    onClick={() => onPlayerClick?.(player)}
-                    className="transition-transform hover:scale-105"
+                    onClick={players.includes(player) ? () => onPlayerClick?.(player) : () => onSubstituteClick?.(player)}
+                    className={cn(
+                      "transition-transform hover:scale-105",
+                      !players.includes(player) && "opacity-80 hover:opacity-100"
+                    )}
                     fixtures={fixtures}
                     teams={teams}
                   />
                 </div>
               ))}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center space-x-2">
-            <h3 className="text-xl font-bold">Substitutes</h3>
-            <Separator className="flex-1" />
-          </div>
-          <p className="text-sm text-muted-foreground">Numbers indicate substitution order (1-4)</p>
-        </div>
-        <div className="grid grid-cols-4 gap-4">
-          {substitutes.map((player, index) => (
-            <div key={player.id} className="relative">
-              <div className="absolute -top-2 -left-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-background">
-                {index + 1}
-              </div>
-              <PlayerCard
-                player={player}
-                isCaptain={player.id === captainId}
-                isViceCaptain={player.id === viceCaptainId}
-                onClick={() => onSubstituteClick?.(player)}
-                className="transition-transform hover:scale-105"
-                fixtures={fixtures}
-                teams={teams}
-              />
             </div>
           ))}
         </div>
