@@ -12,18 +12,32 @@ export default function TransfersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: players } = useQuery({
+  const { data: team, isLoading: isLoadingTeam } = useQuery({
+    queryKey: ["/api/fpl/my-team/1"],
+    queryFn: () => fetchMyTeam(1)
+  });
+
+  const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
+    queryFn: fetchPlayers
   });
 
   const transferMutation = useMutation({
     mutationFn: (params: { playerId: number; outId: number }) =>
       makeTransfer(params.playerId, params.outId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
       toast({
         title: "Transfer successful",
         description: "Your team has been updated",
+      });
+      setSelectedOut(null);
+    },
+    onError: () => {
+      toast({
+        title: "Transfer failed",
+        description: "Unable to complete the transfer. Please try again.",
+        variant: "destructive",
       });
     },
   });
@@ -32,16 +46,64 @@ export default function TransfersPage() {
     player.web_name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const teamValue = (team?.transfers?.value || 0) / 10;
+  const bankValue = (team?.transfers?.bank || 0) / 10;
+  const freeTransfers = team?.transfers?.limit || 0;
+
+  if (isLoadingTeam || isLoadingPlayers) {
+    return <div className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-96 w-full" />
+    </div>;
+  }
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Transfers</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Transfers</h1>
+        <div className="flex gap-6">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Team Value</p>
+            <p className="text-lg font-semibold">£{teamValue.toFixed(1)}m</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Money in Bank</p>
+            <p className="text-lg font-semibold">£{bankValue.toFixed(1)}m</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Free Transfers</p>
+            <p className="text-lg font-semibold">{freeTransfers}</p>
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-4">
-        <Input
-          placeholder="Search players..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search players..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="max-w-sm"
+          />
+          {selectedOut && (
+            <Button
+              variant="outline"
+              onClick={() => setSelectedOut(null)}
+            >
+              Cancel Selection
+            </Button>
+          )}
+        </div>
+
+        {selectedOut ? (
+          <p className="text-sm text-muted-foreground">
+            Select a player to transfer in
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Select a player to transfer out
+          </p>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredPlayers?.map(player => (
@@ -50,25 +112,20 @@ export default function TransfersPage() {
                 player={player}
                 onClick={() => {
                   if (selectedOut) {
-                    transferMutation.mutate({
-                      playerId: player.id,
-                      outId: selectedOut,
-                    });
-                    setSelectedOut(null);
+                    if (selectedOut === player.id) {
+                      setSelectedOut(null);
+                    } else {
+                      transferMutation.mutate({
+                        playerId: player.id,
+                        outId: selectedOut,
+                      });
+                    }
                   } else {
                     setSelectedOut(player.id);
                   }
                 }}
+                className={selectedOut === player.id ? "ring-2 ring-primary" : ""}
               />
-              {selectedOut === player.id && (
-                <Button
-                  variant="ghost"
-                  className="absolute top-2 right-2"
-                  onClick={() => setSelectedOut(null)}
-                >
-                  Cancel
-                </Button>
-              )}
             </div>
           ))}
         </div>

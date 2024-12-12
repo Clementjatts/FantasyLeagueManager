@@ -63,9 +63,48 @@ export function registerRoutes(app: Express): Server {
     const { playerId, outId } = req.body;
     
     try {
-      // Implement transfer logic here
+      const team = await db.query.teams.findFirst({
+        where: eq(teams.userId, 1),
+      });
+
+      if (!team) {
+        res.status(404).json({ message: "Team not found" });
+        return;
+      }
+
+      // Get the current picks and transfers
+      const picks = Array.isArray(team.picks) ? team.picks : [];
+      const transfers = team.transfers as any;
+
+      // Validate transfer
+      if (transfers.limit <= 0) {
+        res.status(400).json({ message: "No free transfers available" });
+        return;
+      }
+
+      // Update picks by replacing the outgoing player
+      const updatedPicks = picks.map(pick => 
+        pick.element === outId ? { ...pick, element: playerId } : pick
+      );
+
+      // Update transfers count and save
+      const updatedTransfers = {
+        ...transfers,
+        limit: transfers.limit - 1,
+        made: transfers.made + 1,
+      };
+
+      await db.update(teams)
+        .set({ 
+          picks: updatedPicks,
+          transfers: updatedTransfers,
+          updatedAt: new Date(),
+        })
+        .where(eq(teams.userId, 1));
+
       res.json({ success: true });
     } catch (error) {
+      console.error("Transfer error:", error);
       res.status(500).json({ message: "Failed to make transfer" });
     }
   });
