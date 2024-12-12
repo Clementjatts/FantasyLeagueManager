@@ -27,7 +27,13 @@ export function registerRoutes(app: Express): Server {
         return;
       }
 
-      res.json(team);
+      // Ensure picks is an array
+      const picks = Array.isArray(team.picks) ? team.picks : [];
+      
+      res.json({
+        ...team,
+        picks
+      });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch team" });
     }
