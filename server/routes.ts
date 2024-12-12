@@ -71,23 +71,32 @@ export function registerRoutes(app: Express): Server {
       const historyData = await historyResponse.json();
       const lastGw = historyData.current.slice(-1)[0] || {};
 
+      // Structure the response data
       const combinedData = {
         picks: gwData.picks || [],
         chips: historyData.chips || [],
         transfers: {
           limit: entryData.transfers?.limit || 1,
           made: entryData.transfers?.made || 0,
-          bank: lastGw.bank || entryData.bank || 0,
-          value: lastGw.value || entryData.value || 0,
+          bank: lastGw.bank || entryData.last_deadline_bank || 0,
+          value: lastGw.value || entryData.last_deadline_value || 0,
         },
-        entry: {
+        stats: {
+          event_points: lastGw.points || 0,
+          points_on_bench: lastGw.points_on_bench || 0,
           overall_points: entryData.summary_overall_points,
           overall_rank: entryData.summary_overall_rank,
-          gameweek_points: lastGw.points || 0,
-          gameweek: lastCompletedEvent,
-          team_value: lastGw.value || entryData.value || 0,
-          bank: lastGw.bank || entryData.bank || 0,
-        }
+          rank_sort: lastGw.overall_rank || entryData.summary_overall_rank,
+          total_points: entryData.summary_overall_points,
+          value: lastGw.value || entryData.last_deadline_value || 0,
+          bank: lastGw.bank || entryData.last_deadline_bank || 0,
+        },
+        current_event: currentEvent,
+        last_deadline_event: lastCompletedEvent,
+        summary_overall_points: entryData.summary_overall_points,
+        summary_overall_rank: entryData.summary_overall_rank,
+        last_deadline_bank: lastGw.bank || entryData.last_deadline_bank || 0,
+        last_deadline_value: lastGw.value || entryData.last_deadline_value || 0
       };
 
       res.json(combinedData);

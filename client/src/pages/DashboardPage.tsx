@@ -48,15 +48,15 @@ export default function DashboardPage() {
   const gameweekData = {
     currentGameweek: team?.last_deadline_event || 0,
     points: team?.stats?.event_points || 0,
-    rank: team?.stats?.overall_rank || 0,
-    totalPoints: team?.stats?.overall_points || 0,
+    rank: team?.summary_overall_rank || 0,
+    totalPoints: team?.summary_overall_points || 0,
     lastRank: team?.stats?.rank_sort || 0,
-    teamValue: ((team?.stats?.value || 0) / 10).toFixed(1),
-    bankValue: ((team?.stats?.bank || 0) / 10).toFixed(1),
+    teamValue: ((team?.last_deadline_value || 0) / 10).toFixed(1),
+    bankValue: ((team?.last_deadline_bank || 0) / 10).toFixed(1),
   };
 
   // Points data for the history chart
-  const pointsData = Array.from({ length: team?.current_event || 0 }, (_, i) => ({
+  const pointsData = Array.from({ length: team?.last_deadline_event || 0 }, (_, i) => ({
     gameweek: i + 1,
     points: team?.stats?.event_points || 0,
     average: Math.round((team?.stats?.event_points || 0) * 0.85) // Using 85% as league average
