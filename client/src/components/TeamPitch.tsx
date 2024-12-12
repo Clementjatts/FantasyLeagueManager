@@ -85,6 +85,8 @@ export function TeamPitch({
                 isViceCaptain={player.id === viceCaptainId}
                 onClick={() => onSubstituteClick?.(player)}
                 className="transition-transform hover:scale-105"
+                fixtures={fixtures}
+                teams={teams}
               />
             </div>
           ))}
