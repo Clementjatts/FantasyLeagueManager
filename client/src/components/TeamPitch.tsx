@@ -8,7 +8,9 @@ interface TeamPitchProps {
   captainId?: number;
   viceCaptainId?: number;
   onPlayerClick?: (player: Player) => void;
-  onSubstituteClick?: (player: Player) => void;
+  onSubstituteClick?: (benchPlayer: Player, starterPosition: number) => void;
+  substitutionMode: boolean;
+  selectedPosition?: number;
 }
 
 export function TeamPitch({ 
@@ -49,7 +51,17 @@ export function TeamPitch({
                     player={player}
                     isCaptain={player.id === captainId}
                     isViceCaptain={player.id === viceCaptainId}
-                    onClick={() => onPlayerClick?.(player)}
+                    isSelected={substitutionMode && player.position === selectedPosition}
+                    isSubstitutable={substitutionMode && !selectedPosition && player.element_type === players.find(p => p.position === selectedPosition)?.element_type}
+                    onClick={() => {
+                      if (substitutionMode) {
+                        if (!selectedPosition) {
+                          onPlayerClick?.(player);
+                        }
+                      } else {
+                        onPlayerClick?.(player);
+                      }
+                    }}
                     className="transition-transform hover:scale-105"
                   />
                 </div>
@@ -74,12 +86,18 @@ export function TeamPitch({
                 {index + 1}
               </div>
               <PlayerCard
-                player={player}
-                isCaptain={player.id === captainId}
-                isViceCaptain={player.id === viceCaptainId}
-                onClick={() => onSubstituteClick?.(player)}
-                className="transition-transform hover:scale-105"
-              />
+                  player={player}
+                  isCaptain={player.id === captainId}
+                  isViceCaptain={player.id === viceCaptainId}
+                  isSelected={substitutionMode && selectedPosition === player.position}
+                  isSubstitutable={substitutionMode && selectedPosition && player.element_type === players.find(p => p.position === selectedPosition)?.element_type}
+                  onClick={() => {
+                    if (substitutionMode && selectedPosition) {
+                      onSubstituteClick?.(player, selectedPosition);
+                    }
+                  }}
+                  className="transition-transform hover:scale-105"
+                />
             </div>
           ))}
         </div>

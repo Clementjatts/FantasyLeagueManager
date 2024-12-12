@@ -9,6 +9,8 @@ interface PlayerCardProps {
   isViceCaptain?: boolean;
   onClick?: () => void;
   className?: string;
+  isSelected?: boolean;
+  isSubstitutable?: boolean;
 }
 
 export function PlayerCard({ player, isCaptain, isViceCaptain, onClick, className }: PlayerCardProps) {
@@ -16,6 +18,8 @@ export function PlayerCard({ player, isCaptain, isViceCaptain, onClick, classNam
     <Card 
       className={cn(
         "cursor-pointer hover:shadow-lg transition-shadow",
+        isSelected && "ring-2 ring-primary",
+        isSubstitutable && "ring-2 ring-green-500",
         className
       )}
       onClick={onClick}
