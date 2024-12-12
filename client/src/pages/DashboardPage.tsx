@@ -161,7 +161,7 @@ export default function DashboardPage() {
           <CardTitle>Performance History</CardTitle>
         </CardHeader>
         <CardContent>
-          <PointsChart data={mockPointsData} />
+          <PointsChart data={pointsData} />
         </CardContent>
       </Card>
     </div>
