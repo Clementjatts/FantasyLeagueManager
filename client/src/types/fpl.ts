@@ -21,6 +21,14 @@ export interface Team {
     bank: number;
     value: number;
   };
+  entry: {
+    overall_points: number;
+    overall_rank: number;
+    gameweek_points: number;
+    gameweek: number;
+    team_value: number;
+    bank: number;
+  };
 }
 
 export interface Pick {

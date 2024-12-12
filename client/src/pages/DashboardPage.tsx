@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trophy, TrendingUp, Coins, Users, AlertCircle } from "lucide-react";
 import { PointsChart } from "../components/PointsChart";
 import { DeadlineCountdown } from "../components/DeadlineCountdown";
