@@ -64,76 +64,86 @@ export function TransferSuggestions({
       }).filter(f => f !== null);
     };
 
-    const calculatePlayerScore = (player: Player, fixtures: any[]) => {
-      // Form score (weighted higher for consistency)
-      const formScore = parseFloat(player.form) * 3;
+    const predictPlayerPoints = (player: Player, fixtures: any[]) => {
+      // Base points from current form (weighted heavily as it's most recent performance)
+      const formPoints = parseFloat(player.form) * 4;
       
-      // Minutes played factor (rewards consistent starters)
-      const minutesFactor = player.minutes > 450 ? 1.2 : // Over 5 full games
-                           player.minutes > 270 ? 1.0 : // Over 3 full games
+      // Historical performance points (season-long consistency)
+      const historyPoints = parseFloat(player.points_per_game) * 3;
+      
+      // Minutes prediction (heavily favor regular starters)
+      const minutesFactor = player.minutes > 450 ? 1.3 : // Over 5 full games
+                           player.minutes > 270 ? 1.1 : // Over 3 full games
                            player.minutes > 90 ? 0.8 : // At least 1 full game
-                           0.5; // Bench/irregular player
+                           0.4; // Bench/irregular player
       
-      // Points per game impact
-      const ppgScore = parseFloat(player.points_per_game) * 2;
-      
-      // Fixture difficulty consideration
-      const fixtureScore = fixtures.reduce((acc, f) => {
+      // Fixture difficulty impact (weighted more for near-term fixtures)
+      const fixturePoints = fixtures.reduce((acc, f, index) => {
         const difficultyFactor = 5 - f.difficulty; // Reverse difficulty (5 is easiest)
-        return acc + (difficultyFactor * 1.5); // Weight easier fixtures more
+        const gameweekWeight = Math.max(1 - (index * 0.15), 0.4); // Weight decreases by 15% each GW
+        return acc + (difficultyFactor * 2 * gameweekWeight);
       }, 0) / fixtures.length;
       
-      // Value for money factor (points per million)
-      const valueScore = (ppgScore / (player.now_cost / 10)) * 0.5;
+      // Recent trend consideration (bonus for improving players)
+      const trendBonus = parseFloat(player.form) > parseFloat(player.points_per_game) ? 1.2 : 1.0;
       
-      // Combine all factors
-      return (formScore + ppgScore + fixtureScore + valueScore) * minutesFactor;
+      // Value efficiency (points per million)
+      const valueEfficiency = (historyPoints / (player.now_cost / 10)) * 0.8;
+      
+      // Combine all factors with weights
+      const predictedScore = (
+        (formPoints + historyPoints + fixturePoints + valueEfficiency) * 
+        minutesFactor * 
+        trendBonus
+      );
+      
+      return predictedScore;
     };
 
     const suggestedTransfers: TransferSuggestion[] = [];
 
-    // Identify weak performers in current team
-    const weakPerformers = currentPlayers.map(player => {
-      const playerFixtures = getPlayerFixtures(player);
-      const score = calculatePlayerScore(player, playerFixtures);
-      return { player, score };
-    }).sort((a, b) => a.score - b.score) // Sort by score ascending (worst first)
-      .slice(0, 3); // Focus on the 3 worst performers
+    // Only consider starting XI players for potential transfers
+    const startingXI = currentPlayers.filter(player => player.position <= 11);
 
-    // Find potential replacements for weak performers
-    weakPerformers.forEach(({ player: currentPlayer, score: currentScore }) => {
+    // Evaluate each starting player's predicted performance
+    const playerEvaluations = startingXI.map(player => {
+      const playerFixtures = getPlayerFixtures(player);
+      const predictedPoints = predictPlayerPoints(player, playerFixtures);
+      return { player, predictedPoints };
+    }).sort((a, b) => a.predictedPoints - b.predictedPoints); // Sort by predicted points ascending
+
+    // Find potential replacements for the bottom 3 performers
+    const weakPerformers = playerEvaluations.slice(0, 3);
+
+    weakPerformers.forEach(({ player: currentPlayer, predictedPoints: currentPoints }) => {
+      // Find replacements from entire database
       const potentialReplacements = allPlayers.filter(p => 
         p.element_type === currentPlayer.element_type && // Same position
         p.id !== currentPlayer.id && // Not the same player
+        !currentPlayers.some(cp => cp.id === p.id) && // Not already in squad
         p.status !== "i" && // Not injured
-        p.minutes > 180 && // Has played at least 2 full games
-        parseFloat(p.form) >= parseFloat(currentPlayer.form) && // Equal or better form
-        p.now_cost <= currentPlayer.now_cost + 10 // Within budget (+1.0m)
+        p.minutes > 270 && // Has played at least 3 full games
+        p.now_cost <= currentPlayer.now_cost + 15 // Within budget (+1.5m)
       );
 
       potentialReplacements.forEach(newPlayer => {
         const newPlayerFixtures = getPlayerFixtures(newPlayer);
         const currentPlayerFixtures = getPlayerFixtures(currentPlayer);
 
-        const newPlayerScore = calculatePlayerScore(
-          newPlayer,
-          newPlayerFixtures
-        );
-        const currentPlayerScore = calculatePlayerScore(
-          currentPlayer,
-          currentPlayerFixtures
-        );
+        const newPlayerPrediction = predictPlayerPoints(newPlayer, newPlayerFixtures);
+        const currentPlayerPrediction = predictPlayerPoints(currentPlayer, currentPlayerFixtures);
+        
+        const improvementFactor = newPlayerPrediction / currentPlayerPrediction;
+        const pointsDifference = newPlayerPrediction - currentPlayerPrediction;
 
-        // Only suggest if significant improvement (>20% better)
-        if (newPlayerScore > currentPlayerScore * 1.2) {
+        // Only suggest if predicted to score significantly more points (>25% improvement)
+        if (improvementFactor > 1.25 && pointsDifference > 10) {
           suggestedTransfers.push({
             inPlayer: newPlayer,
             outPlayer: currentPlayer,
-            pointsPotential: newPlayerScore - currentPlayerScore,
-            difficulty: newPlayerFixtures.reduce((acc, f) => 
-              acc + f.difficulty, 0
-            ) / newPlayerFixtures.length,
-            fixtures: newPlayerFixtures.map(f => 
+            pointsPotential: Math.round(pointsDifference),
+            difficulty: newPlayerFixtures.reduce((acc, f) => acc + f.difficulty, 0) / newPlayerFixtures.length,
+            fixtures: newPlayerFixtures.slice(0, 5).map(f => // Show next 5 fixtures
               `${f.isHome ? 'vs' : '@'} ${f.opponent}`
             )
           });
