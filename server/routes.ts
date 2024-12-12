@@ -17,46 +17,66 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/fpl/my-team/:managerId", async (req, res) => {
     const { managerId } = req.params;
     try {
-      // Fetch base team data
-      const teamResponse = await fetch(`https://fantasy.premierleague.com/api/my-team/${managerId}/`);
-      if (!teamResponse.ok) {
-        return res.status(404).json({ message: "Team not found" });
-      }
-      const teamData = await teamResponse.json();
+      // Fetch entry/manager data first
+      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      });
 
-      // Fetch entry/manager data for overall stats
-      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`);
       if (!entryResponse.ok) {
-        return res.status(404).json({ message: "Entry not found" });
+        console.error(`Entry response error: ${entryResponse.status} - ${await entryResponse.text()}`);
+        return res.status(404).json({ message: "Team not found. Please check your team ID." });
       }
+
       const entryData = await entryResponse.json();
+      const currentEvent = entryData.current_event;
 
       // Fetch current gameweek data
-      const currentEvent = entryData.current_event;
       const gwResponse = await fetch(
-        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${currentEvent}/picks/`
+        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${currentEvent}/picks/`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
       );
+
+      if (!gwResponse.ok) {
+        console.error(`Gameweek response error: ${gwResponse.status} - ${await gwResponse.text()}`);
+        return res.status(500).json({ message: "Unable to fetch gameweek data" });
+      }
+
       const gwData = await gwResponse.json();
 
-      // Combine all data
+      // For transfers and team value, we'll use the entry data
       const combinedData = {
-        picks: teamData.picks,
-        chips: teamData.chips,
-        transfers: teamData.transfers,
+        picks: gwData.picks || [],
+        chips: [], // Will be populated when we have access to the chips endpoint
+        transfers: {
+          limit: 1, // Default to 1 free transfer
+          made: 0,
+          bank: entryData.bank || 0,
+          value: entryData.value || 0,
+        },
         entry: {
           overall_points: entryData.summary_overall_points,
           overall_rank: entryData.summary_overall_rank,
-          gameweek_points: gwData.entry_history.points,
+          gameweek_points: gwData.entry_history?.points || 0,
           gameweek: currentEvent,
-          team_value: entryData.value,
-          bank: entryData.bank,
+          team_value: entryData.value || 0,
+          bank: entryData.bank || 0,
         }
       };
 
       res.json(combinedData);
     } catch (error) {
       console.error("Error fetching team data:", error);
-      res.status(500).json({ message: "Failed to fetch team" });
+      res.status(500).json({ 
+        message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
+      });
     }
   });
 
