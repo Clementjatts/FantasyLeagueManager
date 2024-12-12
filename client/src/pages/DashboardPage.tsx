@@ -73,7 +73,18 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <button
+            onClick={() => {
+              localStorage.removeItem("fpl_team_id");
+              setTeamId(null);
+            }}
+            className="text-sm px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors duration-200"
+          >
+            Change Team
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <div className="text-sm text-muted-foreground">Gameweek</div>
           <div className="text-2xl font-bold">{gameweekData.currentGameweek}</div>
