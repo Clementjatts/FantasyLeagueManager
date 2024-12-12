@@ -64,42 +64,68 @@ export function TransferSuggestions({
       }).filter(f => f !== null);
     };
 
-    const calculatePointsPotential = (player: Player, fixtures: any[]) => {
-      const formScore = parseFloat(player.form) * 2;
-      const fixtureScore = fixtures.reduce((acc, f) => 
-        acc + (5 - f.difficulty), 0
-      ) / fixtures.length;
+    const calculatePlayerScore = (player: Player, fixtures: any[]) => {
+      // Form score (weighted higher for consistency)
+      const formScore = parseFloat(player.form) * 3;
       
-      return (formScore + fixtureScore) * 
-        (player.minutes > 0 ? 1 : 0.5);
+      // Minutes played factor (rewards consistent starters)
+      const minutesFactor = player.minutes > 450 ? 1.2 : // Over 5 full games
+                           player.minutes > 270 ? 1.0 : // Over 3 full games
+                           player.minutes > 90 ? 0.8 : // At least 1 full game
+                           0.5; // Bench/irregular player
+      
+      // Points per game impact
+      const ppgScore = parseFloat(player.points_per_game) * 2;
+      
+      // Fixture difficulty consideration
+      const fixtureScore = fixtures.reduce((acc, f) => {
+        const difficultyFactor = 5 - f.difficulty; // Reverse difficulty (5 is easiest)
+        return acc + (difficultyFactor * 1.5); // Weight easier fixtures more
+      }, 0) / fixtures.length;
+      
+      // Value for money factor (points per million)
+      const valueScore = (ppgScore / (player.now_cost / 10)) * 0.5;
+      
+      // Combine all factors
+      return (formScore + ppgScore + fixtureScore + valueScore) * minutesFactor;
     };
 
     const suggestedTransfers: TransferSuggestion[] = [];
 
-    // Find potential transfers for each position
-    currentPlayers.forEach(currentPlayer => {
+    // Identify weak performers in current team
+    const weakPerformers = currentPlayers.map(player => {
+      const playerFixtures = getPlayerFixtures(player);
+      const score = calculatePlayerScore(player, playerFixtures);
+      return { player, score };
+    }).sort((a, b) => a.score - b.score) // Sort by score ascending (worst first)
+      .slice(0, 3); // Focus on the 3 worst performers
+
+    // Find potential replacements for weak performers
+    weakPerformers.forEach(({ player: currentPlayer, score: currentScore }) => {
       const potentialReplacements = allPlayers.filter(p => 
         p.element_type === currentPlayer.element_type && // Same position
         p.id !== currentPlayer.id && // Not the same player
         p.status !== "i" && // Not injured
-        p.minutes > 0 && // Has played
-        parseFloat(p.form) > parseFloat(currentPlayer.form) // Better form
+        p.minutes > 180 && // Has played at least 2 full games
+        parseFloat(p.form) >= parseFloat(currentPlayer.form) && // Equal or better form
+        p.now_cost <= currentPlayer.now_cost + 10 // Within budget (+1.0m)
       );
 
       potentialReplacements.forEach(newPlayer => {
         const newPlayerFixtures = getPlayerFixtures(newPlayer);
         const currentPlayerFixtures = getPlayerFixtures(currentPlayer);
 
-        const newPlayerPotential = calculatePointsPotential(
+        const newPlayerScore = calculatePlayerScore(
           newPlayer,
           newPlayerFixtures
         );
-        const currentPlayerPotential = calculatePointsPotential(
+        const currentPlayerScore = calculatePlayerScore(
           currentPlayer,
           currentPlayerFixtures
         );
 
-        if (newPlayerPotential > currentPlayerPotential) {
+        // Only suggest if significant improvement (>20% better)
+        if (newPlayerScore > currentPlayerScore * 1.2) {
           suggestedTransfers.push({
             inPlayer: newPlayer,
             outPlayer: currentPlayer,

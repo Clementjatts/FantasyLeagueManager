@@ -137,6 +137,14 @@ export default function TeamPage() {
       <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
         {/* Left Column - Team and Transfers */}
         <div className="space-y-6">
+          {/* Team View */}
+          <TeamPitch 
+            players={teamPlayers}
+            captainId={captainId}
+            viceCaptainId={viceCaptainId}
+            onPlayerClick={setSelectedPlayer}
+          />
+
           {/* Transfer Suggestions */}
           {teamPlayers.length > 0 && bootstrapData?.teams && fixtures && (
             <TransferSuggestions
@@ -152,14 +160,6 @@ export default function TeamPage() {
               }}
             />
           )}
-
-          {/* Team View */}
-          <TeamPitch 
-            players={teamPlayers}
-            captainId={captainId}
-            viceCaptainId={viceCaptainId}
-            onPlayerClick={setSelectedPlayer}
-          />
 
           {/* Player Stats Dialog */}
           {selectedPlayer && (
