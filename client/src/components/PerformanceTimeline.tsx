@@ -27,7 +27,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
 
         return (
           <div key={gw.event} className="relative flex items-center">
-            <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow">
+            <div className="absolute left-0 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg">
               <span className="text-lg font-bold text-white">{gw.event}</span>
             </div>
 
