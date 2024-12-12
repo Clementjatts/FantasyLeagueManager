@@ -15,8 +15,8 @@ interface PerformanceTimelineProps {
 }
 
 export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
-  // Sort data by gameweek in descending order (most recent first)
-  const sortedData = [...data].sort((a, b) => b.event - a.event);
+  // Sort data by gameweek in ascending order
+  const sortedData = [...data].sort((a, b) => a.event - b.event);
 
   return (
     <div className="relative space-y-8 before:absolute before:inset-0 before:ml-6 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-primary before:to-primary/20 before:content-['']">
@@ -34,7 +34,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
             <Card className={cn(
               "ml-20 w-full transition-all duration-200",
               "hover:shadow-lg hover:scale-[1.02]",
-              index === 0 && "ring-2 ring-primary ring-offset-2"
+              index === sortedData.length - 1 && "ring-2 ring-primary ring-offset-2"
             )}>
               <CardContent className="p-4">
                 <div className="grid gap-4 md:grid-cols-4">
@@ -48,7 +48,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
                         ) : (
                           <TrendingDown className="h-4 w-4" />
                         )}
-                        {Math.abs(pointsDiff)} vs avg
+                        {Math.abs(pointsDiff)}
                       </div>
                     )}
                   </div>
@@ -79,6 +79,11 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Average</p>
                     <p className="text-2xl font-bold">{gw.average}</p>
+                    {pointsDiff !== 0 && (
+                      <div className={cn("text-sm", performanceColor)}>
+                        {gw.points > gw.average ? "Above" : "Below"} average
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
