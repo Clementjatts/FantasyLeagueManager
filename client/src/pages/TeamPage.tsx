@@ -160,9 +160,9 @@ export default function TeamPage() {
           />
 
           {/* Transfer Suggestions */}
-          {teamPlayers.length > 0 && bootstrapData?.teams && fixtures && (
+          {(startingXI.length > 0 || substitutes.length > 0) && bootstrapData?.teams && fixtures && (
             <TransferSuggestions
-              currentPlayers={teamPlayers}
+              currentPlayers={[...startingXI, ...substitutes]}
               allPlayers={players}
               fixtures={fixtures}
               teams={bootstrapData.teams}
@@ -236,15 +236,13 @@ export default function TeamPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Starting XI</p>
                     <p className="text-lg font-semibold">
-                      £{(teamPlayers.filter(p => p.position <= 11)
-                        .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                      £{(startingXI.reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Bench</p>
                     <p className="text-lg font-semibold">
-                      £{(teamPlayers.filter(p => p.position > 11)
-                        .reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
+                      £{(substitutes.reduce((sum, p) => sum + (p.now_cost || 0), 0) / 10).toFixed(1)}m
                     </p>
                   </div>
                 </div>
