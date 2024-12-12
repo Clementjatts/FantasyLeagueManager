@@ -54,20 +54,20 @@ export function CaptainSuggestions({
                 )}
                 onClick={() => onSelectCaptain(player)}
               >
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-semibold truncate">{player.web_name}</span>
+                      <span className="text-base font-semibold truncate">{player.web_name}</span>
                       {player.id === currentCaptainId && (
-                        <Badge variant="default" className="bg-primary/90 text-primary-foreground px-2">C</Badge>
+                        <Badge variant="default" className="bg-primary/90 text-primary-foreground px-2 text-xs">C</Badge>
                       )}
                       {player.id === currentViceCaptainId && (
-                        <Badge variant="outline" className="border-primary/70 text-primary px-2">VC</Badge>
+                        <Badge variant="outline" className="border-primary/70 text-primary px-2 text-xs">VC</Badge>
                       )}
                     </div>
                   </div>
                   
-                  <div className="flex flex-wrap gap-4 text-sm">
+                  <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-xs">
                     <span className="whitespace-nowrap">
                       Form: <span className="font-medium">{player.form}</span>
                     </span>
