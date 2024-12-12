@@ -129,7 +129,7 @@ export function TransferSuggestions({
           suggestedTransfers.push({
             inPlayer: newPlayer,
             outPlayer: currentPlayer,
-            pointsPotential: newPlayerPotential - currentPlayerPotential,
+            pointsPotential: newPlayerScore - currentPlayerScore,
             difficulty: newPlayerFixtures.reduce((acc, f) => 
               acc + f.difficulty, 0
             ) / newPlayerFixtures.length,
