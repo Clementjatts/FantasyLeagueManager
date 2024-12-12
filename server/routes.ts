@@ -82,6 +82,30 @@ export function registerRoutes(app: Express): Server {
         return;
       }
 
+      // Get the positions of both players
+      const outPlayer = picks.find(p => p.element === outId);
+      if (!outPlayer) {
+        res.status(400).json({ message: "Player not found in your team" });
+        return;
+      }
+
+      // Validate position replacement
+      const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
+      const data = await response.json();
+      const newPlayer = data.elements.find((p: any) => p.id === playerId);
+      const oldPlayer = data.elements.find((p: any) => p.id === outId);
+
+      if (!newPlayer || !oldPlayer) {
+        res.status(400).json({ message: "Invalid player selection" });
+        return;
+      }
+
+      // Ensure players are of the same position type
+      if (newPlayer.element_type !== oldPlayer.element_type) {
+        res.status(400).json({ message: "Players must be of the same position" });
+        return;
+      }
+
       // Update picks by replacing the outgoing player
       const updatedPicks = picks.map(pick => 
         pick.element === outId ? { ...pick, element: playerId } : pick
