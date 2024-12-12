@@ -15,24 +15,24 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="border-b bg-gradient-to-r from-card to-card/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+    <nav className="border-b bg-gradient-to-r from-zinc-900/90 via-background to-zinc-900/90 backdrop-blur-sm sticky top-0 z-50 shadow-md">
       <div className="container mx-auto px-6">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="text-2xl font-extrabold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              FPL Manager
+            <div className="text-2xl font-black tracking-tighter bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent select-none">
+              FPLManager
             </div>
           </div>
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {links.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
                 <a
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
-                    "hover:bg-accent/80 hover:shadow-sm hover:scale-105",
+                    "hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-blue-500/20 hover:shadow-lg hover:scale-105",
                     location === href
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg"
+                      : "text-zinc-400 hover:text-white"
                   )}
                 >
                   <Icon className={cn(
