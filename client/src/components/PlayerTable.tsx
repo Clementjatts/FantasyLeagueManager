@@ -210,12 +210,12 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
                     };
                     const team = teamData[player.team];
                     return (
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 flex items-center justify-center rounded-full bg-primary/10">
-                          {team?.abbr.charAt(0)}
-                        </div>
-                        <span title={team?.name}>{team?.abbr || `T${player.team}`}</span>
-                      </div>
+                      <span 
+                        title={team?.name}
+                        className="font-medium"
+                      >
+                        {team?.abbr || `T${player.team}`}
+                      </span>
                     );
                   })()}
                 </div>
