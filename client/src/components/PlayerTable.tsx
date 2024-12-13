@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { type Player } from "../types/fpl";
 import { Star, ArrowUpDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PlayerTableProps {
   players: Player[];
@@ -46,23 +47,6 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
     };
   };
 
-  const getPrediction = (player: Player, fixture: any) => {
-    if (!fixture) return "-";
-    
-    const form = parseFloat(player.form) || 0;
-    const difficulty = fixture.difficulty || 3;
-    const positionMultiplier = {
-      1: 0.8,  // GK
-      2: 0.9,  // DEF
-      3: 1.1,  // MID
-      4: 1.2   // FWD
-    }[player.element_type] || 1;
-    
-    const homeAdvantage = fixture.isHome ? 1.1 : 0.9;
-    const prediction = form * positionMultiplier * homeAdvantage * (6 - difficulty) / 3;
-    
-    return prediction.toFixed(1);
-  };
   const [sortConfig, setSortConfig] = React.useState<SortConfig>({
     key: 'total_points',
     direction: 'desc'
@@ -118,9 +102,18 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
     </div>
   );
 
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(sortedPlayers.length / itemsPerPage);
+  const currentPlayers = sortedPlayers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[250px]">
@@ -159,14 +152,13 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
             {/* Show clean sheets for DEF/GK */}
             <TableHead className="text-center">CS</TableHead>
             <TableHead className="text-center">
-              <SortableHeader sortKey="selected_by_percent">Sel %</SortableHeader>
+              <SortableHeader sortKey="selected_by_percent">Sel</SortableHeader>
             </TableHead>
-            <TableHead className="text-center">Next Fixture</TableHead>
-            <TableHead className="text-center">Prediction</TableHead>
+            <TableHead className="text-center">NF</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {sortedPlayers.map((player) => (
+          {currentPlayers.map((player) => (
             <TableRow 
               key={player.id}
               className={cn(
@@ -201,7 +193,7 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
                   player.clean_sheets : '-'}
               </TableCell>
               <TableCell className="text-center font-medium">
-                {parseFloat(player.selected_by_percent).toFixed(1)}%
+                {parseFloat(player.selected_by_percent).toFixed(1)}
               </TableCell>
               <TableCell className="text-center">
                 {(() => {
@@ -224,25 +216,63 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
                   );
                 })()}
               </TableCell>
-              <TableCell className="text-center font-medium">
-                {(() => {
-                  const fixture = getNextFixture(player.team);
-                  const prediction = getPrediction(player, fixture);
-                  return (
-                    <span className={`${
-                      parseFloat(prediction) >= 5 ? "text-green-600" :
-                      parseFloat(prediction) >= 3 ? "text-orange-600" :
-                      "text-red-600"
-                    }`}>
-                      {prediction}
-                    </span>
-                  );
-                })()}
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      </div>
+      
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          Page {currentPage} of {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </Button>
+      </div>
+
+      {/* Abbreviations Legend */}
+      <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+        <h3 className="font-semibold">Abbreviations</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <span className="font-medium">Pos:</span> Position
+          </div>
+          <div>
+            <span className="font-medium">PPG:</span> Points Per Game
+          </div>
+          <div>
+            <span className="font-medium">G:</span> Goals
+          </div>
+          <div>
+            <span className="font-medium">A:</span> Assists
+          </div>
+          <div>
+            <span className="font-medium">CS:</span> Clean Sheets
+          </div>
+          <div>
+            <span className="font-medium">Sel:</span> Selected By Percentage
+          </div>
+          <div>
+            <span className="font-medium">NF:</span> Next Fixture
+          </div>
+          <div>
+            <span className="font-medium">xG:</span> Expected Goals
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
