@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PlayerTable } from "../components/PlayerTable";
-import { fetchPlayers, makeTransfer, fetchMyTeam } from "../lib/api";
+import { fetchPlayers, makeTransfer, fetchMyTeam, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
