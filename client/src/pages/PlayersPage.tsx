@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TransferFilters, type FilterOptions } from "@/components/TransferFilters";
 import { PriceChangeTracker } from "../components/PriceChangeTracker";
 import { PlayerComparison } from "../components/PlayerComparison";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BarChartHorizontal, Scale } from "lucide-react";
 import { type Player } from "../types/fpl";
 
@@ -191,10 +191,19 @@ export default function PlayersPage() {
           <Dialog open={showComparisonDialog} onOpenChange={setShowComparisonDialog}>
             <DialogContent className="max-w-4xl">
               {selectedPlayer && comparisonPlayer && (
-                <PlayerComparison 
-                  player={selectedPlayer}
-                  comparedPlayer={comparisonPlayer}
-                />
+                <>
+                  <DialogTitle className="text-xl font-semibold flex items-center gap-2">
+                    <Scale className="w-5 h-5 text-primary" />
+                    {selectedPlayer.web_name} vs {comparisonPlayer.web_name}
+                  </DialogTitle>
+                  <DialogDescription className="text-muted-foreground">
+                    Compare performance statistics between players
+                  </DialogDescription>
+                  <PlayerComparison 
+                    player={selectedPlayer}
+                    comparedPlayer={comparisonPlayer}
+                  />
+                </>
               )}
             </DialogContent>
           </Dialog>
