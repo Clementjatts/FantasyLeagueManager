@@ -53,24 +53,26 @@ export function TeamPitch({
               {playersInPosition
                 .filter(p => players.includes(p))
                 .map((player) => (
-                  <div key={player.id} className="w-full max-w-[200px] relative flex flex-col items-center">
-                    {player.id === captainId && (
-                      <div className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
-                        C
-                      </div>
-                    )}
-                    {player.id === viceCaptainId && (
-                      <div className="absolute -top-3 -right-3 w-8 h-8 bg-blue-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
-                        V
-                      </div>
-                    )}
-                    <PlayerCard
-                      player={player}
-                      onClick={() => onPlayerClick?.(player)}
-                      className="transition-transform hover:scale-105 text-center"
-                      fixtures={fixtures}
-                      teams={teams}
-                    />
+                  <div key={player.id} className="w-full max-w-[200px] flex flex-col items-center">
+                    <div className="relative w-full flex justify-center">
+                      {player.id === captainId && (
+                        <div className="absolute -top-3 right-0 w-8 h-8 bg-yellow-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
+                          C
+                        </div>
+                      )}
+                      {player.id === viceCaptainId && (
+                        <div className="absolute -top-3 right-0 w-8 h-8 bg-blue-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
+                          V
+                        </div>
+                      )}
+                      <PlayerCard
+                        player={player}
+                        onClick={() => onPlayerClick?.(player)}
+                        className="transition-transform hover:scale-105 text-center"
+                        fixtures={fixtures}
+                        teams={teams}
+                      />
+                    </div>
                   </div>
                 ))}
             </div>
@@ -88,24 +90,26 @@ export function TeamPitch({
         {/* Substitutes Section */}
         <div className="grid grid-cols-4 gap-4">
           {substitutes.map((player) => (
-            <div key={player.id} className="relative flex flex-col items-center">
-              {player.id === captainId && (
-                <div className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
-                  C
-                </div>
-              )}
-              {player.id === viceCaptainId && (
-                <div className="absolute -top-3 -right-3 w-8 h-8 bg-blue-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
-                  V
-                </div>
-              )}
-              <PlayerCard
-                player={player}
-                onClick={() => onSubstituteClick?.(player)}
-                className="transition-transform hover:scale-105 opacity-80 hover:opacity-100 text-center"
-                fixtures={fixtures}
-                teams={teams}
-              />
+            <div key={player.id} className="flex flex-col items-center">
+              <div className="relative w-full flex justify-center">
+                {player.id === captainId && (
+                  <div className="absolute -top-3 right-0 w-8 h-8 bg-yellow-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
+                    C
+                  </div>
+                )}
+                {player.id === viceCaptainId && (
+                  <div className="absolute -top-3 right-0 w-8 h-8 bg-blue-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
+                    V
+                  </div>
+                )}
+                <PlayerCard
+                  player={player}
+                  onClick={() => onSubstituteClick?.(player)}
+                  className="transition-transform hover:scale-105 opacity-80 hover:opacity-100 text-center"
+                  fixtures={fixtures}
+                  teams={teams}
+                />
+              </div>
             </div>
           ))}
         </div>
