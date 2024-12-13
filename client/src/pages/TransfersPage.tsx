@@ -57,11 +57,12 @@ export default function TransfersPage() {
 
   // Initialize selected player and filters when data is available
   useEffect(() => {
-    if (players && initialPlayerId) {
+    if (players && initialPlayerId && !selectedOut) {
       const playerId = Number(initialPlayerId);
       if (!isNaN(playerId)) {
         const player = players.find(p => p.id === playerId);
         if (player) {
+          console.log('Setting selected player:', player.web_name);
           setSelectedOut(playerId);
           setFilters({
             team: player.team.toString(),
@@ -70,7 +71,17 @@ export default function TransfersPage() {
         }
       }
     }
-  }, [players, initialPlayerId]);
+  }, [players, initialPlayerId, selectedOut]);
+
+  // Reset filters when selection is cleared
+  useEffect(() => {
+    if (!selectedOut) {
+      setFilters({
+        team: 'ALL',
+        position: 'ALL'
+      });
+    }
+  }, [selectedOut]);
 
   // Filter players based on search and filters
   const filteredPlayers = useMemo(() => {
