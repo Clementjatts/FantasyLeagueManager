@@ -244,9 +244,9 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
       </div>
 
       {/* Abbreviations Legend */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Abbreviations Guide</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="space-y-6">
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Abbreviations Guide</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { abbr: "Pos", full: "Position" },
             { abbr: "PPG", full: "Points Per Game" },
@@ -259,10 +259,10 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
           ].map(({ abbr, full }) => (
             <div 
               key={abbr}
-              className="bg-card rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow"
+              className="bg-gradient-to-br from-card to-card/80 rounded-lg p-4 border border-border/40 shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10"
             >
-              <div className="font-semibold text-primary">{abbr}</div>
-              <div className="text-sm text-muted-foreground">{full}</div>
+              <div className="font-bold text-lg text-primary/90">{abbr}</div>
+              <div className="text-sm text-muted-foreground mt-1">{full}</div>
             </div>
           ))}
         </div>
