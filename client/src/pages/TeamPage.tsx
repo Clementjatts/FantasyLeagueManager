@@ -13,11 +13,10 @@ import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { type Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, Users, Coins, AlertCircle } from "lucide-react";
+import { Users, AlertCircle } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [teamId, setTeamId] = useState(() => {

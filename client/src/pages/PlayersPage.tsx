@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { PlayerTable } from "../components/PlayerTable";
-import { fetchPlayers, makeTransfer, fetchMyTeam, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
+import { fetchPlayers, fetchMyTeam, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,8 +14,7 @@ import { type Player } from "../types/fpl";
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [selectedOut, setSelectedOut] = useState<number | null>(null);
+  //const queryClient = useQueryClient(); // Removed as not used
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     team: 'ALL',
@@ -23,11 +22,6 @@ export default function PlayersPage() {
   });
 
   // Fetch data
-  const { data: team, isLoading: isLoadingTeam } = useQuery({
-    queryKey: ["/api/fpl/my-team/1"],
-    queryFn: () => fetchMyTeam(1)
-  });
-
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
     queryFn: fetchPlayers
@@ -43,26 +37,6 @@ export default function PlayersPage() {
     queryFn: fetchBootstrapStatic
   });
 
-  // Handle transfer mutations
-  const transferMutation = useMutation({
-    mutationFn: (params: { playerId: number; outId: number }) =>
-      makeTransfer(params.playerId, params.outId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-      toast({
-        title: "Transfer successful",
-        description: "Your team has been updated",
-      });
-      setSelectedOut(null);
-    },
-    onError: () => {
-      toast({
-        title: "Transfer failed",
-        description: "Unable to complete the transfer. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Filter players based on search and filters
   const filteredPlayers = useMemo(() => {
@@ -76,11 +50,12 @@ export default function PlayersPage() {
     });
   }, [players, search, filters]);
 
-  const teamValue = (team?.transfers?.value || 0) / 10;
-  const bankValue = (team?.transfers?.bank || 0) / 10;
-  const freeTransfers = team?.transfers?.limit || 0;
+  //These variables are not used anymore
+  //const teamValue = (team?.transfers?.value || 0) / 10;
+  //const bankValue = (team?.transfers?.bank || 0) / 10;
+  //const freeTransfers = team?.transfers?.limit || 0;
 
-  if (isLoadingTeam || isLoadingPlayers) {
+  if (isLoadingPlayers) {
     return <div className="space-y-4">
       <Skeleton className="h-8 w-48" />
       <Skeleton className="h-96 w-full" />
@@ -143,24 +118,9 @@ export default function PlayersPage() {
 
           <PlayerTable 
             players={filteredPlayers}
-            selectedPlayerId={selectedOut}
             fixtures={fixtures}
             teams={bootstrapData?.teams}
-            onPlayerClick={(player) => {
-              setSelectedPlayer(player);
-              if (selectedOut) {
-                if (selectedOut === player.id) {
-                  setSelectedOut(null);
-                } else {
-                  transferMutation.mutate({
-                    playerId: player.id,
-                    outId: selectedOut,
-                  });
-                }
-              } else {
-                setSelectedOut(player.id);
-              }
-            }}
+            onPlayerClick={(player) => setSelectedPlayer(player)}
           />
 
           {selectedPlayer && (
