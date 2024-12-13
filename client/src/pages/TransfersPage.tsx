@@ -30,8 +30,29 @@ export default function TransfersPage() {
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
-    queryFn: fetchPlayers
+    queryFn: () => {
+      const result = fetchPlayers();
+      console.log('Player data example:', result?.[0]);
+      return result;
+    }
   });
+
+  // Log team information when players data changes
+  React.useEffect(() => {
+    if (players) {
+      console.log('Available teams:', 
+        Array.from(new Set(players.map(p => p.team)))
+          .map(teamId => {
+            const player = players.find(p => p.team === teamId);
+            return {
+              id: teamId,
+              name: player?.team_name,
+              team: player?.team
+            };
+          })
+      );
+    }
+  }, [players]);
 
   const transferMutation = useMutation({
     mutationFn: (params: { playerId: number; outId: number }) =>
@@ -155,17 +176,43 @@ export default function TransfersPage() {
           </div>
           
           <TransferFilters
-            teams={players ? Array.from(new Set(players.map(p => p.team))).map(teamId => {
-                const player = players.find(p => p.team === teamId);
-                // Using the team property from API response
-                return {
-                  id: teamId,
-                  name: player?.team_short_name || '', // Using team_short_name as the full name
-                  short_name: player?.team_short_name || ''
-                };
-              })
-              .filter(team => team.name) // Remove any teams without names
-              .sort((a, b) => a.name.localeCompare(b.name)) : []}
+            teams={players ? 
+              // Get unique team entries
+              Array.from(new Set(players.map(p => p.team)))
+                .map(teamId => {
+                  // Get the first player from this team to extract team info
+                  const playerFromTeam = players.find(p => p.team === teamId);
+                  // Map of team IDs to their common names
+                  const teamNames: Record<number, string> = {
+                    1: "Arsenal",
+                    2: "Aston Villa",
+                    3: "Bournemouth",
+                    4: "Brentford",
+                    5: "Brighton",
+                    6: "Chelsea",
+                    7: "Crystal Palace",
+                    8: "Everton",
+                    9: "Fulham",
+                    10: "Liverpool",
+                    11: "Luton",
+                    12: "Manchester City",
+                    13: "Manchester United",
+                    14: "Newcastle",
+                    15: "Nottingham Forest",
+                    16: "Sheffield United",
+                    17: "Tottenham",
+                    18: "West Ham",
+                    19: "Wolves",
+                    20: "Burnley"
+                  };
+                  return {
+                    id: teamId,
+                    name: teamNames[teamId] || `Team ${teamId}`,
+                    short_name: teamNames[teamId] || `Team ${teamId}`
+                  };
+                })
+                .sort((a, b) => a.name.localeCompare(b.name)) 
+              : []}
             onFilterChange={setFilters}
           />
         </div>
