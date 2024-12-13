@@ -71,13 +71,13 @@ export function PriceChangeTracker({ player }: PriceChangeTrackerProps) {
         {/* Transfer Statistics */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">GW Transfers In</div>
+            <div className="text-sm text-muted-foreground">GW 16 Transfers In</div>
             <div className="text-lg font-bold">
               {player.transfers_in_event || 0}
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground">GW Transfers Out</div>
+            <div className="text-sm text-muted-foreground">GW 16 Transfers Out</div>
             <div className="text-lg font-bold">
               {player.transfers_out_event || 0}
             </div>
