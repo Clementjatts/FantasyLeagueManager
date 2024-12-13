@@ -266,27 +266,50 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/fpl/leagues/:managerId", async (req, res) => {
     const { managerId } = req.params;
     try {
-      // Mock data for leagues
-      const leagues = [
+      // Fetch classic leagues
+      const classicResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/leagues/classic/`,
         {
-          id: 1,
-          name: "Classic League",
-          type: "classic",
-          admin_entry: 1,
-          started: true,
-          closed: false
-        },
-        {
-          id: 2,
-          name: "Head-to-Head League",
-          type: "h2h",
-          admin_entry: 1,
-          started: true,
-          closed: false
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
         }
+      );
+      
+      // Fetch h2h leagues
+      const h2hResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/leagues/h2h/`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
+      );
+
+      if (!classicResponse.ok || !h2hResponse.ok) {
+        throw new Error("Failed to fetch leagues");
+      }
+
+      const classicData = await classicResponse.json();
+      const h2hData = await h2hResponse.json();
+
+      // Combine and format league data
+      const leagues = [
+        ...(classicData.leagues || []).map(league => ({
+          ...league,
+          type: "classic"
+        })),
+        ...(h2hData.leagues || []).map(league => ({
+          ...league,
+          type: "h2h"
+        }))
       ];
+
       res.json(leagues);
     } catch (error) {
+      console.error("Error fetching leagues:", error);
       res.status(500).json({ message: "Failed to fetch leagues" });
     }
   });
@@ -294,18 +317,24 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/fpl/leagues/:leagueId/standings", async (req, res) => {
     const { leagueId } = req.params;
     try {
-      // Mock data for league standings
-      const standings = Array.from({ length: 10 }, (_, i) => ({
-        entry: i + 1,
-        entry_name: `Team ${i + 1}`,
-        player_name: `Manager ${i + 1}`,
-        rank: i + 1,
-        last_rank: i + 1,
-        total: Math.floor(Math.random() * 1000),
-        points_behind_leader: i * 10
-      }));
-      res.json(standings);
+      const standingsResponse = await fetch(
+        `https://fantasy.premierleague.com/api/leagues-classic/${leagueId}/standings/`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
+      );
+
+      if (!standingsResponse.ok) {
+        throw new Error("Failed to fetch standings");
+      }
+
+      const standingsData = await standingsResponse.json();
+      res.json(standingsData.standings.results || []);
     } catch (error) {
+      console.error("Error fetching standings:", error);
       res.status(500).json({ message: "Failed to fetch standings" });
     }
   });
@@ -313,25 +342,24 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/fpl/cup/:managerId", async (req, res) => {
     const { managerId } = req.params;
     try {
-      // Mock data for cup matches
-      const matches = [
+      const cupResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/cup/`,
         {
-          id: 1,
-          entry_1_entry: 1,
-          entry_1_name: "Team A",
-          entry_1_player_name: "Manager A",
-          entry_1_points: 65,
-          entry_2_entry: 2,
-          entry_2_name: "Team B",
-          entry_2_player_name: "Manager B",
-          entry_2_points: 55,
-          is_knockout: true,
-          winner: 1,
-          round: 1
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
         }
-      ];
-      res.json(matches);
+      );
+
+      if (!cupResponse.ok) {
+        throw new Error("Failed to fetch cup matches");
+      }
+
+      const cupData = await cupResponse.json();
+      res.json(cupData.cup_matches || []);
     } catch (error) {
+      console.error("Error fetching cup matches:", error);
       res.status(500).json({ message: "Failed to fetch cup matches" });
     }
   });
