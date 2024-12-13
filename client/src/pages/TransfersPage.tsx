@@ -155,7 +155,11 @@ export default function TransfersPage() {
           </div>
           
           <TransferFilters
-            teams={team?.teams || []}
+            teams={players ? Array.from(new Set(players.map(p => p.team))).map(teamId => ({
+              id: teamId,
+              name: players.find(p => p.team === teamId)?.team_name || '',
+              short_name: players.find(p => p.team === teamId)?.team_short_name || ''
+            })) : []}
             onFilterChange={setFilters}
           />
         </div>

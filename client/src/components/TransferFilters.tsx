@@ -25,8 +25,14 @@ export interface FilterOptions {
   sortOrder: 'asc' | 'desc';
 }
 
+interface Team {
+  id: number;
+  name: string;
+  short_name: string;
+}
+
 interface TransferFiltersProps {
-  teams: any[];
+  teams: Team[];
   onFilterChange: (filters: FilterOptions) => void;
 }
 
