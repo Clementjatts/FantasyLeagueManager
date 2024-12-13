@@ -68,21 +68,23 @@ function StatComparison({
           )}
         </span>
         <div className="flex items-center gap-2">
-          <span className={cn(
-            "font-medium",
-            better ? "text-green-500" : value2 ? "text-red-500" : ""
-          )}>{val1}{suffix}</span>
-          {value2 && (
+          {value2 ? (
             <>
-              <span className="text-muted-foreground">vs</span>
               <span className={cn(
                 "font-medium",
                 !better ? "text-green-500" : "text-red-500"
               )}>{val2}{suffix}</span>
-              <Badge variant={better ? "default" : "destructive"} className="text-xs">
-                {difference.toFixed(1)}{suffix} {better ? "better" : "worse"}
+              <span className="text-muted-foreground">vs</span>
+              <span className={cn(
+                "font-medium",
+                better ? "text-green-500" : "text-red-500"
+              )}>{val1}{suffix}</span>
+              <Badge variant={!better ? "default" : "destructive"} className="text-xs">
+                {difference.toFixed(1)}{suffix} {!better ? "better" : "worse"}
               </Badge>
             </>
+          ) : (
+            <span className="font-medium">{val1}{suffix}</span>
           )}
         </div>
       </div>
@@ -182,8 +184,7 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
         { label: "Goals Conceded", value: "goals_conceded", reverse: true, showIf: (p) => p.element_type <= 2 },
         { label: "Saves", value: "saves", showIf: (p) => p.element_type === 1 },
         { label: "Penalties Saved", value: "penalties_saved", showIf: (p) => p.element_type === 1 },
-        { label: "Expected Goal Involvements", value: "expected_goal_involvements", showIf: (p) => p.element_type >= 3 },
-        { label: "Big Chances", value: "big_chances_total", showIf: (p) => p.element_type >= 3 }
+        { label: "Expected Goal Involvements", value: "expected_goal_involvements", showIf: (p) => p.element_type >= 3 }
       ].filter(stat => stat.showIf?.(player) || stat.showIf?.(comparedPlayer))
     }
   ];
