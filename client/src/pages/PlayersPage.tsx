@@ -178,8 +178,7 @@ export default function PlayersPage() {
                 setShowPriceDialog(true);
               }
             }}
-            highlightedPlayer={comparisonPlayer}
-          />
+            />
 
           {/* Price Analysis Dialog */}
           <Dialog open={showPriceDialog} onOpenChange={setShowPriceDialog}>
@@ -201,14 +200,12 @@ export default function PlayersPage() {
                   </DialogTitle>
                   <DialogDescription className="space-y-4">
                     <div className="flex items-center justify-center gap-6 pt-4">
-                      <div className="text-center space-y-2">
-                        <div className="font-semibold text-lg text-primary">{comparisonPlayer.web_name}</div>
-                        <Badge variant="secondary">First Selected</Badge>
+                      <div className="text-center">
+                        <div className="font-semibold text-xl text-primary">{comparisonPlayer.web_name}</div>
                       </div>
                       <div className="text-2xl font-bold text-muted-foreground">VS</div>
-                      <div className="text-center space-y-2">
-                        <div className="font-semibold text-lg text-primary">{selectedPlayer.web_name}</div>
-                        <Badge variant="secondary">Second Selected</Badge>
+                      <div className="text-center">
+                        <div className="font-semibold text-xl text-primary">{selectedPlayer.web_name}</div>
                       </div>
                     </div>
                     <p className="text-center text-sm text-muted-foreground pt-2">
