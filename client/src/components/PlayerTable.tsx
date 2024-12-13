@@ -158,7 +158,7 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
               <TableCell className="text-center font-medium">{player.goals_scored}</TableCell>
               <TableCell className="text-center font-medium">{player.assists}</TableCell>
               <TableCell className="text-center font-medium">{player.bonus}</TableCell>
-              <TableCell className="text-center font-medium">{player.expected_goals?.toFixed(2) || '0.00'}</TableCell>
+              <TableCell className="text-center font-medium">{player.expected_goals ? Number(player.expected_goals).toFixed(2) : '0.00'}</TableCell>
               <TableCell className="text-center font-medium">
                 {(player.element_type === 1 || player.element_type === 2) ? 
                   player.clean_sheets : '-'}
