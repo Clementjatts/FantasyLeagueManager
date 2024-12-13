@@ -131,7 +131,7 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
               )}
               onClick={() => onPlayerClick(player)}
             >
-              <TableCell className="font-medium">
+              <TableCell>
                 <div className="flex items-center gap-2">
                   {player.is_captain && <Star className="w-4 h-4 text-yellow-500" />}
                   <div>
@@ -147,19 +147,19 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
                   {getPositionName(player.element_type)}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center">£{(player.now_cost / 10).toFixed(1)}m</TableCell>
-              <TableCell className="text-center">{player.form}</TableCell>
+              <TableCell className="text-center font-medium">£{(player.now_cost / 10).toFixed(1)}m</TableCell>
+              <TableCell className="text-center font-medium">{player.form}</TableCell>
               <TableCell className="text-center font-medium">{player.total_points}</TableCell>
-              <TableCell className="text-center">{player.points_per_game}</TableCell>
-              <TableCell className="text-center">{player.minutes}</TableCell>
-              <TableCell className="text-center">{player.goals_scored}</TableCell>
-              <TableCell className="text-center">{player.assists}</TableCell>
-              <TableCell className="text-center">{player.bonus}</TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center font-medium">{player.points_per_game}</TableCell>
+              <TableCell className="text-center font-medium">{player.minutes}</TableCell>
+              <TableCell className="text-center font-medium">{player.goals_scored}</TableCell>
+              <TableCell className="text-center font-medium">{player.assists}</TableCell>
+              <TableCell className="text-center font-medium">{player.bonus}</TableCell>
+              <TableCell className="text-center font-medium">
                 {(player.element_type === 1 || player.element_type === 2) ? 
                   player.clean_sheets : '-'}
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center font-medium">
                 {parseFloat(player.selected_by_percent).toFixed(1)}%
               </TableCell>
             </TableRow>
