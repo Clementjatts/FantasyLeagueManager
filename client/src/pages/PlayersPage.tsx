@@ -208,9 +208,6 @@ export default function PlayersPage() {
                         <div className="font-semibold text-xl text-primary">{selectedPlayer.web_name}</div>
                       </div>
                     </div>
-                    <p className="text-center text-sm text-muted-foreground pt-2">
-                      Compare detailed performance statistics between players
-                    </p>
                   </DialogDescription>
                   <PlayerComparison 
                     player={selectedPlayer}

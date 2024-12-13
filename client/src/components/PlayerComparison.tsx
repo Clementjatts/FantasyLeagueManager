@@ -185,18 +185,11 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-2xl">Performance Analysis</CardTitle>
-            <CardDescription>
-              Comprehensive comparison of key performance metrics
-            </CardDescription>
-          </div>
-          {comparedPlayer && (
-            <Badge variant="outline" className="text-lg px-4 py-1">
-              vs {comparedPlayer.web_name}
-            </Badge>
-          )}
+        <div>
+          <CardTitle className="text-2xl">Performance Analysis</CardTitle>
+          <CardDescription>
+            Comprehensive comparison of key performance metrics
+          </CardDescription>
         </div>
       </CardHeader>
       <CardContent className="relative">
