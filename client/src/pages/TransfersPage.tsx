@@ -11,8 +11,8 @@ import { TransferFilters, type FilterOptions } from "@/components/TransferFilter
 
 export default function TransfersPage() {
   const [search, setSearch] = useState("");
-  const [, params] = useLocation();
-  const searchParams = new URLSearchParams(params ? params.split('?')[1] || '' : '');
+  const [location] = useLocation();
+  const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const initialPlayerId = searchParams.get('playerId');
   
   const [selectedOut, setSelectedOut] = useState<number | null>(
