@@ -76,15 +76,15 @@ export default function PlayersPage() {
       <div className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="flex-1 flex items-center gap-4 max-w-2xl">
+            <div className="flex-1 flex items-center gap-4 max-w-3xl">
               <div className="relative flex-1">
                 <Input
                   placeholder="Search players by name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 h-11 bg-background/50 backdrop-blur-sm border-muted 
+                  className="w-full pl-10 pr-4 h-12 bg-background/50 backdrop-blur-sm border-muted 
                     focus:border-primary/50 focus:ring-2 focus:ring-primary/20 
-                    transition-all duration-200 ease-in-out"
+                    transition-all duration-200 ease-in-out text-base"
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
