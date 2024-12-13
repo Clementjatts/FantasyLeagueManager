@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
 import { TransferSuggestions } from "../components/TransferSuggestions";
 import { CaptainSuggestions } from "../components/CaptainSuggestions";
@@ -17,6 +17,7 @@ import { TrendingUp, Users, Coins, AlertCircle } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [teamId, setTeamId] = useState(() => {
@@ -109,8 +110,14 @@ export default function TeamPage() {
         substitutes={substitutes}
         captainId={captainId}
         viceCaptainId={viceCaptainId}
-        onPlayerClick={setSelectedPlayer}
-        onSubstituteClick={setSelectedPlayer}
+        onPlayerClick={(player) => {
+          setSelectedPlayer(player);
+          setLocation(`/transfers?playerId=${player.id}`);
+        }}
+        onSubstituteClick={(player) => {
+          setSelectedPlayer(player);
+          setLocation(`/transfers?playerId=${player.id}`);
+        }}
         fixtures={fixtures}
         teams={bootstrapData?.teams}
       />

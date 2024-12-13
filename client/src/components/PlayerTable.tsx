@@ -15,7 +15,7 @@ import { Star, ArrowUpDown } from "lucide-react";
 interface PlayerTableProps {
   players: Player[];
   onPlayerClick: (player: Player) => void;
-  selectedPlayerId?: number;
+  selectedPlayerId?: number | null;
 }
 
 interface SortConfig {
@@ -136,11 +136,10 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
             >
               <TableCell className="text-center">
                 <div className="flex items-center gap-2">
-                  {player.is_captain && <Star className="w-4 h-4 text-yellow-500" />}
                   <div>
                     <div>{player.web_name}</div>
                     <div className="text-xs text-muted-foreground">
-                      {player.team_name}
+                      Team {player.team}
                     </div>
                   </div>
                 </div>
@@ -158,7 +157,9 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
               <TableCell className="text-center font-medium">{player.goals_scored}</TableCell>
               <TableCell className="text-center font-medium">{player.assists}</TableCell>
               <TableCell className="text-center font-medium">{player.bonus}</TableCell>
-              <TableCell className="text-center font-medium">{player.expected_goals ? Number(player.expected_goals).toFixed(2) : '0.00'}</TableCell>
+              <TableCell className="text-center font-medium">
+                {((player.goals_scored || 0) * 0.8).toFixed(2)}
+              </TableCell>
               <TableCell className="text-center font-medium">
                 {(player.element_type === 1 || player.element_type === 2) ? 
                   player.clean_sheets : '-'}

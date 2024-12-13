@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { PlayerTable } from "../components/PlayerTable";
 import { fetchPlayers, makeTransfer, fetchMyTeam } from "../lib/api";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,13 @@ import { TransferFilters, type FilterOptions } from "@/components/TransferFilter
 
 export default function TransfersPage() {
   const [search, setSearch] = useState("");
-  const [selectedOut, setSelectedOut] = useState<number | null>(null);
+  const [, params] = useLocation();
+  const searchParams = new URLSearchParams(params ? params.split('?')[1] || '' : '');
+  const initialPlayerId = searchParams.get('playerId');
+  
+  const [selectedOut, setSelectedOut] = useState<number | null>(
+    initialPlayerId && !isNaN(Number(initialPlayerId)) ? Number(initialPlayerId) : null
+  );
   const [filters, setFilters] = useState<FilterOptions>({
     team: 'ALL',
     position: 'ALL'
