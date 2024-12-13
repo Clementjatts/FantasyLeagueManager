@@ -264,6 +264,42 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
+  app.get("/api/fpl/next-deadline", async (req, res) => {
+    try {
+      // Fetch all fixtures
+      const fixturesResponse = await fetch("https://fantasy.premierleague.com/api/fixtures/", {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      });
+      
+      if (!fixturesResponse.ok) {
+        return res.status(500).json({ message: "Failed to fetch fixtures" });
+      }
+
+      const fixtures = await fixturesResponse.json();
+      
+      // Get current timestamp
+      const now = new Date().getTime();
+      
+      // Find the next fixture that hasn't started yet
+      const nextFixture = fixtures
+        .filter((f: any) => new Date(f.kickoff_time).getTime() > now)
+        .sort((a: any, b: any) => 
+          new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
+        )[0];
+
+      if (!nextFixture) {
+        return res.status(404).json({ message: "No upcoming fixtures found" });
+      }
+
+      res.json({ deadline: nextFixture.kickoff_time });
+    } catch (error) {
+      console.error("Error fetching next deadline:", error);
+      res.status(500).json({ message: "Failed to fetch next deadline" });
+    }
+  });
 
   return httpServer;
 }

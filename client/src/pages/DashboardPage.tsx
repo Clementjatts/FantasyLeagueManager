@@ -64,9 +64,11 @@ export default function DashboardPage() {
     average: gw.average || 0
   })) || [];
 
-  // In a real app, this would come from the API
-  const nextDeadline = new Date();
-  nextDeadline.setDate(nextDeadline.getDate() + 3); // Example: 3 days from now
+  // Fetch next deadline
+  const { data: nextDeadline } = useQuery({
+    queryKey: ["/api/fpl/next-deadline"],
+    queryFn: getNextGameweekDeadline
+  });
 
   // Stats for quick actions
   const needsCaptain = !team?.picks?.some(p => p.is_captain);
@@ -98,16 +100,30 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-primary" />
-              <CardTitle>Overall Rank</CardTitle>
+              <CardTitle>Overall Performance</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {gameweekData.rank.toLocaleString()}
-            </div>
-            <div className="text-sm text-muted-foreground flex items-center gap-1">
-              <TrendingUp className="w-4 h-4 text-green-500" />
-              {(gameweekData.lastRank - gameweekData.rank).toLocaleString()} places
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-3xl font-bold">
+                  {gameweekData.rank.toLocaleString()}
+                </div>
+                <div className="text-sm text-muted-foreground">Overall Rank</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  {(gameweekData.lastRank - gameweekData.rank).toLocaleString()} places
+                </div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold">
+                  {gameweekData.totalPoints}
+                </div>
+                <div className="text-sm text-muted-foreground">Total Points</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                  Current GW: {gameweekData.points}
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -120,9 +136,20 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{gameweekData.points}</div>
-            <div className="text-sm text-muted-foreground">
-              Average: {Math.round(gameweekData.points * 0.85)}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-3xl font-bold">{gameweekData.points}</div>
+                <div className="text-sm text-muted-foreground">GW Points</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold">
+                  {team?.stats?.event_rank?.toLocaleString() || '-'}
+                </div>
+                <div className="text-sm text-muted-foreground">GW Rank</div>
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground mt-2">
+              Average: {team?.stats?.event_average || Math.round(gameweekData.points * 0.85)}
             </div>
           </CardContent>
         </Card>

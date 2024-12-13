@@ -47,4 +47,9 @@ export async function updateCaptains(captainId: number, viceCaptainId: number): 
   if (!res.ok) throw new Error("Failed to update captains");
 }
 
-
+export async function getNextGameweekDeadline(): Promise<string> {
+  const res = await fetch(`${API_BASE}/next-deadline`);
+  if (!res.ok) throw new Error("Failed to fetch next deadline");
+  const data = await res.json();
+  return data.deadline;
+}
