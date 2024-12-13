@@ -174,10 +174,17 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
       ]
     },
     {
-      title: "Position Specific",
-      description: "Statistics relevant to player's position",
+      title: "Position Stats",
+      description: "Position-specific performance metrics",
       icon: <Shield className="w-5 h-5 text-green-500" />,
-      stats: getPositionSpecificStats(player)
+      stats: [
+        { label: "Clean Sheets", value: "clean_sheets", showIf: (p) => p.element_type <= 2 },
+        { label: "Goals Conceded", value: "goals_conceded", reverse: true, showIf: (p) => p.element_type <= 2 },
+        { label: "Saves", value: "saves", showIf: (p) => p.element_type === 1 },
+        { label: "Penalties Saved", value: "penalties_saved", showIf: (p) => p.element_type === 1 },
+        { label: "Expected Goal Involvements", value: "expected_goal_involvements", showIf: (p) => p.element_type >= 3 },
+        { label: "Big Chances", value: "big_chances_total", showIf: (p) => p.element_type >= 3 }
+      ].filter(stat => stat.showIf?.(player) || stat.showIf?.(comparedPlayer))
     }
   ];
 

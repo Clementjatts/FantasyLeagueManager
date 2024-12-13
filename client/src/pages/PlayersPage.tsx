@@ -163,15 +163,9 @@ export default function PlayersPage() {
               if (isComparisonMode) {
                 if (!comparisonPlayer) {
                   setComparisonPlayer(player);
-                } else if (player.element_type === comparisonPlayer.element_type) {
+                } else {
                   setSelectedPlayer(player);
                   setShowComparisonDialog(true);
-                } else {
-                  toast({
-                    title: "Position Mismatch",
-                    description: "Please select players from the same position to compare",
-                    variant: "destructive"
-                  });
                 }
               } else {
                 setSelectedPlayer(player);
