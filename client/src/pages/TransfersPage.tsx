@@ -18,10 +18,23 @@ export default function TransfersPage() {
   const [selectedOut, setSelectedOut] = useState<number | null>(
     initialPlayerId && !isNaN(Number(initialPlayerId)) ? Number(initialPlayerId) : null
   );
+  
+  // Get the initial player's details to set appropriate filters
+  const initialPlayer = players?.find(p => p.id === Number(initialPlayerId));
   const [filters, setFilters] = useState<FilterOptions>({
-    team: 'ALL',
-    position: 'ALL'
+    team: initialPlayer ? initialPlayer.team.toString() : 'ALL',
+    position: initialPlayer ? initialPlayer.element_type.toString() : 'ALL'
   });
+
+  // Update filters when initial player changes
+  useEffect(() => {
+    if (initialPlayer) {
+      setFilters({
+        team: initialPlayer.team.toString(),
+        position: initialPlayer.element_type.toString()
+      });
+    }
+  }, [initialPlayer]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
