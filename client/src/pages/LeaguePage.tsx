@@ -122,9 +122,15 @@ function CupProgress({ matches }: { matches: CupMatch[] }) {
 export default function LeaguePage() {
   const [selectedLeague, setSelectedLeague] = useState<number | null>(null);
 
+  const [teamId, setTeamId] = useState(() => {
+    const savedId = localStorage.getItem("fpl_team_id");
+    return savedId ? parseInt(savedId, 10) : null;
+  });
+
   const { data: leagues, isLoading: isLoadingLeagues } = useQuery({
-    queryKey: ["/api/fpl/leagues/1"],
-    queryFn: () => fetchLeagues(1),
+    queryKey: ["/api/fpl/leagues", teamId],
+    queryFn: () => teamId ? fetchLeagues(teamId) : Promise.resolve([]),
+    enabled: !!teamId,
   });
 
   const { data: standings, isLoading: isLoadingStandings } = useQuery({
@@ -135,8 +141,9 @@ export default function LeaguePage() {
   });
 
   const { data: cupMatches, isLoading: isLoadingCup } = useQuery({
-    queryKey: ["/api/fpl/cup/1"],
-    queryFn: () => fetchCupMatches(1),
+    queryKey: ["/api/fpl/cup", teamId],
+    queryFn: () => teamId ? fetchCupMatches(teamId) : Promise.resolve([]),
+    enabled: !!teamId,
   });
 
   if (isLoadingLeagues) {
@@ -148,19 +155,44 @@ export default function LeaguePage() {
     );
   }
 
+  if (!teamId) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Leagues & Cups</h1>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-2">
+              <Users className="w-12 h-12 mx-auto text-muted-foreground" />
+              <h2 className="text-2xl font-semibold">No Team Selected</h2>
+              <p className="text-muted-foreground">
+                Please go to the Dashboard and enter your FPL team ID first
+              </p>
+              <Link href="/">
+                <Button className="mt-4">Go to Dashboard</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!leagues?.length) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center space-y-2">
-            <Users className="w-12 h-12 mx-auto text-muted-foreground" />
-            <h2 className="text-2xl font-semibold">No Leagues Found</h2>
-            <p className="text-muted-foreground">
-              Join a league to compete with other managers
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Leagues & Cups</h1>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center space-y-2">
+              <Users className="w-12 h-12 mx-auto text-muted-foreground" />
+              <h2 className="text-2xl font-semibold">No Leagues Found</h2>
+              <p className="text-muted-foreground">
+                Join a league to compete with other managers
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
