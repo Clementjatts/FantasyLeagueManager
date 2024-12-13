@@ -244,33 +244,27 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
       </div>
 
       {/* Abbreviations Legend */}
-      <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-        <h3 className="font-semibold">Abbreviations</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <span className="font-medium">Pos:</span> Position
-          </div>
-          <div>
-            <span className="font-medium">PPG:</span> Points Per Game
-          </div>
-          <div>
-            <span className="font-medium">G:</span> Goals
-          </div>
-          <div>
-            <span className="font-medium">A:</span> Assists
-          </div>
-          <div>
-            <span className="font-medium">CS:</span> Clean Sheets
-          </div>
-          <div>
-            <span className="font-medium">Sel:</span> Selected By Percentage
-          </div>
-          <div>
-            <span className="font-medium">NF:</span> Next Fixture
-          </div>
-          <div>
-            <span className="font-medium">xG:</span> Expected Goals
-          </div>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Abbreviations Guide</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { abbr: "Pos", full: "Position" },
+            { abbr: "PPG", full: "Points Per Game" },
+            { abbr: "G", full: "Goals" },
+            { abbr: "A", full: "Assists" },
+            { abbr: "CS", full: "Clean Sheets" },
+            { abbr: "Sel", full: "Selected By Percentage" },
+            { abbr: "NF", full: "Next Fixture" },
+            { abbr: "xG", full: "Expected Goals" },
+          ].map(({ abbr, full }) => (
+            <div 
+              key={abbr}
+              className="bg-card rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="font-semibold text-primary">{abbr}</div>
+              <div className="text-sm text-muted-foreground">{full}</div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
