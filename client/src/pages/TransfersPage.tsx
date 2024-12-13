@@ -155,15 +155,16 @@ export default function TransfersPage() {
           </div>
           
           <TransferFilters
-            teams={players ? Array.from(new Set(players.map(p => p.team)))
-              .map(teamId => {
-                const teamPlayer = players.find(p => p.team === teamId);
+            teams={players ? Array.from(new Set(players.map(p => p.team))).map(teamId => {
+                const player = players.find(p => p.team === teamId);
+                // Using the team property from API response
                 return {
                   id: teamId,
-                  name: teamPlayer?.team_name || `Team ${teamId}`,
-                  short_name: teamPlayer?.team_short_name || `T${teamId}`
+                  name: player?.team_short_name || '', // Using team_short_name as the full name
+                  short_name: player?.team_short_name || ''
                 };
               })
+              .filter(team => team.name) // Remove any teams without names
               .sort((a, b) => a.name.localeCompare(b.name)) : []}
             onFilterChange={setFilters}
           />
