@@ -103,37 +103,43 @@ export default function TeamPage() {
         <h1 className="text-3xl font-bold">My Team</h1>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 md:grid-cols-[2fr,1fr]">
-        {/* Left Column - Team and Transfers */}
-        <div className="space-y-6">
-          {/* Team View */}
-          <TeamPitch 
-            players={startingXI}
-            substitutes={substitutes}
-            captainId={captainId}
-            viceCaptainId={viceCaptainId}
-            onPlayerClick={setSelectedPlayer}
-            onSubstituteClick={setSelectedPlayer}
-            fixtures={fixtures}
-            teams={bootstrapData?.teams}
-          />
+      {/* Team View - Full Width */}
+      <TeamPitch 
+        players={startingXI}
+        substitutes={substitutes}
+        captainId={captainId}
+        viceCaptainId={viceCaptainId}
+        onPlayerClick={setSelectedPlayer}
+        onSubstituteClick={setSelectedPlayer}
+        fixtures={fixtures}
+        teams={bootstrapData?.teams}
+      />
 
-          {/* Transfer Suggestions */}
-          {(startingXI.length > 0 || substitutes.length > 0) && bootstrapData?.teams && fixtures && (
-            <TransferSuggestions
-              currentPlayers={[...startingXI, ...substitutes]}
-              allPlayers={players}
-              fixtures={fixtures}
-              teams={bootstrapData.teams}
-              onTransferClick={(inPlayer, outPlayer) => {
-                toast({
-                  title: "Transfer Initiated",
-                  description: `${outPlayer.web_name} ➜ ${inPlayer.web_name}`,
-                });
-              }}
-            />
-          )}
+      {/* Transfers and Captain Suggestions Grid */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Transfer Suggestions */}
+        {(startingXI.length > 0 || substitutes.length > 0) && bootstrapData?.teams && fixtures && (
+          <TransferSuggestions
+            currentPlayers={[...startingXI, ...substitutes]}
+            allPlayers={players}
+            fixtures={fixtures}
+            teams={bootstrapData.teams}
+            onTransferClick={(inPlayer, outPlayer) => {
+              toast({
+                title: "Transfer Initiated",
+                description: `${outPlayer.web_name} ➜ ${inPlayer.web_name}`,
+              });
+            }}
+          />
+        )}
+
+        {/* Captain Suggestions */}
+        <CaptainSuggestions 
+          allPlayers={players}
+          onSelectCaptain={setSelectedPlayer}
+          currentCaptainId={captainId}
+          currentViceCaptainId={viceCaptainId}
+        />
 
           {/* Player Stats Dialog */}
           {selectedPlayer && (
@@ -184,19 +190,6 @@ export default function TeamPage() {
               />
             </>
           )}
-
-          
-        </div>
-
-        {/* Right Column - Captain Suggestions */}
-        <div className="space-y-6">
-          <CaptainSuggestions 
-            allPlayers={players}
-            onSelectCaptain={setSelectedPlayer}
-            currentCaptainId={captainId}
-            currentViceCaptainId={viceCaptainId}
-          />
-        </div>
       </div>
     </div>
   );
