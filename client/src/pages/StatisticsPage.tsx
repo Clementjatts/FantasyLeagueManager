@@ -34,7 +34,7 @@ const positionConfigs: PositionConfig[] = [
     id: 1,
     name: "Goalkeepers",
     icon: Shield,
-    mainStats: ["Clean Sheets", "Saves", "Bonus Points"],
+    mainStats: ["Clean Sheets", "Saves", "Points Per Game"],
     detailedStats: ["Clean Sheets", "Saves", "Penalties Saved", "Bonus Points", "Minutes Played"],
     description: "Shot-stopping specialists and last line of defense"
   },
@@ -42,65 +42,53 @@ const positionConfigs: PositionConfig[] = [
     id: 2,
     name: "Defenders",
     icon: Shield,
-    mainStats: ["Clean Sheets", "Goals", "Bonus Points"],
-    detailedStats: ["Clean Sheets", "Goals", "Assists", "Bonus Points", "Expected Goals"],
+    mainStats: ["Clean Sheets", "Goals", "Points Per Game"],
+    detailedStats: ["Clean Sheets", "Goals", "Assists", "Bonus Points", "Total Points"],
     description: "Defensive wall and occasional attacking threats"
   },
   {
     id: 3,
     name: "Midfielders",
     icon: Crosshair,
-    mainStats: ["Goals", "Assists", "Bonus Points"],
-    detailedStats: ["Goals", "Assists", "Bonus Points", "Minutes Played", "Points Per Game"],
+    mainStats: ["Goals", "Assists", "Points Per Game"],
+    detailedStats: ["Goals", "Assists", "Total Points", "Minutes Played", "Bonus Points"],
     description: "Engine room of the team, contributing in attack and defense"
   },
   {
     id: 4,
     name: "Forwards",
     icon: Star,
-    mainStats: ["Goals", "Assists", "Expected Goals"],
-    detailedStats: ["Goals", "Assists", "Bonus Points", "Expected Goals", "Points Per Game"],
+    mainStats: ["Goals", "Assists", "Points Per Game"],
+    detailedStats: ["Goals", "Assists", "Total Points", "Expected Goals", "Bonus Points"],
     description: "Primary goal scorers and attacking focal points"
   }
 ];
 
 function getStatValue(player: Player, stat: string): string {
-  // Default stats that exist in the API
-  if (stat === "Points Per Game") return player.points_per_game || "0.0";
-  if (stat === "Total Points") return player.total_points?.toString() || "0";
-  
-  // Position-specific mock stats (in a real app, these would come from the API)
-  const mockStats = {
-    1: { // GK
-      "Clean Sheets": "6",
-      "Saves": "42",
-      "Penalties Saved": "1",
-      "Bonus Points": "8",
-      "Minutes Played": "900"
-    },
-    2: { // DEF
-      "Clean Sheets": "5",
-      "Goals": "2",
-      "Assists": "3",
-      "Bonus Points": "10",
-      "Expected Goals": "1.2"
-    },
-    3: { // MID
-      "Goals": "6",
-      "Assists": "8",
-      "Bonus Points": "15",
-      "Minutes Played": "850",
-      "Expected Goals": "4.5"
-    },
-    4: { // FWD
-      "Goals": "10",
-      "Assists": "4",
-      "Bonus Points": "12",
-      "Expected Goals": "8.2"
-    }
-  };
-
-  return mockStats[player.element_type]?.[stat] || "0";
+  switch (stat) {
+    case "Points Per Game":
+      return player.points_per_game || "0.0";
+    case "Total Points":
+      return player.total_points?.toString() || "0";
+    case "Clean Sheets":
+      return player.clean_sheets?.toString() || "0";
+    case "Saves":
+      return player.saves?.toString() || "0";
+    case "Penalties Saved":
+      return player.penalties_saved?.toString() || "0";
+    case "Bonus Points":
+      return player.bonus?.toString() || "0";
+    case "Minutes Played":
+      return player.minutes?.toString() || "0";
+    case "Goals":
+      return player.goals_scored?.toString() || "0";
+    case "Assists":
+      return player.assists?.toString() || "0";
+    case "Expected Goals":
+      return ((player.goals_scored || 0) * 0.8).toFixed(2); // Simplified xG calculation
+    default:
+      return "0";
+  }
 }
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -117,36 +105,47 @@ function PlayerStatCard({ player }: { player: Player }) {
   const formColor = formValue >= 6 ? "text-green-500" :
                     formValue >= 4 ? "text-yellow-500" : "text-red-500";
   
+  const ppgValue = parseFloat(player.points_per_game || "0");
+  const ppgProgress = (ppgValue / 8) * 100; // 8 points per game as maximum
+  
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="space-y-1">
         <div className="flex items-center justify-between">
-          <CardTitle>{player.web_name}</CardTitle>
-          <Badge variant="outline">
-            £{((player.now_cost || 0) / 10).toFixed(1)}m
+          <CardTitle className="flex items-center gap-2">
+            {player.web_name}
+            <Badge variant="outline" className="text-xs">
+              £{((player.now_cost || 0) / 10).toFixed(1)}m
+            </Badge>
+          </CardTitle>
+          <Badge variant="secondary" className={formColor}>
+            Form: {player.form || "0.0"}
           </Badge>
         </div>
-        <CardDescription className="flex items-center gap-2">
-          Form: <span className={formColor}>{player.form || "0.0"}</span>
+        <CardDescription className="flex items-center justify-between">
+          <span>PPG: {player.points_per_game || "0.0"}</span>
+          <span className="text-xs text-muted-foreground">
+            {player.minutes || 0} mins played
+          </span>
         </CardDescription>
-        <Progress value={formValue * 10} className="h-1" />
+        <Progress value={ppgProgress} className="h-1" />
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-muted/50 p-2 rounded">
-            <p className="text-sm text-muted-foreground">Points</p>
-            <p className="text-xl font-semibold">{player.total_points || 0}</p>
+          <div className="bg-primary/5 p-2 rounded-lg border border-border/40">
+            <p className="text-sm text-muted-foreground">Total Points</p>
+            <p className="text-xl font-bold">{player.total_points || 0}</p>
           </div>
-          <div className="bg-muted/50 p-2 rounded">
-            <p className="text-sm text-muted-foreground">Selected</p>
-            <p className="text-xl font-semibold">{player.selected_by_percent || 0}%</p>
+          <div className="bg-primary/5 p-2 rounded-lg border border-border/40">
+            <p className="text-sm text-muted-foreground">Selected By</p>
+            <p className="text-xl font-bold">{parseFloat(player.selected_by_percent || "0").toFixed(1)}%</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2">
           {positionConfigs.find(p => p.id === player.element_type)?.mainStats.map(stat => (
-            <div key={stat}>
+            <div key={stat} className="space-y-1">
               <p className="text-sm text-muted-foreground">{stat}</p>
-              <p className="font-semibold">{getStatValue(player, stat)}</p>
+              <p className="font-bold text-primary/90">{getStatValue(player, stat)}</p>
             </div>
           ))}
         </div>
