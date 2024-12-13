@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 
 interface TeamPitchProps {
   players: Player[];
-  substitutes: Player[]; // Added substitutes prop
+  substitutes: Player[];
   captainId?: number;
   viceCaptainId?: number;
   onPlayerClick?: (player: Player) => void;
@@ -66,8 +66,6 @@ export function TeamPitch({
                     )}
                     <PlayerCard
                       player={player}
-                      isCaptain={player.id === captainId}
-                      isViceCaptain={player.id === viceCaptainId}
                       onClick={() => onPlayerClick?.(player)}
                       className="transition-transform hover:scale-105"
                       fixtures={fixtures}
