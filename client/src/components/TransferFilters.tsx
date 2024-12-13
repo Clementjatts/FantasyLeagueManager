@@ -40,29 +40,26 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-muted/10 border border-border/30">
-      <div className="space-y-2.5">
-        <Label className="text-sm font-medium text-muted-foreground">Filter by Team</Label>
-        <Select
-          value={selectedTeam}
-          onValueChange={handleTeamChange}
-        >
-          <SelectTrigger className="w-full bg-background/50 border-border/50 hover:bg-background/80 transition-colors">
-            <SelectValue placeholder="Select team" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Teams</SelectLabel>
-              <SelectItem value="ALL">All Teams</SelectItem>
-              {teams.map((team) => (
-                <SelectItem key={team.id} value={team.id.toString()}>
-                  {team.name}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-    </Card>
+    <div className="w-[200px]">
+      <Select
+        value={selectedTeam}
+        onValueChange={handleTeamChange}
+      >
+        <SelectTrigger className="w-full bg-background border-input hover:bg-accent hover:text-accent-foreground">
+          <SelectValue placeholder="Filter by team" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Teams</SelectLabel>
+            <SelectItem value="ALL">All Teams</SelectItem>
+            {teams.map((team) => (
+              <SelectItem key={team.id} value={team.id.toString()}>
+                {team.name}
+              </SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

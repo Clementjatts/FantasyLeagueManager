@@ -122,12 +122,50 @@ export default function TransfersPage() {
 
         <div className="space-y-4">
           <div className="flex items-center gap-4">
-            <Input
-              placeholder="Search players..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="max-w-sm"
-            />
+            <div className="flex-1 flex items-center gap-4 max-w-lg">
+              <Input
+                placeholder="Search players..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <TransferFilters
+                teams={players ? 
+                  Array.from(new Set(players.map(p => p.team)))
+                    .map(teamId => {
+                      const playerFromTeam = players.find(p => p.team === teamId);
+                      const teamNames: Record<number, string> = {
+                        1: "Arsenal",
+                        2: "Aston Villa",
+                        3: "Bournemouth",
+                        4: "Brentford",
+                        5: "Brighton",
+                        6: "Chelsea",
+                        7: "Crystal Palace",
+                        8: "Everton",
+                        9: "Fulham",
+                        10: "Liverpool",
+                        11: "Luton",
+                        12: "Manchester City",
+                        13: "Manchester United",
+                        14: "Newcastle",
+                        15: "Nottingham Forest",
+                        16: "Sheffield United",
+                        17: "Tottenham",
+                        18: "West Ham",
+                        19: "Wolves",
+                        20: "Burnley"
+                      };
+                      return {
+                        id: teamId,
+                        name: teamNames[teamId] || `Team ${teamId}`,
+                        short_name: teamNames[teamId] || `Team ${teamId}`
+                      };
+                    })
+                    .sort((a, b) => a.name.localeCompare(b.name)) 
+                  : []}
+                onFilterChange={setFilters}
+              />
+            </div>
             {selectedOut && (
               <Button
                 variant="outline"
@@ -137,77 +175,36 @@ export default function TransfersPage() {
               </Button>
             )}
           </div>
-          
-          <TransferFilters
-            teams={players ? 
-              // Get unique team entries
-              Array.from(new Set(players.map(p => p.team)))
-                .map(teamId => {
-                  // Get the first player from this team to extract team info
-                  const playerFromTeam = players.find(p => p.team === teamId);
-                  // Map of team IDs to their common names
-                  const teamNames: Record<number, string> = {
-                    1: "Arsenal",
-                    2: "Aston Villa",
-                    3: "Bournemouth",
-                    4: "Brentford",
-                    5: "Brighton",
-                    6: "Chelsea",
-                    7: "Crystal Palace",
-                    8: "Everton",
-                    9: "Fulham",
-                    10: "Liverpool",
-                    11: "Luton",
-                    12: "Manchester City",
-                    13: "Manchester United",
-                    14: "Newcastle",
-                    15: "Nottingham Forest",
-                    16: "Sheffield United",
-                    17: "Tottenham",
-                    18: "West Ham",
-                    19: "Wolves",
-                    20: "Burnley"
-                  };
-                  return {
-                    id: teamId,
-                    name: teamNames[teamId] || `Team ${teamId}`,
-                    short_name: teamNames[teamId] || `Team ${teamId}`
-                  };
-                })
-                .sort((a, b) => a.name.localeCompare(b.name)) 
-              : []}
-            onFilterChange={setFilters}
+
+          {selectedOut ? (
+            <p className="text-sm text-muted-foreground">
+              Select a player to transfer in
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Select a player to transfer out
+            </p>
+          )}
+
+          <PlayerTable 
+            players={filteredPlayers}
+            selectedPlayerId={selectedOut}
+            onPlayerClick={(player) => {
+              if (selectedOut) {
+                if (selectedOut === player.id) {
+                  setSelectedOut(null);
+                } else {
+                  transferMutation.mutate({
+                    playerId: player.id,
+                    outId: selectedOut,
+                  });
+                }
+              } else {
+                setSelectedOut(player.id);
+              }
+            }}
           />
         </div>
-
-        {selectedOut ? (
-          <p className="text-sm text-muted-foreground">
-            Select a player to transfer in
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Select a player to transfer out
-          </p>
-        )}
-
-        <PlayerTable 
-          players={filteredPlayers || []}
-          selectedPlayerId={selectedOut}
-          onPlayerClick={(player) => {
-            if (selectedOut) {
-              if (selectedOut === player.id) {
-                setSelectedOut(null);
-              } else {
-                transferMutation.mutate({
-                  playerId: player.id,
-                  outId: selectedOut,
-                });
-              }
-            } else {
-              setSelectedOut(player.id);
-            }
-          }}
-        />
       </div>
     </div>
   );
