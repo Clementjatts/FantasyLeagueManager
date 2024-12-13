@@ -9,7 +9,7 @@ import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
 import { TeamQuickView } from "../components/TeamQuickView";
 import { ChipsStatus } from "../components/ChipsStatus";
-import { fetchMyTeam } from "../lib/api";
+import { fetchMyTeam, getNextGameweekDeadline } from "../lib/api";
 
 export default function DashboardPage() {
   const [teamId, setTeamId] = useState<number | null>(null);
@@ -190,7 +190,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <DeadlineCountdown deadline={nextDeadline.toISOString()} />
+        {nextDeadline && <DeadlineCountdown deadline={nextDeadline} />}
         <QuickActions
           needsCaptain={needsCaptain}
           hasTransfers={hasTransfers}
