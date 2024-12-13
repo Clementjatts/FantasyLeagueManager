@@ -50,16 +50,18 @@ export function PlayerCard({
       onClick={onClick}
     >
       <div className="space-y-2 flex flex-col items-center">
-        <div className="flex items-center justify-center w-full relative">
-          <span className="font-medium text-base text-center">{player.web_name}</span>
-          <div className="absolute right-0 flex items-center gap-1.5">
-            {isCaptain && (
-              <Badge variant="default" className="bg-primary/90 h-5 w-5 p-0 flex items-center justify-center">C</Badge>
-            )}
-            {isViceCaptain && (
-              <Badge variant="outline" className="border-primary/50 text-primary h-5 w-5 p-0 flex items-center justify-center">V</Badge>
-            )}
-          </div>
+        <div className="relative w-full">
+          {isCaptain && (
+            <div className="absolute -top-6 -right-1">
+              <Badge variant="default" className="bg-primary/90 h-6 w-6 p-0 flex items-center justify-center rounded-full shadow-md border-2 border-background">C</Badge>
+            </div>
+          )}
+          {isViceCaptain && (
+            <div className="absolute -top-6 -right-1">
+              <Badge variant="outline" className="border-primary/50 text-primary h-6 w-6 p-0 flex items-center justify-center rounded-full shadow-md border-2 border-background">V</Badge>
+            </div>
+          )}
+          <span className="font-medium text-base text-center block">{player.web_name}</span>
         </div>
         
         <div className="flex flex-col items-center gap-1 text-sm">
