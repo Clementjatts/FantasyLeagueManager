@@ -117,7 +117,7 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
             {/* Show clean sheets for DEF/GK */}
             <TableHead className="text-center">CS</TableHead>
             <TableHead className="text-center">
-              <SortableHeader sortKey="selected_by_percent">Selected %</SortableHeader>
+              <SortableHeader sortKey="selected_by_percent">Sel %</SortableHeader>
             </TableHead>
           </TableRow>
         </TableHeader>
