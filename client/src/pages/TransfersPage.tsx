@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { PlayerCard } from "../components/PlayerCard";
+import { PlayerTable } from "../components/PlayerTable";
 import { fetchPlayers, makeTransfer, fetchMyTeam } from "../lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -227,30 +227,24 @@ export default function TransfersPage() {
           </p>
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPlayers?.map(player => (
-            <div key={player.id} className="relative">
-              <PlayerCard
-                player={player}
-                onClick={() => {
-                  if (selectedOut) {
-                    if (selectedOut === player.id) {
-                      setSelectedOut(null);
-                    } else {
-                      transferMutation.mutate({
-                        playerId: player.id,
-                        outId: selectedOut,
-                      });
-                    }
-                  } else {
-                    setSelectedOut(player.id);
-                  }
-                }}
-                className={selectedOut === player.id ? "ring-2 ring-primary" : ""}
-              />
-            </div>
-          ))}
-        </div>
+        <PlayerTable 
+          players={filteredPlayers || []}
+          selectedPlayerId={selectedOut}
+          onPlayerClick={(player) => {
+            if (selectedOut) {
+              if (selectedOut === player.id) {
+                setSelectedOut(null);
+              } else {
+                transferMutation.mutate({
+                  playerId: player.id,
+                  outId: selectedOut,
+                });
+              }
+            } else {
+              setSelectedOut(player.id);
+            }
+          }}
+        />
       </div>
     </div>
   );
