@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { PlayerTable } from "../components/PlayerTable";
-import { fetchPlayers, fetchMyTeam, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
+import { fetchPlayers, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,13 +9,18 @@ import { useToast } from "@/hooks/use-toast";
 import { TransferFilters, type FilterOptions } from "@/components/TransferFilters";
 import { PriceChangeTracker } from "../components/PriceChangeTracker";
 import { PlayerComparison } from "../components/PlayerComparison";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { BarChartHorizontal, Scale } from "lucide-react";
 import { type Player } from "../types/fpl";
 
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
-  //const queryClient = useQueryClient(); // Removed as not used
+  const [isComparisonMode, setIsComparisonMode] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [comparisonPlayer, setComparisonPlayer] = useState<Player | null>(null);
+  const [showPriceDialog, setShowPriceDialog] = useState(false);
+  const [showComparisonDialog, setShowComparisonDialog] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     team: 'ALL',
     position: 'ALL'
@@ -77,6 +82,19 @@ export default function PlayersPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
+              <Button
+                variant={isComparisonMode ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setIsComparisonMode(!isComparisonMode);
+                  setComparisonPlayer(null);
+                  setShowComparisonDialog(false);
+                }}
+              >
+                <Scale className="w-4 h-4" />
+                {isComparisonMode ? "Cancel Comparison" : "Compare Players"}
+              </Button>
               <TransferFilters
                 teams={players ? 
                   Array.from(new Set(players.map(p => p.team)))
@@ -120,22 +138,48 @@ export default function PlayersPage() {
             players={filteredPlayers}
             fixtures={fixtures}
             teams={bootstrapData?.teams}
-            onPlayerClick={(player) => setSelectedPlayer(player)}
+            onPlayerClick={(player) => {
+              if (isComparisonMode) {
+                if (!comparisonPlayer) {
+                  setComparisonPlayer(player);
+                } else if (player.element_type === comparisonPlayer.element_type) {
+                  setSelectedPlayer(player);
+                  setShowComparisonDialog(true);
+                } else {
+                  toast({
+                    title: "Position Mismatch",
+                    description: "Please select players from the same position to compare",
+                    variant: "destructive"
+                  });
+                }
+              } else {
+                setSelectedPlayer(player);
+                setShowPriceDialog(true);
+              }
+            }}
+            highlightedPlayer={comparisonPlayer}
           />
 
-          {selectedPlayer && (
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
-              <PriceChangeTracker player={selectedPlayer} />
-              <PlayerComparison 
-                player={selectedPlayer} 
-                comparedPlayer={players?.find(p => 
-                  p.element_type === selectedPlayer.element_type && 
-                  p.id !== selectedPlayer.id && 
-                  p.total_points > selectedPlayer.total_points
-                )} 
-              />
-            </div>
-          )}
+          {/* Price Analysis Dialog */}
+          <Dialog open={showPriceDialog} onOpenChange={setShowPriceDialog}>
+            <DialogContent className="max-w-3xl">
+              {selectedPlayer && (
+                <PriceChangeTracker player={selectedPlayer} />
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Player Comparison Dialog */}
+          <Dialog open={showComparisonDialog} onOpenChange={setShowComparisonDialog}>
+            <DialogContent className="max-w-4xl">
+              {selectedPlayer && comparisonPlayer && (
+                <PlayerComparison 
+                  player={selectedPlayer}
+                  comparedPlayer={comparisonPlayer}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
