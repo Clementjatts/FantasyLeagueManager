@@ -68,6 +68,28 @@ export function PriceChangeTracker({ player }: PriceChangeTrackerProps) {
           <Progress value={ownershipProgress} className="h-2" />
         </div>
 
+        {/* Transfer Statistics */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="space-y-1">
+            <div className="text-sm text-muted-foreground">Transfers In</div>
+            <div className="flex items-center gap-2">
+              <div className="text-lg font-bold">{player.transfers_in_event || 0}</div>
+              <Badge variant="default" className="text-xs">
+                Total: {player.transfers_in || 0}
+              </Badge>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-sm text-muted-foreground">Transfers Out</div>
+            <div className="flex items-center gap-2">
+              <div className="text-lg font-bold">{player.transfers_out_event || 0}</div>
+              <Badge variant="outline" className="text-xs">
+                Total: {player.transfers_out || 0}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
         {/* Price Prediction Section */}
         <div className="space-y-2 bg-muted/30 p-3 rounded-lg">
           <div className="flex items-center justify-between">

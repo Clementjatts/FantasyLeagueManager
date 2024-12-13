@@ -124,8 +124,11 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
         <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[250px]">
+            <TableHead className="w-[200px]">
               <SortableHeader sortKey="web_name">Player</SortableHeader>
+            </TableHead>
+            <TableHead className="w-[150px]">
+              <SortableHeader sortKey="team">Club</SortableHeader>
             </TableHead>
             <TableHead className="text-center">
               <SortableHeader sortKey="element_type">Pos</SortableHeader>
@@ -175,9 +178,38 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
               )}
               onClick={() => onPlayerClick(player)}
             >
-              <TableCell className="text-center">
-                <div className="flex items-center">
+              <TableCell>
+                <div className="flex items-center font-medium">
                   {player.web_name}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center text-muted-foreground">
+                  {(() => {
+                    const teamNames: Record<number, string> = {
+                      1: "Arsenal",
+                      2: "Aston Villa",
+                      3: "Bournemouth",
+                      4: "Brentford",
+                      5: "Brighton",
+                      6: "Chelsea",
+                      7: "Crystal Palace",
+                      8: "Everton",
+                      9: "Fulham",
+                      10: "Liverpool",
+                      11: "Luton",
+                      12: "Manchester City",
+                      13: "Manchester United",
+                      14: "Newcastle",
+                      15: "Nottingham Forest",
+                      16: "Sheffield United",
+                      17: "Tottenham",
+                      18: "West Ham",
+                      19: "Wolves",
+                      20: "Burnley"
+                    };
+                    return teamNames[player.team] || `Team ${player.team}`;
+                  })()}
                 </div>
               </TableCell>
               <TableCell className="text-center">
