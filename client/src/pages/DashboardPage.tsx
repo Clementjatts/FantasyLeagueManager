@@ -106,7 +106,7 @@ export default function DashboardPage() {
           <div className="text-2xl font-bold">{gameweekData.currentGameweek}</div>
         </div>
       </div>
-      
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader>
@@ -116,25 +116,22 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-6">
               <div>
-                <div className="text-3xl font-bold">
+                <div className="text-4xl font-bold">
                   {gameweekData.rank.toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">Overall Rank</div>
-                <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                <div className="text-sm text-muted-foreground mt-1">Overall Rank</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1.5 mt-2">
                   <TrendingUp className="w-4 h-4 text-green-500" />
-                  {(gameweekData.lastRank - gameweekData.rank).toLocaleString()} places
+                  <span>+{(gameweekData.lastRank - gameweekData.rank).toLocaleString()} places</span>
                 </div>
               </div>
               <div>
-                <div className="text-3xl font-bold">
+                <div className="text-4xl font-bold">
                   {gameweekData.totalPoints}
                 </div>
-                <div className="text-sm text-muted-foreground">Total Points</div>
-                <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                  Current GW: {gameweekData.points}
-                </div>
+                <div className="text-sm text-muted-foreground mt-1">Total Points</div>
               </div>
             </div>
           </CardContent>
