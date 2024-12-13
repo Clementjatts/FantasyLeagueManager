@@ -16,7 +16,7 @@ interface TeamPitchProps {
 
 export function TeamPitch({ 
   players, 
-  substitutes, // Using the added substitutes prop
+  substitutes,
   captainId, 
   viceCaptainId, 
   onPlayerClick,
@@ -24,15 +24,16 @@ export function TeamPitch({
   fixtures = [],
   teams = []
 }: TeamPitchProps) {
-  // Combine starting players and substitutes, maintaining original player order
-  const allPlayers = [...players, ...substitutes];
-
-  // Group all players by their element type (position)
+  // Ensure both arrays are defined before combining
+  const playersList = players || [];
+  const substitutesList = substitutes || [];
+  
+  // Create position groups with both players and substitutes
   const positions = {
-    1: allPlayers.filter(p => p.element_type === 1),  // GK
-    2: allPlayers.filter(p => p.element_type === 2),  // DEF
-    3: allPlayers.filter(p => p.element_type === 3),  // MID
-    4: allPlayers.filter(p => p.element_type === 4),  // FWD
+    1: [...playersList, ...substitutesList].filter(p => p.element_type === 1),  // GK
+    2: [...playersList, ...substitutesList].filter(p => p.element_type === 2),  // DEF
+    3: [...playersList, ...substitutesList].filter(p => p.element_type === 3),  // MID
+    4: [...playersList, ...substitutesList].filter(p => p.element_type === 4),  // FWD
   };
 
   return (

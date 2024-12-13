@@ -97,50 +97,10 @@ export default function TeamPage() {
   const captainId = team.picks.find(p => p.is_captain)?.element;
   const viceCaptainId = team.picks.find(p => p.is_vice_captain)?.element;
 
-  const totalValue = (team.transfers.value / 10).toFixed(1);
-  const bankValue = (team.transfers.bank / 10).toFixed(1);
-  const freeTransfers = team.transfers.limit;
-
   return (
     <div className="space-y-6">
-      {/* Header Section */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">My Team</h1>
-        <div className="flex gap-4">
-          <Card className="bg-gradient-to-br from-background/80 to-muted/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Users className="w-4 h-4 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Free Transfers</p>
-                  <p className="text-lg font-semibold">{freeTransfers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-background/80 to-muted/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Coins className="w-4 h-4 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Team Value</p>
-                  <p className="text-lg font-semibold">£{totalValue}m</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-gradient-to-br from-background/80 to-muted/50">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-4 h-4 text-primary" />
-                <div>
-                  <p className="text-sm text-muted-foreground">In Bank</p>
-                  <p className="text-lg font-semibold">£{bankValue}m</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       {/* Main Content Grid */}
