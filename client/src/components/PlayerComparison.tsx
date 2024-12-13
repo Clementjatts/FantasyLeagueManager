@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -198,7 +199,9 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent>
+        <ScrollArea className="h-[600px] pr-4">
+          <div className="space-y-6">
         {categories.map((category, index) => (
           <div key={category.title} className="space-y-4">
             {index > 0 && <Separator className="my-6" />}
@@ -230,6 +233,8 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
             </div>
           </div>
         ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
