@@ -8,7 +8,7 @@ export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
   // Set port from environment or use 3000 as fallback
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 3000;
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
