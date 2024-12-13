@@ -4,7 +4,7 @@ import DashboardPage from "./pages/DashboardPage";
 import TeamPage from "./pages/TeamPage";
 import PlayersPage from "./pages/PlayersPage";
 import StatisticsPage from "./pages/StatisticsPage";
-import LeaguePage from "./pages/LeaguePage";
+
 import ChipsPage from "./pages/ChipsPage";
 
 function App() {
@@ -17,7 +17,7 @@ function App() {
           <Route path="/team" component={TeamPage} />
           <Route path="/players" component={PlayersPage} />
           <Route path="/statistics" component={StatisticsPage} />
-          <Route path="/leagues" component={LeaguePage} />
+          
           <Route path="/chips" component={ChipsPage} />
           <Route>404 Page Not Found</Route>
         </Switch>
