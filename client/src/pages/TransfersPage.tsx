@@ -14,31 +14,16 @@ export default function TransfersPage() {
   const [location] = useLocation();
   const searchParams = new URLSearchParams(location.split('?')[1] || '');
   const initialPlayerId = searchParams.get('playerId');
-  
-  const [selectedOut, setSelectedOut] = useState<number | null>(
-    initialPlayerId && !isNaN(Number(initialPlayerId)) ? Number(initialPlayerId) : null
-  );
-  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const [selectedOut, setSelectedOut] = useState<number | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     team: 'ALL',
     position: 'ALL'
   });
 
-  // Update filters when players data is loaded and we have an initial player ID
-  useEffect(() => {
-    if (players && initialPlayerId) {
-      const initialPlayer = players.find(p => p.id === Number(initialPlayerId));
-      if (initialPlayer) {
-        setFilters({
-          team: initialPlayer.team.toString(),
-          position: initialPlayer.element_type.toString()
-        });
-      }
-    }
-  }, [players, initialPlayerId]);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
+  // Fetch data
   const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ["/api/fpl/my-team/1"],
     queryFn: () => fetchMyTeam(1)
@@ -46,26 +31,10 @@ export default function TransfersPage() {
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
-    queryFn: async () => {
-      const result = await fetchPlayers();
-      return result;
-    }
+    queryFn: fetchPlayers
   });
 
-  // When players data changes, update any necessary UI state
-  useEffect(() => {
-    if (players && selectedOut === null && initialPlayerId) {
-      const initialPlayer = players.find(p => p.id === Number(initialPlayerId));
-      if (initialPlayer) {
-        setSelectedOut(initialPlayer.id);
-        setFilters({
-          team: initialPlayer.team.toString(),
-          position: initialPlayer.element_type.toString()
-        });
-      }
-    }
-  }, [players, initialPlayerId, selectedOut]);
-
+  // Handle transfer mutations
   const transferMutation = useMutation({
     mutationFn: (params: { playerId: number; outId: number }) =>
       makeTransfer(params.playerId, params.outId),
@@ -86,16 +55,33 @@ export default function TransfersPage() {
     },
   });
 
+  // Initialize selected player and filters when data is available
+  useEffect(() => {
+    if (players && initialPlayerId) {
+      const playerId = Number(initialPlayerId);
+      if (!isNaN(playerId)) {
+        const player = players.find(p => p.id === playerId);
+        if (player) {
+          setSelectedOut(playerId);
+          setFilters({
+            team: player.team.toString(),
+            position: player.element_type.toString()
+          });
+        }
+      }
+    }
+  }, [players, initialPlayerId]);
+
+  // Filter players based on search and filters
   const filteredPlayers = useMemo(() => {
     if (!players) return [];
     
-    return players
-      .filter(player => {
-        const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase());
-        const matchesTeam = filters.team === 'ALL' || player.team.toString() === filters.team;
-        const matchesPosition = filters.position === 'ALL' || player.element_type.toString() === filters.position;
-        return matchesSearch && matchesTeam && matchesPosition;
-      });
+    return players.filter(player => {
+      const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase());
+      const matchesTeam = filters.team === 'ALL' || player.team.toString() === filters.team;
+      const matchesPosition = filters.position === 'ALL' || player.element_type.toString() === filters.position;
+      return matchesSearch && matchesTeam && matchesPosition;
+    });
   }, [players, search, filters]);
 
   const teamValue = (team?.transfers?.value || 0) / 10;
@@ -137,7 +123,6 @@ export default function TransfersPage() {
                 teams={players ? 
                   Array.from(new Set(players.map(p => p.team)))
                     .map(teamId => {
-                      const playerFromTeam = players.find(p => p.team === teamId);
                       const teamNames: Record<number, string> = {
                         1: "Arsenal",
                         2: "Aston Villa",
