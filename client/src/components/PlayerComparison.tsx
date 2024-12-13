@@ -1,8 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { type Player } from "../types/fpl";
 import { cn } from "@/lib/utils";
+import { TrendingUp, TrendingDown, Minus, Star, Shield, Target, Zap } from "lucide-react";
 
 interface PlayerComparisonProps {
   player: Player;
@@ -14,34 +16,71 @@ interface StatComparisonProps {
   value1: number | string;
   value2?: number | string;
   reverse?: boolean;
+  showTrend?: boolean;
+  suffix?: string;
 }
 
-function StatComparison({ label, value1, value2, reverse = false }: StatComparisonProps) {
+interface StatCategory {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  stats: {
+    label: string;
+    value: string;
+    divideBy?: number;
+    reverse?: boolean;
+    showTrend?: boolean;
+    suffix?: string;
+  }[];
+}
+
+function StatComparison({ 
+  label, 
+  value1, 
+  value2, 
+  reverse = false, 
+  showTrend = false,
+  suffix = ""
+}: StatComparisonProps) {
   const val1 = typeof value1 === 'string' ? parseFloat(value1) : value1;
   const val2 = value2 ? (typeof value2 === 'string' ? parseFloat(value2) : value2) : 0;
   
-  const max = Math.max(val1, val2, 1); // Ensure we don't divide by zero
+  const max = Math.max(val1, val2, 1);
   const progress1 = (val1 / max) * 100;
   const progress2 = value2 ? (val2 / max) * 100 : 0;
   
   const better = reverse ? val1 < val2 : val1 > val2;
+  const difference = Math.abs(val1 - (val2 || 0));
   
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground flex items-center gap-2">
+          {label}
+          {showTrend && (
+            <span className={cn(
+              "text-xs",
+              better ? "text-green-500" : "text-red-500"
+            )}>
+              {better ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            </span>
+          )}
+        </span>
         <div className="flex items-center gap-2">
           <span className={cn(
             "font-medium",
             better ? "text-green-500" : value2 ? "text-red-500" : ""
-          )}>{val1}</span>
+          )}>{val1}{suffix}</span>
           {value2 && (
             <>
               <span className="text-muted-foreground">vs</span>
               <span className={cn(
                 "font-medium",
                 !better ? "text-green-500" : "text-red-500"
-              )}>{val2}</span>
+              )}>{val2}{suffix}</span>
+              <Badge variant={better ? "default" : "destructive"} className="text-xs">
+                {difference.toFixed(1)}{suffix} {better ? "better" : "worse"}
+              </Badge>
             </>
           )}
         </div>
@@ -69,46 +108,127 @@ function StatComparison({ label, value1, value2, reverse = false }: StatComparis
 }
 
 export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonProps) {
-  const stats = [
-    { label: "Total Points", value: "total_points" },
-    { label: "Points Per Game", value: "points_per_game" },
-    { label: "Minutes", value: "minutes" },
-    { label: "Goals", value: "goals_scored" },
-    { label: "Assists", value: "assists" },
-    { label: "Clean Sheets", value: "clean_sheets" },
-    { label: "Bonus Points", value: "bonus" },
-    { label: "Price", value: "now_cost", divideBy: 10 },
-    { label: "Form", value: "form" },
-    { label: "Selected By", value: "selected_by_percent", suffix: "%" }
+  const getPositionSpecificStats = (player: Player) => {
+    switch (player.element_type) {
+      case 1: // GK
+        return [
+          { label: "Clean Sheets", value: "clean_sheets" },
+          { label: "Saves", value: "saves" },
+          { label: "Penalties Saved", value: "penalties_saved" },
+        ];
+      case 2: // DEF
+        return [
+          { label: "Clean Sheets", value: "clean_sheets" },
+          { label: "Goals Conceded", value: "goals_conceded", reverse: true },
+          { label: "Tackles", value: "tackles" },
+        ];
+      case 3: // MID
+        return [
+          { label: "Goals", value: "goals_scored" },
+          { label: "Assists", value: "assists" },
+          { label: "Expected Goal Involvements", value: "expected_goal_involvements" },
+        ];
+      case 4: // FWD
+        return [
+          { label: "Goals", value: "goals_scored" },
+          { label: "Expected Goals", value: "expected_goals" },
+          { label: "Big Chances", value: "big_chances_total" },
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const categories: StatCategory[] = [
+    {
+      title: "Overall Performance",
+      description: "Key performance indicators and match statistics",
+      icon: <Star className="w-5 h-5 text-yellow-500" />,
+      stats: [
+        { label: "Total Points", value: "total_points", showTrend: true },
+        { label: "Points Per Game", value: "points_per_game" },
+        { label: "Minutes Played", value: "minutes" },
+        { label: "Bonus Points", value: "bonus" },
+      ]
+    },
+    {
+      title: "Attack",
+      description: "Offensive statistics and goal contributions",
+      icon: <Target className="w-5 h-5 text-red-500" />,
+      stats: [
+        { label: "Goals", value: "goals_scored" },
+        { label: "Assists", value: "assists" },
+        { label: "Expected Goals", value: "expected_goals" },
+        { label: "Big Chances Created", value: "big_chances_created" },
+      ]
+    },
+    {
+      title: "Form & Value",
+      description: "Recent performance and market statistics",
+      icon: <Zap className="w-5 h-5 text-blue-500" />,
+      stats: [
+        { label: "Form", value: "form", showTrend: true },
+        { label: "Price", value: "now_cost", divideBy: 10, reverse: true, suffix: "m" },
+        { label: "Selected By", value: "selected_by_percent", suffix: "%" },
+        { label: "Value (Form)", value: "value_form" },
+      ]
+    },
+    {
+      title: "Position Specific",
+      description: "Statistics relevant to player's position",
+      icon: <Shield className="w-5 h-5 text-green-500" />,
+      stats: getPositionSpecificStats(player)
+    }
   ];
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Performance Comparison</CardTitle>
+          <div>
+            <CardTitle className="text-2xl">Performance Analysis</CardTitle>
+            <CardDescription>
+              Comprehensive comparison of key performance metrics
+            </CardDescription>
+          </div>
           {comparedPlayer && (
-            <Badge variant="outline">
+            <Badge variant="outline" className="text-lg px-4 py-1">
               vs {comparedPlayer.web_name}
             </Badge>
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {stats.map(stat => (
-          <StatComparison
-            key={stat.label}
-            label={stat.label}
-            value1={stat.divideBy 
-              ? (player[stat.value] / stat.divideBy) 
-              : player[stat.value] || 0}
-            value2={comparedPlayer 
-              ? (stat.divideBy 
-                ? (comparedPlayer[stat.value] / stat.divideBy)
-                : comparedPlayer[stat.value] || 0)
-              : undefined}
-            reverse={stat.label === "Price"} // Lower is better for price
-          />
+      <CardContent className="space-y-6">
+        {categories.map((category, index) => (
+          <div key={category.title} className="space-y-4">
+            {index > 0 && <Separator className="my-6" />}
+            <div className="flex items-center gap-2 mb-4">
+              {category.icon}
+              <div>
+                <h3 className="font-semibold text-lg">{category.title}</h3>
+                <p className="text-sm text-muted-foreground">{category.description}</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {category.stats.map(stat => (
+                <StatComparison
+                  key={stat.label}
+                  label={stat.label}
+                  value1={stat.divideBy 
+                    ? (player[stat.value] / stat.divideBy) 
+                    : player[stat.value] || 0}
+                  value2={comparedPlayer 
+                    ? (stat.divideBy 
+                      ? (comparedPlayer[stat.value] / stat.divideBy)
+                      : comparedPlayer[stat.value] || 0)
+                    : undefined}
+                  reverse={stat.reverse}
+                  showTrend={stat.showTrend}
+                  suffix={stat.suffix}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </CardContent>
     </Card>
