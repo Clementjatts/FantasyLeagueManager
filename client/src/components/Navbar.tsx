@@ -17,7 +17,7 @@ export function Navbar() {
   return (
     <nav className="border-b bg-gradient-to-r from-background/95 via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-lg">
       <div className="container mx-auto px-6 sm:px-8">
-        <div className="flex h-18 items-center justify-between">
+        <div className="flex h-20 items-center justify-between py-4">
           <div className="flex-shrink-0 mr-10">
             <div className="text-3xl font-black tracking-tighter bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent select-none hover:scale-105 transition-transform duration-200">
               FPLManager
@@ -28,7 +28,7 @@ export function Navbar() {
               <Link key={href} href={href}>
                 <a
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium",
+                    "flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
                     "transition-all duration-300 ease-in-out",
                     "hover:bg-gradient-to-r hover:from-purple-500/15 hover:to-blue-500/15",
                     "hover:shadow-lg hover:scale-105 hover:text-white",
