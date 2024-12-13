@@ -19,22 +19,23 @@ export default function TransfersPage() {
     initialPlayerId && !isNaN(Number(initialPlayerId)) ? Number(initialPlayerId) : null
   );
   
-  // Get the initial player's details to set appropriate filters
-  const initialPlayer = players?.find(p => p.id === Number(initialPlayerId));
   const [filters, setFilters] = useState<FilterOptions>({
-    team: initialPlayer ? initialPlayer.team.toString() : 'ALL',
-    position: initialPlayer ? initialPlayer.element_type.toString() : 'ALL'
+    team: 'ALL',
+    position: 'ALL'
   });
 
-  // Update filters when initial player changes
+  // Update filters when players data is loaded and we have an initial player ID
   useEffect(() => {
-    if (initialPlayer) {
-      setFilters({
-        team: initialPlayer.team.toString(),
-        position: initialPlayer.element_type.toString()
-      });
+    if (players && initialPlayerId) {
+      const initialPlayer = players.find(p => p.id === Number(initialPlayerId));
+      if (initialPlayer) {
+        setFilters({
+          team: initialPlayer.team.toString(),
+          position: initialPlayer.element_type.toString()
+        });
+      }
     }
-  }, [initialPlayer]);
+  }, [players, initialPlayerId]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,29 +46,25 @@ export default function TransfersPage() {
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
-    queryFn: () => {
-      const result = fetchPlayers();
-      console.log('Player data example:', result?.[0]);
+    queryFn: async () => {
+      const result = await fetchPlayers();
       return result;
     }
   });
 
-  // Log team information when players data changes
-  React.useEffect(() => {
-    if (players) {
-      console.log('Available teams:', 
-        Array.from(new Set(players.map(p => p.team)))
-          .map(teamId => {
-            const player = players.find(p => p.team === teamId);
-            return {
-              id: teamId,
-              name: player?.team_name,
-              team: player?.team
-            };
-          })
-      );
+  // When players data changes, update any necessary UI state
+  useEffect(() => {
+    if (players && selectedOut === null && initialPlayerId) {
+      const initialPlayer = players.find(p => p.id === Number(initialPlayerId));
+      if (initialPlayer) {
+        setSelectedOut(initialPlayer.id);
+        setFilters({
+          team: initialPlayer.team.toString(),
+          position: initialPlayer.element_type.toString()
+        });
+      }
     }
-  }, [players]);
+  }, [players, initialPlayerId, selectedOut]);
 
   const transferMutation = useMutation({
     mutationFn: (params: { playerId: number; outId: number }) =>
