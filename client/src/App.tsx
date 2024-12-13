@@ -2,7 +2,7 @@ import { Switch, Route } from "wouter";
 import { Navbar } from "./components/Navbar";
 import DashboardPage from "./pages/DashboardPage";
 import TeamPage from "./pages/TeamPage";
-import TransfersPage from "./pages/TransfersPage";
+import PlayersPage from "./pages/PlayersPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import LeaguePage from "./pages/LeaguePage";
 import ChipsPage from "./pages/ChipsPage";
@@ -15,7 +15,7 @@ function App() {
         <Switch>
           <Route path="/" component={DashboardPage} />
           <Route path="/team" component={TeamPage} />
-          <Route path="/transfers" component={TransfersPage} />
+          <Route path="/players" component={PlayersPage} />
           <Route path="/statistics" component={StatisticsPage} />
           <Route path="/leagues" component={LeaguePage} />
           <Route path="/chips" component={ChipsPage} />

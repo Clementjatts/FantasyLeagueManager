@@ -29,7 +29,7 @@ export function QuickActions({ needsCaptain, hasTransfers, transfersAvailable }:
             </Link>
           )}
           {hasTransfers && (
-            <Link href="/transfers">
+            <Link href="/players">
               <Button variant="outline" className="w-full flex items-center gap-2">
                 <Repeat className="w-4 h-4" />
                 <span>{transfersAvailable} Free Transfer{transfersAvailable !== 1 && 's'} Available</span>

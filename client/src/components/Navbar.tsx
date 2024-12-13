@@ -8,7 +8,7 @@ export function Navbar() {
   const links = [
     { href: "/", label: "Dashboard", icon: Home },
     { href: "/team", label: "Team", icon: Users },
-    { href: "/transfers", label: "Transfers", icon: Repeat },
+    { href: "/players", label: "Players", icon: Repeat },
     { href: "/statistics", label: "Statistics", icon: BarChart },
     { href: "/leagues", label: "Leagues", icon: Trophy },
     { href: "/chips", label: "Chips", icon: Rocket },
