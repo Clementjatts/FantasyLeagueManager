@@ -87,36 +87,36 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
             <TableHead className="w-[250px]">
               <SortableHeader sortKey="web_name">Player</SortableHeader>
             </TableHead>
-            <TableHead>
+            <TableHead className="text-center">
               <SortableHeader sortKey="element_type">Pos</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="now_cost">Price</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="form">Form</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="total_points">Points</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="points_per_game">PPG</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="minutes">Mins</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="goals_scored">G</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="assists">A</SortableHeader>
             </TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">
               <SortableHeader sortKey="bonus">Bonus</SortableHeader>
             </TableHead>
             {/* Show clean sheets for DEF/GK */}
-            <TableHead className="text-right">CS</TableHead>
-            <TableHead className="text-right">
+            <TableHead className="text-center">CS</TableHead>
+            <TableHead className="text-center">
               <SortableHeader sortKey="selected_by_percent">Selected %</SortableHeader>
             </TableHead>
           </TableRow>
@@ -142,24 +142,24 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
                   </div>
                 </div>
               </TableCell>
-              <TableCell>
-                <Badge variant="outline">
+              <TableCell className="text-center">
+                <Badge variant="outline" className="mx-auto">
                   {getPositionName(player.element_type)}
                 </Badge>
               </TableCell>
-              <TableCell className="text-right">£{(player.now_cost / 10).toFixed(1)}m</TableCell>
-              <TableCell className="text-right">{player.form}</TableCell>
-              <TableCell className="text-right font-medium">{player.total_points}</TableCell>
-              <TableCell className="text-right">{player.points_per_game}</TableCell>
-              <TableCell className="text-right">{player.minutes}</TableCell>
-              <TableCell className="text-right">{player.goals_scored}</TableCell>
-              <TableCell className="text-right">{player.assists}</TableCell>
-              <TableCell className="text-right">{player.bonus}</TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-center">£{(player.now_cost / 10).toFixed(1)}m</TableCell>
+              <TableCell className="text-center">{player.form}</TableCell>
+              <TableCell className="text-center font-medium">{player.total_points}</TableCell>
+              <TableCell className="text-center">{player.points_per_game}</TableCell>
+              <TableCell className="text-center">{player.minutes}</TableCell>
+              <TableCell className="text-center">{player.goals_scored}</TableCell>
+              <TableCell className="text-center">{player.assists}</TableCell>
+              <TableCell className="text-center">{player.bonus}</TableCell>
+              <TableCell className="text-center">
                 {(player.element_type === 1 || player.element_type === 2) ? 
                   player.clean_sheets : '-'}
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-center">
                 {parseFloat(player.selected_by_percent).toFixed(1)}%
               </TableCell>
             </TableRow>
