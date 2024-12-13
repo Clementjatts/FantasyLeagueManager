@@ -12,7 +12,8 @@ export default function TransfersPage() {
   const [search, setSearch] = useState("");
   const [selectedOut, setSelectedOut] = useState<number | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
-    team: 'ALL'
+    team: 'ALL',
+    position: 'ALL'
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -75,7 +76,8 @@ export default function TransfersPage() {
       .filter(player => {
         const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase());
         const matchesTeam = filters.team === 'ALL' || player.team.toString() === filters.team;
-        return matchesSearch && matchesTeam;
+        const matchesPosition = filters.position === 'ALL' || player.element_type.toString() === filters.position;
+        return matchesSearch && matchesTeam && matchesPosition;
       });
   }, [players, search, filters]);
 

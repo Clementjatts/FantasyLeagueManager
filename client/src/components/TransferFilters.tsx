@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 export interface FilterOptions {
   team: string;
+  position: string;
 }
 
 interface Team {
@@ -33,33 +34,62 @@ interface TransferFiltersProps {
 
 export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps) {
   const [selectedTeam, setSelectedTeam] = useState<string>('ALL');
+  const [selectedPosition, setSelectedPosition] = useState<string>('ALL');
 
   const handleTeamChange = (value: string) => {
     setSelectedTeam(value);
-    onFilterChange({ team: value });
+    onFilterChange({ team: value, position: selectedPosition });
+  };
+
+  const handlePositionChange = (value: string) => {
+    setSelectedPosition(value);
+    onFilterChange({ team: selectedTeam, position: value });
   };
 
   return (
-    <div className="w-[200px]">
-      <Select
-        value={selectedTeam}
-        onValueChange={handleTeamChange}
-      >
-        <SelectTrigger className="w-full bg-background border-input hover:bg-accent hover:text-accent-foreground">
-          <SelectValue placeholder="Filter by team" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Teams</SelectLabel>
-            <SelectItem value="ALL">All Teams</SelectItem>
-            {teams.map((team) => (
-              <SelectItem key={team.id} value={team.id.toString()}>
-                {team.name}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
+    <div className="flex items-center gap-2">
+      <div className="w-[200px]">
+        <Select
+          value={selectedTeam}
+          onValueChange={handleTeamChange}
+        >
+          <SelectTrigger className="w-full bg-background border-input hover:bg-accent hover:text-accent-foreground">
+            <SelectValue placeholder="Filter by team" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Teams</SelectLabel>
+              <SelectItem value="ALL">All Teams</SelectItem>
+              {teams.map((team) => (
+                <SelectItem key={team.id} value={team.id.toString()}>
+                  {team.name}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="w-[120px]">
+        <Select
+          value={selectedPosition}
+          onValueChange={handlePositionChange}
+        >
+          <SelectTrigger className="w-full bg-background border-input hover:bg-accent hover:text-accent-foreground">
+            <SelectValue placeholder="Position" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Position</SelectLabel>
+              <SelectItem value="ALL">All</SelectItem>
+              <SelectItem value="1">GK</SelectItem>
+              <SelectItem value="2">DEF</SelectItem>
+              <SelectItem value="3">MID</SelectItem>
+              <SelectItem value="4">FWD</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
