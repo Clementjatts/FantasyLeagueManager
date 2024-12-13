@@ -186,29 +186,37 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
               <TableCell>
                 <div className="flex items-center text-muted-foreground">
                   {(() => {
-                    const teamNames: Record<number, string> = {
-                      1: "Arsenal",
-                      2: "Aston Villa",
-                      3: "Bournemouth",
-                      4: "Brentford",
-                      5: "Brighton",
-                      6: "Chelsea",
-                      7: "Crystal Palace",
-                      8: "Everton",
-                      9: "Fulham",
-                      10: "Liverpool",
-                      11: "Luton",
-                      12: "Manchester City",
-                      13: "Manchester United",
-                      14: "Newcastle",
-                      15: "Nottingham Forest",
-                      16: "Sheffield United",
-                      17: "Tottenham",
-                      18: "West Ham",
-                      19: "Wolves",
-                      20: "Burnley"
+                    const teamData: Record<number, { name: string, abbr: string }> = {
+                      1: { name: "Arsenal", abbr: "ARS" },
+                      2: { name: "Aston Villa", abbr: "AVL" },
+                      3: { name: "Bournemouth", abbr: "BOU" },
+                      4: { name: "Brentford", abbr: "BRE" },
+                      5: { name: "Brighton", abbr: "BHA" },
+                      6: { name: "Chelsea", abbr: "CHE" },
+                      7: { name: "Crystal Palace", abbr: "CRY" },
+                      8: { name: "Everton", abbr: "EVE" },
+                      9: { name: "Fulham", abbr: "FUL" },
+                      10: { name: "Liverpool", abbr: "LIV" },
+                      11: { name: "Luton", abbr: "LUT" },
+                      12: { name: "Man City", abbr: "MCI" },
+                      13: { name: "Man United", abbr: "MUN" },
+                      14: { name: "Newcastle", abbr: "NEW" },
+                      15: { name: "Nott'm Forest", abbr: "NFO" },
+                      16: { name: "Sheffield Utd", abbr: "SHU" },
+                      17: { name: "Tottenham", abbr: "TOT" },
+                      18: { name: "West Ham", abbr: "WHU" },
+                      19: { name: "Wolves", abbr: "WOL" },
+                      20: { name: "Burnley", abbr: "BUR" }
                     };
-                    return teamNames[player.team] || `Team ${player.team}`;
+                    const team = teamData[player.team];
+                    return (
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 flex items-center justify-center rounded-full bg-primary/10">
+                          {team?.abbr.charAt(0)}
+                        </div>
+                        <span title={team?.name}>{team?.abbr || `T${player.team}`}</span>
+                      </div>
+                    );
                   })()}
                 </div>
               </TableCell>
