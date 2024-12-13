@@ -16,6 +16,8 @@ interface PlayerTableProps {
   players: Player[];
   onPlayerClick: (player: Player) => void;
   selectedPlayerId?: number | null;
+  fixtures?: any[];
+  teams?: any[];
 }
 
 interface SortConfig {
@@ -23,7 +25,44 @@ interface SortConfig {
   direction: 'asc' | 'desc';
 }
 
-export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: PlayerTableProps) {
+export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures = [], teams = [] }: PlayerTableProps) {
+  const getNextFixture = (teamId: number) => {
+    if (!fixtures || !teams) return null;
+    
+    const upcomingFixture = fixtures.find(f => 
+      (f.team_h === teamId || f.team_a === teamId) && !f.finished
+    );
+    
+    if (!upcomingFixture) return null;
+    
+    const isHome = upcomingFixture.team_h === teamId;
+    const oppositionId = isHome ? upcomingFixture.team_a : upcomingFixture.team_h;
+    const opposition = teams.find(t => t.id === oppositionId);
+    
+    return {
+      opposition: opposition?.short_name || `Team ${oppositionId}`,
+      difficulty: isHome ? upcomingFixture.team_h_difficulty : upcomingFixture.team_a_difficulty,
+      isHome
+    };
+  };
+
+  const getPrediction = (player: Player, fixture: any) => {
+    if (!fixture) return "-";
+    
+    const form = parseFloat(player.form) || 0;
+    const difficulty = fixture.difficulty || 3;
+    const positionMultiplier = {
+      1: 0.8,  // GK
+      2: 0.9,  // DEF
+      3: 1.1,  // MID
+      4: 1.2   // FWD
+    }[player.element_type] || 1;
+    
+    const homeAdvantage = fixture.isHome ? 1.1 : 0.9;
+    const prediction = form * positionMultiplier * homeAdvantage * (6 - difficulty) / 3;
+    
+    return prediction.toFixed(1);
+  };
   const [sortConfig, setSortConfig] = React.useState<SortConfig>({
     key: 'total_points',
     direction: 'desc'
@@ -122,6 +161,8 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
             <TableHead className="text-center">
               <SortableHeader sortKey="selected_by_percent">Sel %</SortableHeader>
             </TableHead>
+            <TableHead className="text-center">Next Fixture</TableHead>
+            <TableHead className="text-center">Prediction</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -161,6 +202,42 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
               </TableCell>
               <TableCell className="text-center font-medium">
                 {parseFloat(player.selected_by_percent).toFixed(1)}%
+              </TableCell>
+              <TableCell className="text-center">
+                {(() => {
+                  const fixture = getNextFixture(player.team);
+                  if (!fixture) return "-";
+                  return (
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={fixture.isHome ? "font-medium" : "text-muted-foreground"}>
+                        {fixture.isHome ? "H" : "A"}
+                      </span>
+                      <span className="text-sm">{fixture.opposition}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        fixture.difficulty <= 2 ? "bg-green-500/10 text-green-600" :
+                        fixture.difficulty >= 4 ? "bg-red-500/10 text-red-600" :
+                        "bg-orange-500/10 text-orange-600"
+                      }`}>
+                        {fixture.difficulty}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </TableCell>
+              <TableCell className="text-center font-medium">
+                {(() => {
+                  const fixture = getNextFixture(player.team);
+                  const prediction = getPrediction(player, fixture);
+                  return (
+                    <span className={`${
+                      parseFloat(prediction) >= 5 ? "text-green-600" :
+                      parseFloat(prediction) >= 3 ? "text-orange-600" :
+                      "text-red-600"
+                    }`}>
+                      {prediction}
+                    </span>
+                  );
+                })()}
               </TableCell>
             </TableRow>
           ))}

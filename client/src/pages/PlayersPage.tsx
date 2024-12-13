@@ -29,6 +29,16 @@ export default function PlayersPage() {
     queryFn: fetchPlayers
   });
 
+  const { data: fixtures } = useQuery({
+    queryKey: ["/api/fpl/fixtures"],
+    queryFn: fetchFixtures
+  });
+
+  const { data: bootstrapData } = useQuery({
+    queryKey: ["/api/fpl/bootstrap-static"],
+    queryFn: fetchBootstrapStatic
+  });
+
   // Handle transfer mutations
   const transferMutation = useMutation({
     mutationFn: (params: { playerId: number; outId: number }) =>
@@ -130,6 +140,8 @@ export default function PlayersPage() {
           <PlayerTable 
             players={filteredPlayers}
             selectedPlayerId={selectedOut}
+            fixtures={fixtures}
+            teams={bootstrapData?.teams}
             onPlayerClick={(player) => {
               if (selectedOut) {
                 if (selectedOut === player.id) {
