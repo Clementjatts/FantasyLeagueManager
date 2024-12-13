@@ -27,24 +27,32 @@ interface SortConfig {
 }
 
 export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures = [], teams = [] }: PlayerTableProps) {
-  const getNextFixture = (teamId: number) => {
-    if (!fixtures || !teams) return null;
+  const getNextFixtures = (teamId: number) => {
+    if (!fixtures || !teams) return [];
     
-    const upcomingFixture = fixtures.find(f => 
-      (f.team_h === teamId || f.team_a === teamId) && !f.finished
-    );
+    const upcomingFixtures = fixtures
+      .filter(f => 
+        (f.team_h === teamId || f.team_a === teamId) && !f.finished
+      )
+      .slice(0, 3);
     
-    if (!upcomingFixture) return null;
-    
-    const isHome = upcomingFixture.team_h === teamId;
-    const oppositionId = isHome ? upcomingFixture.team_a : upcomingFixture.team_h;
-    const opposition = teams.find(t => t.id === oppositionId);
-    
-    return {
-      opposition: opposition?.short_name || `Team ${oppositionId}`,
-      difficulty: isHome ? upcomingFixture.team_h_difficulty : upcomingFixture.team_a_difficulty,
-      isHome
-    };
+    return upcomingFixtures.map(fixture => {
+      const isHome = fixture.team_h === teamId;
+      const oppositionId = isHome ? fixture.team_a : fixture.team_h;
+      const opposition = teams.find(t => t.id === oppositionId);
+      
+      return {
+        opposition: opposition?.short_name || `Team ${oppositionId}`,
+        difficulty: isHome ? fixture.team_h_difficulty : fixture.team_a_difficulty,
+        isHome
+      };
+    });
+  };
+
+  const getDifficultyColor = (difficulty: number) => {
+    if (difficulty <= 2) return "text-green-600";
+    if (difficulty >= 4) return "text-red-600";
+    return "text-orange-600";
   };
 
   const [sortConfig, setSortConfig] = React.useState<SortConfig>({
@@ -195,23 +203,18 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
               <TableCell className="text-center font-medium">
                 {parseFloat(player.selected_by_percent).toFixed(1)}
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="text-center min-w-[200px]">
                 {(() => {
-                  const fixture = getNextFixture(player.team);
-                  if (!fixture) return "-";
+                  const fixtures = getNextFixtures(player.team);
+                  if (!fixtures.length) return "-";
+                  
                   return (
-                    <div className="flex items-center justify-center gap-1">
-                      <span className={fixture.isHome ? "font-medium" : "text-muted-foreground"}>
-                        {fixture.isHome ? "H" : "A"}
-                      </span>
-                      <span className="text-sm">{fixture.opposition}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        fixture.difficulty <= 2 ? "bg-green-500/10 text-green-600" :
-                        fixture.difficulty >= 4 ? "bg-red-500/10 text-red-600" :
-                        "bg-orange-500/10 text-orange-600"
-                      }`}>
-                        {fixture.difficulty}
-                      </span>
+                    <div className="flex items-center justify-center gap-3">
+                      {fixtures.map((fixture, idx) => (
+                        <span key={idx} className={getDifficultyColor(fixture.difficulty)}>
+                          {fixture.opposition} ({fixture.isHome ? 'H' : 'A'})
+                        </span>
+                      ))}
                     </div>
                   );
                 })()}
