@@ -69,16 +69,17 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
   };
 
   return (
-    <Card className="p-4">
-      <div className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="space-y-2">
-            <Label>Position</Label>
+    <Card className="p-6 bg-gradient-to-br from-card to-muted/10 border border-border/30">
+      <div className="space-y-6">
+        {/* Position and Team Filters */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium text-muted-foreground">Position</Label>
             <Select
               value={filters.position}
               onValueChange={(value) => handleFilterChange('position', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:bg-background/80 transition-colors">
                 <SelectValue placeholder="Select position" />
               </SelectTrigger>
               <SelectContent>
@@ -94,13 +95,13 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Team</Label>
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium text-muted-foreground">Team</Label>
             <Select
               value={filters.team}
               onValueChange={(value) => handleFilterChange('team', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:bg-background/80 transition-colors">
                 <SelectValue placeholder="Select team" />
               </SelectTrigger>
               <SelectContent>
@@ -117,15 +118,15 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Sort By</Label>
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium text-muted-foreground">Sort By</Label>
             <Select
               value={filters.sortBy}
               onValueChange={(value: 'price' | 'form' | 'points' | 'selected') => 
                 handleFilterChange('sortBy', value)
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full bg-background/50 border-border/50 hover:bg-background/80 transition-colors">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -141,13 +142,18 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Sort Order</Label>
-            <div className="flex gap-2">
+          <div className="space-y-2.5">
+            <Label className="text-sm font-medium text-muted-foreground">Sort Order</Label>
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant={filters.sortOrder === 'asc' ? 'default' : 'outline'}
                 size="sm"
-                className="flex-1"
+                className={cn(
+                  "w-full transition-all",
+                  filters.sortOrder === 'asc' 
+                    ? "bg-primary hover:bg-primary/90" 
+                    : "hover:bg-background/80"
+                )}
                 onClick={() => handleFilterChange('sortOrder', 'asc')}
               >
                 Ascending
@@ -155,7 +161,12 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
               <Button
                 variant={filters.sortOrder === 'desc' ? 'default' : 'outline'}
                 size="sm"
-                className="flex-1"
+                className={cn(
+                  "w-full transition-all",
+                  filters.sortOrder === 'desc' 
+                    ? "bg-primary hover:bg-primary/90" 
+                    : "hover:bg-background/80"
+                )}
                 onClick={() => handleFilterChange('sortOrder', 'desc')}
               >
                 Descending
@@ -164,43 +175,43 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
           </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label>Price Range (£m)</Label>
-            <div className="space-x-2">
-              <Badge variant="outline">
-                {filters.minPrice.toFixed(1)}m - {filters.maxPrice.toFixed(1)}m
-              </Badge>
-            </div>
+        {/* Price Range Slider */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label className="text-sm font-medium text-muted-foreground">Price Range</Label>
+            <Badge variant="secondary" className="bg-background/50">
+              £{filters.minPrice.toFixed(1)}m - £{filters.maxPrice.toFixed(1)}m
+            </Badge>
           </div>
-          <div className="pt-2">
-            <Slider
-              min={0}
-              max={15}
-              step={0.1}
-              value={[filters.minPrice, filters.maxPrice]}
-              onValueChange={([min, max]) => {
-                handleFilterChange('minPrice', min);
-                handleFilterChange('maxPrice', max);
-              }}
-            />
-          </div>
+          <Slider
+            min={0}
+            max={15}
+            step={0.1}
+            value={[filters.minPrice, filters.maxPrice]}
+            onValueChange={([min, max]) => {
+              handleFilterChange('minPrice', min);
+              handleFilterChange('maxPrice', max);
+            }}
+            className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary"
+          />
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label>Minimum Form</Label>
-            <Badge variant="outline">{filters.minForm.toFixed(1)}</Badge>
+        {/* Form Slider */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <Label className="text-sm font-medium text-muted-foreground">Minimum Form</Label>
+            <Badge variant="secondary" className="bg-background/50">
+              {filters.minForm.toFixed(1)}
+            </Badge>
           </div>
-          <div className="pt-2">
-            <Slider
-              min={0}
-              max={10}
-              step={0.1}
-              value={[filters.minForm]}
-              onValueChange={([value]) => handleFilterChange('minForm', value)}
-            />
-          </div>
+          <Slider
+            min={0}
+            max={10}
+            step={0.1}
+            value={[filters.minForm]}
+            onValueChange={([value]) => handleFilterChange('minForm', value)}
+            className="[&_[role=slider]]:bg-primary [&_[role=slider]]:border-primary"
+          />
         </div>
       </div>
     </Card>
