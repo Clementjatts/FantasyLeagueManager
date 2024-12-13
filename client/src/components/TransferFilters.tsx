@@ -81,7 +81,7 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Position</SelectLabel>
-              <SelectItem value="ALL">All</SelectItem>
+              <SelectItem value="ALL">All Pos</SelectItem>
               <SelectItem value="1">GK</SelectItem>
               <SelectItem value="2">DEF</SelectItem>
               <SelectItem value="3">MID</SelectItem>
