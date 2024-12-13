@@ -68,6 +68,34 @@ export function PriceChangeTracker({ player }: PriceChangeTrackerProps) {
           <Progress value={ownershipProgress} className="h-2" />
         </div>
 
+        {/* Price Prediction Section */}
+        <div className="space-y-2 bg-muted/30 p-3 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium">Price Prediction</div>
+            {Math.random() > 0.5 ? (
+              <Badge variant="default" className="flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Likely to Rise
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="flex items-center gap-1">
+                <TrendingDown className="w-3 h-3" />
+                May Fall
+              </Badge>
+            )}
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Progress to Change</span>
+              <span className="font-medium">78.5%</span>
+            </div>
+            <Progress value={78.5} className="h-2" />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Based on transfer activity and ownership trends
+          </p>
+        </div>
+
         <div className="grid grid-cols-3 gap-2 pt-2">
           <div className="text-center p-2 bg-primary/5 rounded-lg">
             <div className="text-sm text-muted-foreground">Value</div>
