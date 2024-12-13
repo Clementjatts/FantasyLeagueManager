@@ -10,13 +10,24 @@ import { TeamIdInput } from "../components/TeamIdInput";
 import { TeamQuickView } from "../components/TeamQuickView";
 import { ChipsStatus } from "../components/ChipsStatus";
 import { fetchMyTeam, getNextGameweekDeadline } from "../lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
-  const [teamId, setTeamId] = useState<number | null>(null);
-  const { data: team } = useQuery({
+  const [teamId, setTeamId] = useState<number | null>(() => {
+    const savedId = localStorage.getItem("fpl_team_id");
+    return savedId ? parseInt(savedId, 10) : null;
+  });
+
+  // Always fetch deadline, regardless of team ID
+  const { data: nextDeadline } = useQuery({
+    queryKey: ["/api/fpl/next-deadline"],
+    queryFn: getNextGameweekDeadline
+  });
+
+  const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ["/api/fpl/my-team", teamId],
     queryFn: () => teamId ? fetchMyTeam(teamId) : null,
-    enabled: !!teamId,
+    enabled: !!teamId
   });
 
   if (!teamId) {
@@ -39,6 +50,13 @@ export default function DashboardPage() {
     );
   }
 
+  if (isLoadingTeam) {
+    return <div className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-96 w-full" />
+    </div>;
+  }
+
   if (!team) {
     return (
       <Alert variant="destructive">
@@ -48,31 +66,25 @@ export default function DashboardPage() {
   }
 
   const gameweekData = {
-    currentGameweek: team?.last_deadline_event || 0,
-    points: team?.stats?.event_points || 0,
-    rank: team?.summary_overall_rank || 0,
-    totalPoints: team?.summary_overall_points || 0,
-    lastRank: team?.stats?.rank_sort || 0,
-    teamValue: ((team?.last_deadline_value || 0) / 10).toFixed(1),
-    bankValue: ((team?.last_deadline_bank || 0) / 10).toFixed(1),
+    currentGameweek: team.last_deadline_event || 0,
+    points: team.stats?.event_points || 0,
+    rank: team.summary_overall_rank || 0,
+    totalPoints: team.summary_overall_points || 0,
+    lastRank: team.stats?.rank_sort || 0,
+    teamValue: ((team.last_deadline_value || 0) / 10).toFixed(1),
+    bankValue: ((team.last_deadline_bank || 0) / 10).toFixed(1),
   };
 
   // Points data for the history chart
-  const pointsData = team?.points_history?.map(gw => ({
+  const pointsData = team.points_history?.map(gw => ({
     gameweek: gw.event || 0,
     points: gw.points || 0,
     average: gw.average || 0
   })) || [];
 
-  // Fetch next deadline
-  const { data: nextDeadline } = useQuery({
-    queryKey: ["/api/fpl/next-deadline"],
-    queryFn: getNextGameweekDeadline
-  });
-
   // Stats for quick actions
-  const needsCaptain = !team?.picks?.some(p => p.is_captain);
-  const hasTransfers = (team?.transfers?.limit || 0) > 0;
+  const needsCaptain = !team.picks?.some(p => p.is_captain);
+  const hasTransfers = (team.transfers?.limit || 0) > 0;
 
   return (
     <div className="space-y-6">
