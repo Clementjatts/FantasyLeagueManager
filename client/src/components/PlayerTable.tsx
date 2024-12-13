@@ -27,7 +27,14 @@ interface SortConfig {
   direction: 'asc' | 'desc';
 }
 
-export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures = [], teams = [] }: PlayerTableProps) {
+export function PlayerTable({ 
+  players, 
+  onPlayerClick, 
+  selectedPlayerId, 
+  highlightedPlayer,
+  fixtures = [], 
+  teams = [] 
+}: PlayerTableProps) {
   const getNextFixtures = (teamId: number) => {
     if (!fixtures || !teams) return [];
     

@@ -157,6 +157,8 @@ export default function PlayersPage() {
             players={filteredPlayers}
             fixtures={fixtures}
             teams={bootstrapData?.teams}
+            selectedPlayerId={selectedPlayer?.id}
+            highlightedPlayer={comparisonPlayer}
             onPlayerClick={(player) => {
               if (isComparisonMode) {
                 if (!comparisonPlayer) {
