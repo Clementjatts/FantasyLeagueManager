@@ -5,8 +5,6 @@ import { TeamPitch } from "../components/TeamPitch";
 import { TransferSuggestions } from "../components/TransferSuggestions";
 import { CaptainSuggestions } from "../components/CaptainSuggestions";
 import { PlayerStats } from "../components/PlayerStats";
-import { PriceChangeTracker } from "../components/PriceChangeTracker";
-import { PlayerComparison } from "../components/PlayerComparison";
 import { fetchMyTeam, fetchPlayers, updateCaptains, fetchBootstrapStatic, fetchFixtures } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -147,17 +145,7 @@ export default function TeamPage() {
           {/* Player Stats Dialog */}
           {selectedPlayer && (
             <>
-              <div className="grid gap-6 md:grid-cols-2">
-                <PriceChangeTracker player={selectedPlayer} />
-                <PlayerComparison 
-                  player={selectedPlayer} 
-                  comparedPlayer={players?.find(p => 
-                    p.element_type === selectedPlayer.element_type && 
-                    p.id !== selectedPlayer.id && 
-                    p.total_points > selectedPlayer.total_points
-                  )} 
-                />
-              </div>
+              
               <PlayerStats player={selectedPlayer} />
               <CaptainDialog
                 player={selectedPlayer}

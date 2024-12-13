@@ -7,12 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { TransferFilters, type FilterOptions } from "@/components/TransferFilters";
+import { PriceChangeTracker } from "../components/PriceChangeTracker";
+import { PlayerComparison } from "../components/PlayerComparison";
+import { type Player } from "../types/fpl";
 
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedOut, setSelectedOut] = useState<number | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     team: 'ALL',
     position: 'ALL'
@@ -143,6 +147,7 @@ export default function PlayersPage() {
             fixtures={fixtures}
             teams={bootstrapData?.teams}
             onPlayerClick={(player) => {
+              setSelectedPlayer(player);
               if (selectedOut) {
                 if (selectedOut === player.id) {
                   setSelectedOut(null);
@@ -157,6 +162,20 @@ export default function PlayersPage() {
               }
             }}
           />
+
+          {selectedPlayer && (
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
+              <PriceChangeTracker player={selectedPlayer} />
+              <PlayerComparison 
+                player={selectedPlayer} 
+                comparedPlayer={players?.find(p => 
+                  p.element_type === selectedPlayer.element_type && 
+                  p.id !== selectedPlayer.id && 
+                  p.total_points > selectedPlayer.total_points
+                )} 
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
