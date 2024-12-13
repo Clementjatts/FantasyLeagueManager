@@ -159,8 +159,7 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
       stats: [
         { label: "Goals", value: "goals_scored" },
         { label: "Assists", value: "assists" },
-        { label: "Expected Goals", value: "expected_goals" },
-        { label: "Big Chances Created", value: "big_chances_created", showTrend: true },
+        { label: "Expected Goals", value: "expected_goals" }
       ]
     },
     {
