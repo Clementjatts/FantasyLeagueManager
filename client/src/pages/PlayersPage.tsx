@@ -12,6 +12,7 @@ import { PlayerComparison } from "../components/PlayerComparison";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { BarChartHorizontal, Scale } from "lucide-react";
 import { type Player } from "../types/fpl";
+import { Badge } from "@/components/ui/badge";
 
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
@@ -194,10 +195,23 @@ export default function PlayersPage() {
                 <>
                   <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                     <Scale className="w-5 h-5 text-primary" />
-                    {selectedPlayer.web_name} vs {comparisonPlayer.web_name}
+                    Player Comparison
                   </DialogTitle>
-                  <DialogDescription className="text-muted-foreground">
-                    Compare performance statistics between players
+                  <DialogDescription className="space-y-4">
+                    <div className="flex items-center justify-center gap-6 pt-4">
+                      <div className="text-center space-y-2">
+                        <div className="font-semibold text-lg text-primary">{comparisonPlayer.web_name}</div>
+                        <Badge variant="secondary">First Selected</Badge>
+                      </div>
+                      <div className="text-2xl font-bold text-muted-foreground">VS</div>
+                      <div className="text-center space-y-2">
+                        <div className="font-semibold text-lg text-primary">{selectedPlayer.web_name}</div>
+                        <Badge variant="secondary">Second Selected</Badge>
+                      </div>
+                    </div>
+                    <p className="text-center text-sm text-muted-foreground pt-2">
+                      Compare detailed performance statistics between players
+                    </p>
                   </DialogDescription>
                   <PlayerComparison 
                     player={selectedPlayer}

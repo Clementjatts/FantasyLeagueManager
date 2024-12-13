@@ -160,7 +160,7 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
         { label: "Goals", value: "goals_scored" },
         { label: "Assists", value: "assists" },
         { label: "Expected Goals", value: "expected_goals" },
-        { label: "Big Chances Created", value: "big_chances_created" },
+        { label: "Big Chances Created", value: "big_chances_created", showTrend: true },
       ]
     },
     {
@@ -200,8 +200,8 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
         </div>
       </CardHeader>
       <CardContent className="relative">
-        <ScrollArea className="h-[600px] w-full rounded-md border p-4">
-          <div className="space-y-6 pr-4">
+        <ScrollArea className="h-[calc(100vh-300px)] w-full rounded-md border p-4">
+          <div className="space-y-6 pr-4 pb-6">
         {categories.map((category, index) => (
           <div key={category.title} className="space-y-4">
             {index > 0 && <Separator className="my-6" />}

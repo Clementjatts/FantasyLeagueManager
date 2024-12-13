@@ -17,6 +17,7 @@ interface PlayerTableProps {
   players: Player[];
   onPlayerClick: (player: Player) => void;
   selectedPlayerId?: number | null;
+  highlightedPlayer?: Player | null;
   fixtures?: any[];
   teams?: any[];
 }
@@ -174,7 +175,8 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId, fixtures
               key={player.id}
               className={cn(
                 "cursor-pointer transition-colors hover:bg-muted/50",
-                selectedPlayerId === player.id && "bg-primary/5 hover:bg-primary/10"
+                selectedPlayerId === player.id && "bg-primary/5 hover:bg-primary/10",
+                highlightedPlayer?.id === player.id && "bg-blue-500/5 hover:bg-blue-500/10 ring-2 ring-blue-500/20"
               )}
               onClick={() => onPlayerClick(player)}
             >
