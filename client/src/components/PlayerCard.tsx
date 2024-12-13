@@ -40,6 +40,7 @@ export function PlayerCard({
     <Card 
       className={cn(
         "relative overflow-hidden cursor-pointer group",
+        "w-[160px] h-[100px]",
         "p-3 hover:shadow-lg transition-all duration-200",
         "bg-gradient-to-br from-background via-background/95 to-muted/20",
         isCaptain && "ring-2 ring-primary ring-offset-1",
@@ -48,29 +49,32 @@ export function PlayerCard({
       )}
       onClick={onClick}
     >
-      <div className="space-y-1">
-        <div className="flex items-center justify-between">
-          <span className="font-medium text-base truncate pr-2">{player.web_name}</span>
-          <div className="flex items-center gap-1.5">
+      <div className="space-y-2 flex flex-col items-center">
+        <div className="flex items-center justify-center w-full relative">
+          <span className="font-medium text-base text-center">{player.web_name}</span>
+          <div className="absolute right-0 flex items-center gap-1.5">
             {isCaptain && (
-              <Badge variant="default" className="bg-primary/90 h-5 px-1.5">C</Badge>
+              <Badge variant="default" className="bg-primary/90 h-5 w-5 p-0 flex items-center justify-center">C</Badge>
             )}
             {isViceCaptain && (
-              <Badge variant="outline" className="border-primary/50 text-primary h-5 px-1.5">VC</Badge>
+              <Badge variant="outline" className="border-primary/50 text-primary h-5 w-5 p-0 flex items-center justify-center">V</Badge>
             )}
           </div>
         </div>
         
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex flex-col items-center gap-1 text-sm">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">
               {positionMap[player.element_type]}
             </span>
             <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground opacity-60 group-hover:opacity-100 transition-opacity">
+            <span className="text-muted-foreground">
               {teamAbbr}
             </span>
           </div>
+          <Badge variant="secondary" className="mt-1">
+            £{((player.now_cost || 0) / 10).toFixed(1)}m
+          </Badge>
         </div>
       </div>
     </Card>
