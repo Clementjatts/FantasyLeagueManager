@@ -100,19 +100,6 @@ export default function PlayersPage() {
                   <path d="m21 21-4.3-4.3" />
                 </svg>
               </div>
-              <Button
-                variant={isComparisonMode ? "default" : "outline"}
-                size="sm"
-                className="gap-2"
-                onClick={() => {
-                  setIsComparisonMode(!isComparisonMode);
-                  setComparisonPlayer(null);
-                  setShowComparisonDialog(false);
-                }}
-              >
-                <Scale className="w-4 h-4" />
-                {isComparisonMode ? "Cancel Comparison" : "Compare Players"}
-              </Button>
               <TransferFilters
                 teams={players ? 
                   Array.from(new Set(players.map(p => p.team)))
@@ -149,6 +136,19 @@ export default function PlayersPage() {
                   : []}
                 onFilterChange={setFilters}
               />
+              <Button
+                variant={isComparisonMode ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+                onClick={() => {
+                  setIsComparisonMode(!isComparisonMode);
+                  setComparisonPlayer(null);
+                  setShowComparisonDialog(false);
+                }}
+              >
+                <Scale className="w-4 h-4" />
+                {isComparisonMode ? "Cancel Comparison" : "Compare Players"}
+              </Button>
             </div>
           </div>
 
