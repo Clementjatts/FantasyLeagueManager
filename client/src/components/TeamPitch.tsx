@@ -61,6 +61,8 @@ export function TeamPitch({
                         className="transition-transform hover:scale-105 text-center"
                         fixtures={fixtures}
                         teams={teams}
+                        isCaptain={player.id === captainId}
+                        isViceCaptain={player.id === viceCaptainId}
                       />
                     </div>
                   </div>
@@ -88,6 +90,8 @@ export function TeamPitch({
                   className="transition-transform hover:scale-105 opacity-80 hover:opacity-100 text-center"
                   fixtures={fixtures}
                   teams={teams}
+                  isCaptain={player.id === captainId}
+                  isViceCaptain={player.id === viceCaptainId}
                 />
               </div>
             </div>
