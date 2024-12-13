@@ -116,6 +116,9 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
             </TableHead>
             {/* Show clean sheets for DEF/GK */}
             <TableHead className="text-right">CS</TableHead>
+            <TableHead className="text-right">
+              <SortableHeader sortKey="selected_by_percent">Selected %</SortableHeader>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -155,6 +158,9 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
               <TableCell className="text-right">
                 {(player.element_type === 1 || player.element_type === 2) ? 
                   player.clean_sheets : '-'}
+              </TableCell>
+              <TableCell className="text-right">
+                {parseFloat(player.selected_by_percent).toFixed(1)}%
               </TableCell>
             </TableRow>
           ))}

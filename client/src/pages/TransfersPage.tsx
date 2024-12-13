@@ -12,13 +12,7 @@ export default function TransfersPage() {
   const [search, setSearch] = useState("");
   const [selectedOut, setSelectedOut] = useState<number | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
-    position: 'ALL',
-    team: 'ALL',
-    minPrice: 0,
-    maxPrice: 15,
-    minForm: 0,
-    sortBy: 'points',
-    sortOrder: 'desc',
+    team: 'ALL'
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -80,39 +74,8 @@ export default function TransfersPage() {
     return players
       .filter(player => {
         const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase());
-        const matchesPosition = filters.position === 'ALL' || player.element_type.toString() === filters.position;
         const matchesTeam = filters.team === 'ALL' || player.team.toString() === filters.team;
-        const matchesPrice = player.now_cost / 10 >= filters.minPrice && player.now_cost / 10 <= filters.maxPrice;
-        const matchesForm = parseFloat(player.form) >= filters.minForm;
-        
-        return matchesSearch && matchesPosition && matchesTeam && matchesPrice && matchesForm;
-      })
-      .sort((a, b) => {
-        let valueA, valueB;
-        
-        switch (filters.sortBy) {
-          case 'price':
-            valueA = a.now_cost;
-            valueB = b.now_cost;
-            break;
-          case 'form':
-            valueA = parseFloat(a.form);
-            valueB = parseFloat(b.form);
-            break;
-          case 'points':
-            valueA = a.total_points;
-            valueB = b.total_points;
-            break;
-          case 'selected':
-            valueA = parseFloat(a.selected_by_percent);
-            valueB = parseFloat(b.selected_by_percent);
-            break;
-          default:
-            valueA = a.total_points;
-            valueB = b.total_points;
-        }
-        
-        return filters.sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+        return matchesSearch && matchesTeam;
       });
   }, [players, search, filters]);
 
