@@ -135,13 +135,8 @@ export function PlayerTable({ players, onPlayerClick, selectedPlayerId }: Player
               onClick={() => onPlayerClick(player)}
             >
               <TableCell className="text-center">
-                <div className="flex items-center gap-2">
-                  <div>
-                    <div>{player.web_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      Team {player.team}
-                    </div>
-                  </div>
+                <div className="flex items-center">
+                  {player.web_name}
                 </div>
               </TableCell>
               <TableCell className="text-center">
