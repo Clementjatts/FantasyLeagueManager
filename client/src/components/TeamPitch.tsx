@@ -89,11 +89,8 @@ export function TeamPitch({
 
         {/* Substitutes Section */}
         <div className="grid grid-cols-4 gap-4">
-          {substitutes.map((player, index) => (
+          {substitutes.map((player) => (
             <div key={player.id} className="relative">
-              <div className="absolute -top-2 -left-2 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-base font-bold shadow-lg border-2 border-background z-10">
-                {index + 1}
-              </div>
               {player.id === captainId && (
                 <div className="absolute -top-3 -right-3 w-8 h-8 bg-yellow-500 text-background rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-background z-10">
                   C
