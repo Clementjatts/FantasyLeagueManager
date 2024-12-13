@@ -92,22 +92,8 @@ export default function TransfersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center">
         <h1 className="text-3xl font-bold">Transfers</h1>
-        <div className="flex gap-6">
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Team Value</p>
-            <p className="text-lg font-semibold">£{teamValue.toFixed(1)}m</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Money in Bank</p>
-            <p className="text-lg font-semibold">£{bankValue.toFixed(1)}m</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Free Transfers</p>
-            <p className="text-lg font-semibold">{freeTransfers}</p>
-          </div>
-        </div>
       </div>
 
       <div className="space-y-6">
