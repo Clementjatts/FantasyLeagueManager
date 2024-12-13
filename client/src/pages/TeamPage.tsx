@@ -110,14 +110,8 @@ export default function TeamPage() {
         substitutes={substitutes}
         captainId={captainId}
         viceCaptainId={viceCaptainId}
-        onPlayerClick={(player) => {
-          setSelectedPlayer(player);
-          setLocation(`/transfers?playerId=${player.id}`);
-        }}
-        onSubstituteClick={(player) => {
-          setSelectedPlayer(player);
-          setLocation(`/transfers?playerId=${player.id}`);
-        }}
+        onPlayerClick={setSelectedPlayer}
+        onSubstituteClick={setSelectedPlayer}
         fixtures={fixtures}
         teams={bootstrapData?.teams}
       />
