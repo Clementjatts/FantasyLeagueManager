@@ -51,6 +51,7 @@ export function PlayerCard({
     >
       <div className="space-y-2 flex flex-col items-center">
         <div className="flex items-center justify-center gap-1.5">
+          <span className="font-medium text-base">{player.web_name}</span>
           {isCaptain && (
             <Badge variant="default" className="bg-primary/90 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[12px] font-bold">
               C
@@ -61,7 +62,6 @@ export function PlayerCard({
               V
             </Badge>
           )}
-          <span className="font-medium text-base">{player.web_name}</span>
         </div>
         
         <div className="flex flex-col items-center gap-1 text-sm">
