@@ -79,7 +79,7 @@ export default function PlayersPage() {
             <div className="flex-1 flex items-center gap-4 max-w-3xl">
               <div className="relative flex-1">
                 <Input
-                  placeholder="Search players by name..."
+                  placeholder="Search players"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 h-12 bg-background/50 backdrop-blur-sm border-muted 
