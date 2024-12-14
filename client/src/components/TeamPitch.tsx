@@ -12,6 +12,7 @@ interface TeamPitchProps {
   onSubstituteClick?: (player: Player) => void;
   fixtures?: any[];
   teams?: any[];
+  showOptimalReasons?: boolean;
 }
 
 export function TeamPitch({ 
@@ -55,15 +56,22 @@ export function TeamPitch({
                 .map((player) => (
                   <div key={player.id} className="w-full max-w-[200px] flex flex-col items-center">
                     <div className="relative w-full flex justify-center pt-4">
-                      <PlayerCard
-                        player={player}
-                        onClick={() => onPlayerClick?.(player)}
-                        className="transition-transform hover:scale-105 text-center"
-                        fixtures={fixtures}
-                        teams={teams}
-                        isCaptain={player.id === captainId}
-                        isViceCaptain={player.id === viceCaptainId}
-                      />
+                      <div className="relative">
+                        <PlayerCard
+                          player={player}
+                          onClick={() => onPlayerClick?.(player)}
+                          className="transition-transform hover:scale-105 text-center"
+                          fixtures={fixtures}
+                          teams={teams}
+                          isCaptain={player.id === captainId}
+                          isViceCaptain={player.id === viceCaptainId}
+                        />
+                        {showOptimalReasons && player.optimal_reason && (
+                          <div className="absolute -bottom-6 left-0 right-0 text-xs text-center text-primary bg-background/90 p-1 rounded-md shadow-sm">
+                            {player.optimal_reason}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
