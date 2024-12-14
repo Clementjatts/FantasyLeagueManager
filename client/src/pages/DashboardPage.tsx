@@ -7,7 +7,7 @@ import { PerformanceTimeline } from "../components/PerformanceTimeline";
 import { DeadlineCountdown } from "../components/DeadlineCountdown";
 import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
-import { TeamQuickView } from "../components/TeamQuickView";
+import { TeamPitch } from "../components/TeamPitch";
 import { ChipsStatus } from "../components/ChipsStatus";
 import { fetchMyTeam, getNextGameweekDeadline } from "../lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -212,8 +212,13 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Live Result</CardTitle>
           </CardHeader>
-          <CardContent>
-            <TeamQuickView picks={team.picks} />
+          <CardContent className="p-0">
+            <TeamPitch 
+              players={team.picks.filter((p: any) => p.position <= 11)}
+              substitutes={team.picks.filter((p: any) => p.position > 11)}
+              captainId={team.picks.find((p: any) => p.is_captain)?.element}
+              viceCaptainId={team.picks.find((p: any) => p.is_vice_captain)?.element}
+            />
           </CardContent>
         </Card>
       </div>
