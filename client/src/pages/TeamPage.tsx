@@ -30,17 +30,37 @@ interface OptimalTeam {
 }
 
 function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[]): OptimalTeam {
-  // Calculate player scores based on form, fixtures, and expected points
+  // Calculate player scores based on multiple factors for better points prediction
   const playerScores = allPlayers.map(player => {
-    const form = parseFloat(player.form || '0');
+    // Recent form (weighted more heavily)
+    const form = parseFloat(player.form || '0') * 1.5;
+    
+    // Points per game (consistent performance indicator)
+    const ppg = parseFloat(player.points_per_game || '0');
+    
+    // Fixture difficulty for upcoming games
     const fixtures_score = calculateFixtureScore(player.team, fixtures);
-    const expected_points = form * fixtures_score;
+    
+    // Minutes played (reliability indicator)
+    const minutes_factor = Math.min(player.minutes / 900, 1); // Max out at 900 minutes
+    
+    // Bonus points (indicates involvement in play)
+    const bonus_factor = (player.bonus / Math.max(player.minutes / 90, 1)) * 2;
+    
+    // Calculate expected points using weighted components
+    const expected_points = (
+      (form * 0.35) +               // 35% weight on recent form
+      (ppg * 0.25) +               // 25% weight on season performance
+      (fixtures_score * 0.20) +     // 20% weight on upcoming fixtures
+      (minutes_factor * 0.10) +     // 10% weight on playing time
+      (bonus_factor * 0.10)         // 10% weight on bonus point potential
+    ) * 6; // Scale to realistic FPL points
     
     return {
       ...player,
       score: expected_points,
       is_optimal: true,
-      optimal_reason: `Expected points: ${expected_points.toFixed(1)} (Form: ${form}, Fixtures: ${fixtures_score.toFixed(1)})`
+      optimal_reason: `Expected: ${expected_points.toFixed(1)} (Form: ${form.toFixed(1)}, Fixtures: ${fixtures_score.toFixed(1)})`
     };
   });
 
@@ -111,10 +131,21 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
   const nextGameweekFixtures = fixtures.slice(0, 5); // Look at next 5 fixtures
   const teamFixtures = nextGameweekFixtures.filter(f => f.team_h === teamId || f.team_a === teamId);
   
-  return teamFixtures.reduce((score, fixture) => {
+  if (teamFixtures.length === 0) return 1; // Default score if no fixtures found
+  
+  return teamFixtures.reduce((score, fixture, index) => {
     const isHome = fixture.team_h === teamId;
     const difficulty = isHome ? fixture.team_h_difficulty : fixture.team_a_difficulty;
-    return score + (6 - difficulty) / 5; // Convert difficulty to score (5=easy, 1=hard)
+    
+    // Add home advantage bonus
+    const homeBonus = isHome ? 0.2 : 0;
+    
+    // Weight earlier fixtures more heavily
+    const gameweekWeight = (5 - index) / 5;
+    
+    // Convert difficulty to score (5=easy, 1=hard) and apply weights
+    const baseScore = (6 - difficulty) / 5;
+    return score + (baseScore + homeBonus) * gameweekWeight;
   }, 0) / teamFixtures.length;
 }
 import { Users, AlertCircle } from "lucide-react";
