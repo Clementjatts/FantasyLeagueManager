@@ -120,118 +120,124 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="group hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                <CardTitle className="text-lg">Overall Performance</CardTitle>
-              </div>
-              <div className="flex items-center gap-1.5 text-sm">
-                <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                <span className="text-green-500 font-medium">
-                  +{(gameweekData.lastRank - gameweekData.rank).toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground">Total Points</div>
-                <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                  {gameweekData.totalPoints}
+      <div className="space-y-6">
+        {/* Top Row: Overall Performance and Gameweek Points */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="group hover:shadow-lg transition-all duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-lg">Overall Performance</CardTitle>
+                </div>
+                <div className="flex items-center gap-1.5 text-sm">
+                  <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                  <span className="text-green-500 font-medium">
+                    +{(gameweekData.lastRank - gameweekData.rank).toLocaleString()}
+                  </span>
                 </div>
               </div>
-              <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground">Overall Rank</div>
-                <div className="text-2xl font-bold tabular-nums">
-                  {gameweekData.rank.toLocaleString()}
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">Total Points</div>
+                  <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                    {gameweekData.totalPoints}
+                  </div>
+                </div>
+                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">Overall Rank</div>
+                  <div className="text-2xl font-bold tabular-nums">
+                    {gameweekData.rank.toLocaleString()}
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="group hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                <CardTitle className="text-lg">Gameweek Points</CardTitle>
+          <Card className="group hover:shadow-lg transition-all duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-lg">Gameweek Points</CardTitle>
+                </div>
+                <Badge variant="secondary" className="bg-primary/10">
+                  Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
+                </Badge>
               </div>
-              <Badge variant="secondary" className="bg-primary/10">
-                Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground">Gameweek Points</div>
-                <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                  {gameweekData.points}
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">Gameweek Points</div>
+                  <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                    {gameweekData.points}
+                  </div>
+                </div>
+                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">Gameweek Rank</div>
+                  <div className="text-2xl font-bold tabular-nums">
+                    {(team.stats?.event_rank || team.stats?.rank_sort || 0).toLocaleString()}
+                  </div>
                 </div>
               </div>
-              <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground">Gameweek Rank</div>
-                <div className="text-2xl font-bold tabular-nums">
-                  {(team.stats?.event_rank || team.stats?.rank_sort || 0).toLocaleString()}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card className="group hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Coins className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                <CardTitle className="text-lg">Team Value</CardTitle>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground">Squad Value</div>
-                <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                  £{gameweekData.teamValue}m
+        {/* Bottom Row: Team Value and Transfers */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="group hover:shadow-lg transition-all duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-lg">Team Value</CardTitle>
                 </div>
               </div>
-              <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                <div className="text-sm text-muted-foreground">In Bank</div>
-                <div className="text-2xl font-bold tabular-nums">
-                  £{gameweekData.bankValue}m
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">Squad Value</div>
+                  <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                    £{gameweekData.teamValue}m
+                  </div>
+                </div>
+                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">In Bank</div>
+                  <div className="text-2xl font-bold tabular-nums">
+                    £{gameweekData.bankValue}m
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        <Card className="group hover:shadow-lg transition-all duration-300">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                <CardTitle className="text-lg">Transfers</CardTitle>
+          <Card className="group hover:shadow-lg transition-all duration-300">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-lg">Transfers</CardTitle>
+                </div>
+                <Badge variant="secondary" className="bg-primary/10">
+                  Cost: {team?.transfers?.made || 0} pts
+                </Badge>
               </div>
-              <Badge variant="secondary" className="bg-primary/10">
-                Cost: {team?.transfers?.made || 0} pts
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="p-2 rounded-lg bg-primary/5">
-              <div className="text-sm text-muted-foreground">Free Transfers</div>
-              <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                {team?.transfers?.limit || 0}
+            </CardHeader>
+            <CardContent>
+              <div className="p-2 rounded-lg bg-primary/5">
+                <div className="text-sm text-muted-foreground">Free Transfers</div>
+                <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                  {team?.transfers?.limit || 0}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="space-y-6">
