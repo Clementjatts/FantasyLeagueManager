@@ -23,7 +23,8 @@ export function TeamPitch({
   onPlayerClick,
   onSubstituteClick,
   fixtures = [],
-  teams = []
+  teams = [],
+  showOptimalReasons = false
 }: TeamPitchProps) {
   // Ensure both arrays are defined before combining
   const playersList = players || [];

@@ -28,6 +28,8 @@ export interface Player {
   creativity: string;
   threat: string;
   ict_index: string;
+  is_optimal?: boolean;
+  optimal_reason?: string;
 }
 
 export interface Team {
