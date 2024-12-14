@@ -43,64 +43,40 @@ export function PlayerCard({
   return (
     <Card 
       className={cn(
-        "relative overflow-hidden cursor-pointer group",
-        "w-[160px] h-[110px]",
-        "p-3 hover:shadow-lg transition-all duration-200",
-        "bg-gradient-to-br from-background/95 via-background/98 to-muted/20",
-        "hover:bg-gradient-to-br hover:from-background/90 hover:via-background/95 hover:to-primary/5",
-        "border border-border/50 hover:border-primary/20",
-        isCaptain && "ring-2 ring-primary ring-offset-1",
-        isViceCaptain && "ring-2 ring-primary/50 ring-offset-1",
+        "relative cursor-pointer",
+        "w-[160px] h-[90px]",
+        "p-2",
+        "hover:shadow-md transition-all duration-200",
+        isCaptain && "ring-1 ring-primary",
+        isViceCaptain && "ring-1 ring-primary/50",
         className
       )}
       onClick={onClick}
     >
-      {/* Top Section */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20" />
-      
-      <div className="space-y-2">
-        {/* Player Name and Captain Badge */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <span className="font-medium text-base bg-gradient-to-br from-foreground to-foreground/80 bg-clip-text">
+      <div className="h-full flex flex-col justify-between">
+        {/* Player Name Row */}
+        <div className="flex items-center gap-1 mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-sm truncate">
               {player.web_name}
-            </span>
-            {isCaptain && (
-              <Badge variant="default" className="bg-primary/90 h-5 w-5 p-0 flex items-center justify-center rounded-full text-[11px] font-bold">
-                C
-              </Badge>
-            )}
-            {isViceCaptain && (
-              <Badge variant="outline" className="border-primary/50 text-primary h-5 w-5 p-0 flex items-center justify-center rounded-full text-[11px] font-bold">
-                V
-              </Badge>
-            )}
+              {isCaptain && " (C)"}
+              {isViceCaptain && " (V)"}
+            </div>
           </div>
-          <Badge variant={formValue >= 6 ? "default" : "secondary"} className={cn("text-[10px]", formColor)}>
-            {player.form || "0.0"}
-          </Badge>
-        </div>
-        
-        {/* Position and Team */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs">
-            <Badge variant="secondary" className="h-5 px-1.5">
-              {positionMap[player.element_type]}
-            </Badge>
-            <span className="text-muted-foreground font-medium">
-              {teamAbbr}
-            </span>
-          </div>
-          <Badge 
-            variant="outline" 
-            className="text-[11px] bg-primary/5 border-primary/20"
-          >
-            {player.total_points || 0}p
-          </Badge>
         </div>
 
-        {/* Bottom Status Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        {/* Info Row */}
+        <div className="grid grid-cols-3 gap-2 text-xs">
+          <Badge variant="secondary" className="px-1 h-6 flex items-center justify-center">
+            {positionMap[player.element_type]}
+          </Badge>
+          <span className="flex items-center justify-center text-muted-foreground">
+            {teamAbbr}
+          </span>
+          <Badge variant="outline" className="px-1 h-6 flex items-center justify-center">
+            {player.event_points || 0}p
+          </Badge>
+        </div>
       </div>
     </Card>
   );
