@@ -20,6 +20,103 @@ import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { type Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
+interface OptimalTeam {
+  firstTeam: Player[];
+  substitutes: Player[];
+  captainId: number;
+  viceCaptainId: number;
+  formation: string;
+  totalPoints: number;
+}
+
+function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[]): OptimalTeam {
+  // Calculate player scores based on form, fixtures, and expected points
+  const playerScores = allPlayers.map(player => {
+    const form = parseFloat(player.form || '0');
+    const fixtures_score = calculateFixtureScore(player.team, fixtures);
+    const expected_points = form * fixtures_score;
+    
+    return {
+      ...player,
+      score: expected_points,
+      is_optimal: true,
+      optimal_reason: `Expected points: ${expected_points.toFixed(1)} (Form: ${form}, Fixtures: ${fixtures_score.toFixed(1)})`
+    };
+  });
+
+  // Sort players by score within their positions
+  const goalkeepers = playerScores.filter(p => p.element_type === 1).sort((a, b) => b.score - a.score);
+  const defenders = playerScores.filter(p => p.element_type === 2).sort((a, b) => b.score - a.score);
+  const midfielders = playerScores.filter(p => p.element_type === 3).sort((a, b) => b.score - a.score);
+  const forwards = playerScores.filter(p => p.element_type === 4).sort((a, b) => b.score - a.score);
+
+  // Find best formation based on available players
+  const formations = [
+    { def: 4, mid: 3, fwd: 3 }, // 4-3-3
+    { def: 3, mid: 5, fwd: 2 }, // 3-5-2
+    { def: 4, mid: 4, fwd: 2 }, // 4-4-2
+    { def: 5, mid: 3, fwd: 2 }, // 5-3-2
+    { def: 4, mid: 5, fwd: 1 }  // 4-5-1
+  ];
+
+  let bestFormation = formations[0];
+  let highestScore = 0;
+
+  formations.forEach(formation => {
+    const score = (
+      defenders.slice(0, formation.def).reduce((sum, p) => sum + p.score, 0) +
+      midfielders.slice(0, formation.mid).reduce((sum, p) => sum + p.score, 0) +
+      forwards.slice(0, formation.fwd).reduce((sum, p) => sum + p.score, 0) +
+      goalkeepers[0].score
+    );
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestFormation = formation;
+    }
+  });
+
+  // Select players based on best formation
+  const firstTeam = [
+    goalkeepers[0],
+    ...defenders.slice(0, bestFormation.def),
+    ...midfielders.slice(0, bestFormation.mid),
+    ...forwards.slice(0, bestFormation.fwd)
+  ].map((p, i) => ({ ...p, position: i + 1 }));
+
+  // Select substitutes
+  const substitutes = [
+    goalkeepers[1],
+    defenders[bestFormation.def],
+    midfielders[bestFormation.mid],
+    forwards[bestFormation.fwd]
+  ].filter(Boolean).map((p, i) => ({ ...p, position: i + 12 }));
+
+  // Select captain and vice-captain based on highest scores
+  const sortedByScore = [...firstTeam].sort((a, b) => b.score - a.score);
+  const captainId = sortedByScore[0].id;
+  const viceCaptainId = sortedByScore[1].id;
+
+  return {
+    firstTeam,
+    substitutes,
+    captainId,
+    viceCaptainId,
+    formation: `${bestFormation.def}-${bestFormation.mid}-${bestFormation.fwd}`,
+    totalPoints: highestScore
+  };
+}
+
+function calculateFixtureScore(teamId: number, fixtures: any[]): number {
+  const nextGameweekFixtures = fixtures.slice(0, 5); // Look at next 5 fixtures
+  const teamFixtures = nextGameweekFixtures.filter(f => f.team_h === teamId || f.team_a === teamId);
+  
+  return teamFixtures.reduce((score, fixture) => {
+    const isHome = fixture.team_h === teamId;
+    const difficulty = isHome ? fixture.team_h_difficulty : fixture.team_a_difficulty;
+    return score + (6 - difficulty) / 5; // Convert difficulty to score (5=easy, 1=hard)
+  }, 0) / teamFixtures.length;
+}
 import { Users, AlertCircle } from "lucide-react";
 
 export default function TeamPage() {
@@ -136,31 +233,30 @@ export default function TeamPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="p-4 bg-accent/50 rounded-lg">
-              <h3 className="font-semibold mb-2">Recommended Formation: 4-3-3</h3>
-              <p className="text-sm text-muted-foreground">
-                This formation balances attacking potential with defensive stability,
-                considering upcoming fixtures and team form.
-              </p>
-            </div>
+            {players && fixtures && bootstrapData?.teams && (() => {
+              const optimalTeam = calculateOptimalTeam(players, fixtures, bootstrapData.teams);
+              return (
+                <div className="p-4 bg-accent/50 rounded-lg">
+                  <h3 className="font-semibold mb-2">Recommended Formation: {optimalTeam.formation}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    This formation maximizes expected points based on player form and fixture difficulty.
+                    Total expected points: {optimalTeam.totalPoints.toFixed(1)}
+                  </p>
+                </div>
+              );
+            })()}
             <div className="mt-4">
-              <TeamPitch 
-                players={startingXI.map(player => ({
-                  ...player,
-                  is_optimal: true,
-                  optimal_reason: `High expected points (${Math.round(Math.random() * 5 + 4)}) based on form and fixtures`
-                }))}
-                substitutes={substitutes.map(player => ({
-                  ...player,
-                  is_optimal: true,
-                  optimal_reason: `Strong bench option with favorable fixtures`
-                }))}
-                captainId={startingXI.find(p => p.form === Math.max(...startingXI.map(p => parseFloat(p.form || '0'))))?.id}
-                viceCaptainId={startingXI.find(p => p.form === Math.max(...startingXI.filter(p => p.id !== captainId).map(p => parseFloat(p.form || '0'))))?.id}
-                fixtures={fixtures}
-                teams={bootstrapData?.teams}
-                showOptimalReasons={true}
-              />
+              {players && fixtures && bootstrapData?.teams && (
+                <TeamPitch 
+                  players={calculateOptimalTeam(players, fixtures, bootstrapData.teams).firstTeam}
+                  substitutes={calculateOptimalTeam(players, fixtures, bootstrapData.teams).substitutes}
+                  captainId={calculateOptimalTeam(players, fixtures, bootstrapData.teams).captainId}
+                  viceCaptainId={calculateOptimalTeam(players, fixtures, bootstrapData.teams).viceCaptainId}
+                  fixtures={fixtures}
+                  teams={bootstrapData.teams}
+                  showOptimalReasons={true}
+                />
+              )}
             </div>
             <div className="mt-4 space-y-2">
               <h3 className="font-semibold">Selection Reasoning:</h3>
