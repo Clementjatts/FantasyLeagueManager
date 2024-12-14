@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Link, useLocation } from "wouter";
 import { TeamPitch } from "../components/TeamPitch";
 import { TransferSuggestions } from "../components/TransferSuggestions";
@@ -17,6 +24,7 @@ import { Users, AlertCircle } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [showOptimalTeam, setShowOptimalTeam] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [teamId, setTeamId] = useState(() => {
@@ -48,7 +56,14 @@ export default function TeamPage() {
   if (!teamId) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold">My Team</h1>
+        <h1 className="text-3xl font-bold">Transfer Planning</h1>
+        <Button 
+          variant="outline" 
+          className="ml-4"
+          onClick={() => setShowOptimalTeam(true)}
+        >
+          View Optimal Team
+        </Button>
         <Card>
           <CardContent className="p-6">
             <div className="text-center space-y-2">
@@ -100,8 +115,38 @@ export default function TeamPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">My Team</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold">Transfer Planning</h1>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowOptimalTeam(true)}
+          >
+            View Optimal Team
+          </Button>
+        </div>
       </div>
+
+      {/* Optimal Team Dialog */}
+      <Dialog open={showOptimalTeam} onOpenChange={setShowOptimalTeam}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Optimal Team Suggestion</DialogTitle>
+            <DialogDescription>
+              Based on upcoming fixtures, form, and expected points
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="p-4 bg-accent/50 rounded-lg">
+              <h3 className="font-semibold mb-2">Recommended Formation: 4-3-3</h3>
+              <p className="text-sm text-muted-foreground">
+                This formation balances attacking potential with defensive stability,
+                considering upcoming fixtures and team form.
+              </p>
+            </div>
+            {/* Add TeamPitch component here with optimal players */}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Team View - Full Width */}
       <TeamPitch 

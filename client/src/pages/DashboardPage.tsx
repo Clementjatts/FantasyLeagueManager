@@ -152,13 +152,13 @@ export default function DashboardPage() {
               </div>
               <div>
                 <div className="text-3xl font-bold">
-                  {team?.stats?.event_rank?.toLocaleString() || '-'}
+                  {(team.stats?.event_rank || team.stats?.rank_sort || 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground">GW Rank</div>
               </div>
             </div>
             <div className="text-sm text-muted-foreground mt-2">
-              Average: {team?.stats?.event_average || Math.round(gameweekData.points * 0.85)}
+              Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
             </div>
           </CardContent>
         </Card>

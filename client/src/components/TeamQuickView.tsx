@@ -88,7 +88,7 @@ export function TeamQuickView({ picks }: TeamQuickViewProps) {
           </div>
           <Link href="/team">
             <Button variant="ghost" className="gap-2">
-              View Full Team
+              Manage Transfers
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
