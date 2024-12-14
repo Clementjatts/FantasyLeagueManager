@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Rocket, Calendar, Trophy, TrendingUp, Star, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Rocket, Calendar, Trophy, TrendingUp, Star, AlertTriangle, ArrowLeft } from "lucide-react";
 import { fetchMyTeam } from "../lib/api";
 
 interface ChipAnalysis {
