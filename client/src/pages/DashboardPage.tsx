@@ -207,9 +207,15 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <TeamQuickView picks={team.picks} />
-        <ChipsStatus chips={team.chips} />
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Live Result</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TeamQuickView picks={team.picks} />
+          </CardContent>
+        </Card>
       </div>
 
       <Card>

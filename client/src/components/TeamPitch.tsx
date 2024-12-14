@@ -30,12 +30,22 @@ export function TeamPitch({
   const playersList = players || [];
   const substitutesList = substitutes || [];
   
-  // Create position groups with both players and substitutes
+  // Get formation from players list (e.g., "4-4-2")
+  const getFormation = (players: Player[]) => {
+    const def = players.filter(p => p.element_type === 2).length;
+    const mid = players.filter(p => p.element_type === 3).length;
+    const fwd = players.filter(p => p.element_type === 4).length;
+    return `${def}-${mid}-${fwd}`;
+  };
+
+  const formation = getFormation(playersList);
+  
+  // Create position groups with formation-based ordering
   const positions = {
-    1: [...playersList, ...substitutesList].filter(p => p.element_type === 1),  // GK
-    2: [...playersList, ...substitutesList].filter(p => p.element_type === 2),  // DEF
-    3: [...playersList, ...substitutesList].filter(p => p.element_type === 3),  // MID
-    4: [...playersList, ...substitutesList].filter(p => p.element_type === 4),  // FWD
+    1: playersList.filter(p => p.element_type === 1),  // GK
+    2: playersList.filter(p => p.element_type === 2),  // DEF
+    3: playersList.filter(p => p.element_type === 3),  // MID
+    4: playersList.filter(p => p.element_type === 4),  // FWD
   };
 
   return (

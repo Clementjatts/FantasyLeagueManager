@@ -64,8 +64,8 @@ export function PlayerCard({
           )}
         </div>
         
-        <div className="flex flex-col items-center gap-1 text-sm">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
+          <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">
               {positionMap[player.element_type]}
             </span>
@@ -75,7 +75,7 @@ export function PlayerCard({
             </span>
           </div>
           <Badge variant="secondary" className="mt-1">
-            £{((player.now_cost || 0) / 10).toFixed(1)}m
+            {player.event_points || 0} pts
           </Badge>
         </div>
       </div>
