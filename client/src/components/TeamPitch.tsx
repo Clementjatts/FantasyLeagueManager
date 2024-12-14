@@ -65,13 +65,13 @@ export function TeamPitch({
               {playersInPosition
                 .filter(p => players.includes(p))
                 .map((player) => (
-                  <div key={player.id} className="w-full max-w-[200px] flex flex-col items-center">
-                    <div className="relative w-full flex justify-center pt-4">
-                      <div className="relative">
+                  <div key={player.id} className="w-full flex flex-col items-center">
+                    <div className="relative w-full max-w-[160px] mx-auto">
+                      <div className="relative pt-4">
                         <PlayerCard
                           player={player}
                           onClick={() => onPlayerClick?.(player)}
-                          className="transition-transform hover:scale-105 text-center"
+                          className="transition-transform hover:scale-105 text-center w-full"
                           fixtures={fixtures}
                           teams={teams}
                           isCaptain={player.id === captainId}

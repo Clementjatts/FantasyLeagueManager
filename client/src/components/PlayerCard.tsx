@@ -44,7 +44,7 @@ export function PlayerCard({
     <Card 
       className={cn(
         "relative cursor-pointer",
-        "w-[160px] h-[90px]",
+        "w-full h-[90px] max-w-[160px]",
         "p-2",
         "hover:shadow-md transition-all duration-200",
         isCaptain && "ring-1 ring-primary",
