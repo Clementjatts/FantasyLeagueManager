@@ -204,15 +204,6 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {nextDeadline && <DeadlineCountdown deadline={nextDeadline} />}
-        <QuickActions
-          needsCaptain={needsCaptain}
-          hasTransfers={hasTransfers}
-          transfersAvailable={team?.transfers?.limit || 0}
-        />
-      </div>
-
       <div className="space-y-6">
         <Card>
           <CardHeader>
@@ -247,6 +238,15 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          {nextDeadline && <DeadlineCountdown deadline={nextDeadline} />}
+          <QuickActions
+            needsCaptain={needsCaptain}
+            hasTransfers={hasTransfers}
+            transfersAvailable={team?.transfers?.limit || 0}
+          />
+        </div>
       </div>
 
       <Card>
