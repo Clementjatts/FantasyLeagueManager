@@ -246,12 +246,11 @@ export default function TeamPage() {
         <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold">Transfer Planning</h1>
-          <Button 
-            variant="outline"
-            onClick={() => window.location.href = '/optimal-team'}
-          >
-            View Optimal Team
-          </Button>
+          <Link href="/optimal-team">
+            <Button variant="outline">
+              View Optimal Team
+            </Button>
+          </Link>
         </div>
       </div>
 
