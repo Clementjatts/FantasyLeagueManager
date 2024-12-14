@@ -247,8 +247,8 @@ export default function TeamPage() {
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold">Transfer Planning</h1>
           <Button 
-            variant="outline" 
-            onClick={() => setShowOptimalTeam(true)}
+            variant="outline"
+            onClick={() => window.location.href = '/optimal-team'}
           >
             View Optimal Team
           </Button>
@@ -256,52 +256,7 @@ export default function TeamPage() {
       </div>
 
       {/* Optimal Team Dialog */}
-      <Dialog open={showOptimalTeam} onOpenChange={setShowOptimalTeam}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Optimal Team Suggestion</DialogTitle>
-            <DialogDescription>
-              Based on upcoming fixtures, form, and expected points
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {players && fixtures && bootstrapData?.teams && (() => {
-              const optimalTeam = calculateOptimalTeam(players, fixtures, bootstrapData.teams);
-              return (
-                <div className="p-4 bg-accent/50 rounded-lg">
-                  <h3 className="font-semibold mb-2">Recommended Formation: {optimalTeam.formation}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    This formation maximizes expected points based on player form and fixture difficulty.
-                    Total expected points: {optimalTeam.totalPoints.toFixed(1)}
-                  </p>
-                </div>
-              );
-            })()}
-            <div className="mt-4">
-              {players && fixtures && bootstrapData?.teams && (
-                <TeamPitch 
-                  players={calculateOptimalTeam(players, fixtures, bootstrapData.teams).firstTeam}
-                  substitutes={calculateOptimalTeam(players, fixtures, bootstrapData.teams).substitutes}
-                  captainId={calculateOptimalTeam(players, fixtures, bootstrapData.teams).captainId}
-                  viceCaptainId={calculateOptimalTeam(players, fixtures, bootstrapData.teams).viceCaptainId}
-                  fixtures={fixtures}
-                  teams={bootstrapData.teams}
-                  showOptimalReasons={true}
-                />
-              )}
-            </div>
-            <div className="mt-4 space-y-2">
-              <h3 className="font-semibold">Selection Reasoning:</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Formation optimized for upcoming fixtures and team form</li>
-                <li>Captain selection based on form and fixture difficulty</li>
-                <li>Bench selected for rotation potential</li>
-                <li>Value and expected points considered for each position</li>
-              </ul>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      
 
       {/* Team View - Full Width */}
       <TeamPitch 
