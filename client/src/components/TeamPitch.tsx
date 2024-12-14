@@ -49,7 +49,7 @@ export function TeamPitch({
   };
 
   return (
-    <div className="relative max-w-5xl mx-auto bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-4 md:p-8 shadow-xl">
+    <div className="relative w-full bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-4 md:p-8 shadow-xl">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik01MCAwdjEwME0wIDUwaDEwMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIGZpbGw9Im5vbmUiLz48L3N2Zz4=')] opacity-20"/>
       <div className="space-y-8">
         {/* Starting XI */}
@@ -57,10 +57,10 @@ export function TeamPitch({
           {Object.entries(positions).map(([type, playersInPosition]) => (
             <div 
               key={type}
-              className="grid gap-4 justify-items-center mx-auto w-full"
+              className="grid gap-x-4 md:gap-x-8 lg:gap-x-12 justify-items-center mx-auto w-full"
               style={{
-                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, 120px)`,
-                justifyContent: 'center'
+                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, minmax(120px, 1fr))`,
+                justifyContent: 'space-between'
               }}
             >
               {playersInPosition
@@ -100,10 +100,10 @@ export function TeamPitch({
         </div>
 
         {/* Substitutes Section */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 w-full">
           {substitutes.map((player) => (
             <div key={player.id} className="flex flex-col items-center">
-              <div className="relative w-full flex justify-center pt-4">
+              <div className="relative w-[120px] pt-4">
                 <PlayerCard
                   player={player}
                   onClick={() => onSubstituteClick?.(player)}
