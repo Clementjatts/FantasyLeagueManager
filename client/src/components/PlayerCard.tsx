@@ -33,8 +33,8 @@ export function PlayerCard({
   teams = []
 }: PlayerCardProps) {
   // Get team abbreviation from teams data
-  const teamInfo = teams?.find(t => t.id === player.team);
-  const teamAbbr = teamInfo?.short_name || player.team?.toString();
+  const teamInfo = teams?.find(t => t.id === player.team) || { short_name: '' };
+  const teamAbbr = teamInfo.short_name;
 
   // Calculate form status
   const formValue = parseFloat(player.form || "0");

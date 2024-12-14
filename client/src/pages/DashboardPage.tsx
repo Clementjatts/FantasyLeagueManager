@@ -10,7 +10,7 @@ import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
 import { TeamPitch } from "../components/TeamPitch";
 import { ChipsStatus } from "../components/ChipsStatus";
-import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline } from "../lib/api";
+import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline, fetchBootstrapStatic } from "../lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
@@ -29,6 +29,12 @@ export default function DashboardPage() {
     queryKey: ["/api/fpl/my-team", teamId],
     queryFn: () => teamId ? fetchMyTeam(teamId) : null,
     enabled: !!teamId
+  });
+
+  const { data: bootstrapData } = useQuery({
+    queryKey: ["/api/fpl/bootstrap-static"],
+    queryFn: fetchBootstrapStatic,
+    enabled: !!team
   });
 
   const { data: allPlayers } = useQuery({
@@ -254,6 +260,7 @@ export default function DashboardPage() {
                   }))}
                 captainId={team.picks.find((p: any) => p.is_captain)?.element}
                 viceCaptainId={team.picks.find((p: any) => p.is_vice_captain)?.element}
+                teams={bootstrapData?.teams || []}
               />
             ) : (
               <div className="flex items-center justify-center p-8">
