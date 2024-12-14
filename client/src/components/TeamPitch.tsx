@@ -57,17 +57,18 @@ export function TeamPitch({
           {Object.entries(positions).map(([type, playersInPosition]) => (
             <div 
               key={type}
-              className="grid gap-2 md:gap-4 justify-items-center mx-auto w-full"
+              className="grid gap-4 justify-items-center mx-auto w-full"
               style={{
-                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, minmax(120px, 140px))`
+                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, 120px)`,
+                justifyContent: 'center'
               }}
             >
               {playersInPosition
                 .filter(p => players.includes(p))
                 .map((player) => (
-                  <div key={player.id} className="w-full flex flex-col items-center">
-                    <div className="relative w-full max-w-[160px] mx-auto">
-                      <div className="relative pt-4">
+                  <div key={player.id} className="flex flex-col items-center">
+                    <div className="relative w-[120px]">
+                      <div className="relative pt-2">
                         <PlayerCard
                           player={player}
                           onClick={() => onPlayerClick?.(player)}
