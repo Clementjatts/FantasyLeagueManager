@@ -49,17 +49,17 @@ export function TeamPitch({
   };
 
   return (
-    <div className="relative bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-8 shadow-xl">
+    <div className="relative max-w-5xl mx-auto bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-4 md:p-8 shadow-xl">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik01MCAwdjEwME0wIDUwaDEwMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIGZpbGw9Im5vbmUiLz48L3N2Zz4=')] opacity-20"/>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Starting XI */}
-        <div className="relative grid gap-12">
+        <div className="relative grid gap-8">
           {Object.entries(positions).map(([type, playersInPosition]) => (
             <div 
               key={type}
-              className="grid gap-4 justify-items-center"
+              className="grid gap-2 md:gap-4 justify-items-center mx-auto w-full"
               style={{
-                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, minmax(0, 1fr))`
+                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, minmax(120px, 140px))`
               }}
             >
               {playersInPosition

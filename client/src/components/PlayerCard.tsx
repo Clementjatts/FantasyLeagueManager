@@ -44,7 +44,7 @@ export function PlayerCard({
     <Card 
       className={cn(
         "relative cursor-pointer",
-        "w-full h-[90px] max-w-[160px]",
+        "w-[120px] h-[80px]",
         "p-2",
         "hover:shadow-md transition-all duration-200",
         isCaptain && "ring-1 ring-primary",
@@ -55,9 +55,9 @@ export function PlayerCard({
     >
       <div className="h-full flex flex-col justify-between">
         {/* Player Name Row */}
-        <div className="flex items-center gap-1 mb-2">
+        <div className="flex items-center gap-1">
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-sm truncate">
+            <div className="font-medium text-xs leading-4 truncate">
               {player.web_name}
               {isCaptain && " (C)"}
               {isViceCaptain && " (V)"}
