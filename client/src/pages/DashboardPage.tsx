@@ -9,7 +9,7 @@ import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
 import { TeamPitch } from "../components/TeamPitch";
 import { ChipsStatus } from "../components/ChipsStatus";
-import { fetchMyTeam, getNextGameweekDeadline } from "../lib/api";
+import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline } from "../lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
@@ -28,6 +28,12 @@ export default function DashboardPage() {
     queryKey: ["/api/fpl/my-team", teamId],
     queryFn: () => teamId ? fetchMyTeam(teamId) : null,
     enabled: !!teamId
+  });
+
+  const { data: allPlayers } = useQuery({
+    queryKey: ["/api/fpl/players"],
+    queryFn: fetchPlayers,
+    enabled: !!team
   });
 
   if (!teamId) {
@@ -213,12 +219,32 @@ export default function DashboardPage() {
             <CardTitle>Live Result</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <TeamPitch 
-              players={team.picks.filter((p: any) => p.position <= 11)}
-              substitutes={team.picks.filter((p: any) => p.position > 11)}
-              captainId={team.picks.find((p: any) => p.is_captain)?.element}
-              viceCaptainId={team.picks.find((p: any) => p.is_vice_captain)?.element}
-            />
+            {allPlayers ? (
+              <TeamPitch 
+                players={team.picks
+                  .filter((p: any) => p.position <= 11)
+                  .map((pick: any) => ({
+                    ...allPlayers.find((p: any) => p.id === pick.element),
+                    is_captain: pick.is_captain,
+                    is_vice_captain: pick.is_vice_captain,
+                    multiplier: pick.multiplier
+                  }))}
+                substitutes={team.picks
+                  .filter((p: any) => p.position > 11)
+                  .map((pick: any) => ({
+                    ...allPlayers.find((p: any) => p.id === pick.element),
+                    is_captain: pick.is_captain,
+                    is_vice_captain: pick.is_vice_captain,
+                    multiplier: pick.multiplier
+                  }))}
+                captainId={team.picks.find((p: any) => p.is_captain)?.element}
+                viceCaptainId={team.picks.find((p: any) => p.is_vice_captain)?.element}
+              />
+            ) : (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"/>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
