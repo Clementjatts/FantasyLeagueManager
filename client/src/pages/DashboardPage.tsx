@@ -125,6 +125,12 @@ export default function DashboardPage() {
             <div className="space-y-6">
               <div>
                 <div className="text-4xl font-bold">
+                  {gameweekData.totalPoints}
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">Total Points</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold">
                   {gameweekData.rank.toLocaleString()}
                 </div>
                 <div className="text-sm text-muted-foreground mt-1">Overall Rank</div>
@@ -132,12 +138,6 @@ export default function DashboardPage() {
                   <TrendingUp className="w-4 h-4 text-green-500" />
                   <span>+{(gameweekData.lastRank - gameweekData.rank).toLocaleString()} places</span>
                 </div>
-              </div>
-              <div>
-                <div className="text-4xl font-bold">
-                  {gameweekData.totalPoints}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">Total Points</div>
               </div>
             </div>
           </CardContent>
@@ -154,13 +154,13 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-3xl font-bold">{gameweekData.points}</div>
-                <div className="text-sm text-muted-foreground">GW Points</div>
+                <div className="text-sm text-muted-foreground">Gameweek Points</div>
               </div>
               <div>
                 <div className="text-3xl font-bold">
                   {(team.stats?.event_rank || team.stats?.rank_sort || 0).toLocaleString()}
                 </div>
-                <div className="text-sm text-muted-foreground">GW Rank</div>
+                <div className="text-sm text-muted-foreground">Gameweek Rank</div>
               </div>
             </div>
             <div className="text-sm text-muted-foreground mt-2">
