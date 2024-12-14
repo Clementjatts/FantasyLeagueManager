@@ -18,44 +18,58 @@ interface ChipAnalysis {
   icon: typeof Rocket;
 }
 
-const chipAnalytics: ChipAnalysis[] = [
-  {
-    name: "Wildcard",
-    averagePoints: 82,
-    bestGameweek: 8,
-    recommendedGameweek: 16,
-    status: "available",
-    description: "Complete team overhaul - Ideal for upcoming fixture swings (GW16-20) with Arsenal, Liverpool, and Man City having favorable runs",
-    icon: Star
-  },
-  {
-    name: "Free Hit",
-    averagePoints: 76,
-    bestGameweek: 12,
-    recommendedGameweek: 29,
-    status: "available",
-    description: "Temporary team change - ideal for blank/double gameweeks",
-    icon: Rocket
-  },
-  {
-    name: "Triple Captain",
-    averagePoints: 45,
-    bestGameweek: 21,
-    recommendedGameweek: 25,
-    status: "available",
-    description: "3x points for your captain - use during double gameweeks for maximum impact",
-    icon: Trophy
-  },
-  {
-    name: "Bench Boost",
-    averagePoints: 38,
-    bestGameweek: 26,
-    recommendedGameweek: 34,
-    status: "available",
-    description: "All bench players score points - best used during double gameweeks",
-    icon: TrendingUp
-  }
-];
+function getChipAnalytics(teamChips: any[]): ChipAnalysis[] {
+  const baseChips = [
+    {
+      name: "wildcard",
+      label: "Wildcard",
+      averagePoints: 82,
+      bestGameweek: 8,
+      recommendedGameweek: 16,
+      description: "Complete team overhaul - Ideal for upcoming fixture swings (GW16-20) with Arsenal, Liverpool, and Man City having favorable runs",
+      icon: Star
+    },
+    {
+      name: "freehit",
+      label: "Free Hit",
+      averagePoints: 76,
+      bestGameweek: 12,
+      recommendedGameweek: 29,
+      description: "Temporary team change - ideal for blank/double gameweeks",
+      icon: Rocket
+    },
+    {
+      name: "3xc",
+      label: "Triple Captain",
+      averagePoints: 45,
+      bestGameweek: 21,
+      recommendedGameweek: 25,
+      description: "3x points for your captain - use during double gameweeks for maximum impact",
+      icon: Trophy
+    },
+    {
+      name: "bboost",
+      label: "Bench Boost",
+      averagePoints: 38,
+      bestGameweek: 26,
+      recommendedGameweek: 34,
+      description: "All bench players score points - best used during double gameweeks",
+      icon: TrendingUp
+    }
+  ];
+
+  return baseChips.map(chip => {
+    const usedChip = teamChips.find(c => c.name === chip.name);
+    return {
+      ...chip,
+      status: usedChip ? "used" : "available",
+      usedInGameweek: usedChip?.event || null,
+      description: usedChip 
+        ? `Used in Gameweek ${usedChip.event}. ${chip.description}`
+        : chip.description
+    };
+  });
+}
 
 const doubleGameweeks = [
   { 
@@ -81,7 +95,7 @@ const blankGameweeks = [
 
 function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGameweeks: any[] }) {
   const recommendedWeeks = doubleGameweeks
-    .filter(gw => gw.chips.includes(chip.name))
+    .filter(gw => gw.chips.includes(chip.label))
     .map(gw => gw.week);
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -89,13 +103,16 @@ function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGamewee
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <chip.icon className="w-5 h-5 text-primary" />
-            <CardTitle>{chip.name}</CardTitle>
+            <CardTitle>{chip.label}</CardTitle>
           </div>
           <Badge 
-            variant={chip.status === "available" ? "default" : 
-                    chip.status === "used" ? "secondary" : "destructive"}
+            variant={chip.status === "available" ? "default" : "secondary"}
+            className={chip.status === "used" ? "gap-2" : ""}
           >
             {chip.status}
+            {chip.status === "used" && (
+              <span className="text-xs">GW {chip.usedInGameweek}</span>
+            )}
           </Badge>
         </div>
         <CardDescription>{chip.description}</CardDescription>
@@ -112,16 +129,18 @@ function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGamewee
               <p className="text-2xl font-bold">{chip.bestGameweek}</p>
             </div>
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">Optimal Timing</span>
-              <span className="text-sm font-medium">GW {chip.recommendedGameweek}</span>
+          {chip.status === "available" && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Recommended Timing</span>
+                <span className="text-sm font-medium">GW {chip.recommendedGameweek}</span>
+              </div>
+              <Progress 
+                value={(chip.recommendedGameweek / 38) * 100} 
+                className="h-2"
+              />
             </div>
-            <Progress 
-              value={(chip.recommendedGameweek / 38) * 100} 
-              className="h-2"
-            />
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -157,11 +176,13 @@ export default function ChipsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <Link href="/team">
+          <Button variant="outline" size="icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Chip Strategy</h1>
-        <Badge variant="outline" className="text-lg">
-          Planning Tool
-        </Badge>
       </div>
 
       <Tabs defaultValue="chips" className="space-y-6">
@@ -178,7 +199,7 @@ export default function ChipsPage() {
 
         <TabsContent value="chips">
           <div className="grid gap-6 md:grid-cols-2">
-            {chipAnalytics.map(chip => (
+            {getChipAnalytics(team.chips || []).map(chip => (
               <ChipCard 
                 key={chip.name} 
                 chip={chip} 
