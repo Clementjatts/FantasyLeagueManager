@@ -244,15 +244,20 @@ export default function TeamPage() {
     <div className="min-h-screen w-full overflow-y-auto">
       <div className="container mx-auto max-w-7xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold">Transfer Planning</h1>
-          <Link href="/optimal-team">
-            <Button variant="outline">
-              View Optimal Team
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">Transfer Planning</h1>
+            <Link href="/optimal-team">
+              <Button variant="outline">
+                View Optimal Team
+              </Button>
+            </Link>
+            <Link href="/chips">
+              <Button variant="outline">
+                Chips Strategy
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
 
       {/* Optimal Team Dialog */}
       
