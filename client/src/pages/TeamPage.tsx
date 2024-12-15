@@ -190,7 +190,7 @@ export default function TeamPage() {
           className="ml-4"
           onClick={() => setShowOptimalTeam(true)}
         >
-          View Optimal Team
+          Dream Team
         </Button>
         <Card>
           <CardContent className="p-6">
@@ -248,7 +248,7 @@ export default function TeamPage() {
             <h1 className="text-3xl font-bold">Transfer Planning</h1>
             <Link href="/optimal-team">
               <Button variant="outline">
-                View Optimal Team
+                Dream Team
               </Button>
             </Link>
             <Link href="/chips">
