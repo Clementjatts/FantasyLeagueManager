@@ -1,6 +1,13 @@
 {
   "name": "default",
   "appearance": "light",
+  "extends": "zinc",
+  "spacing": {
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem"
+  },
   "radius": {
     "DEFAULT": "0.5rem",
     "sm": "0.25rem",
@@ -8,26 +15,36 @@
     "lg": "1rem"
   },
   "colors": {
-    "background": "hsl(0 0% 100%)",
-    "foreground": "hsl(0 0% 3.9%)",
+    "background": {
+      "DEFAULT": "hsl(0 0% 100%)",
+      "foreground": "hsl(0 0% 3.9%)"
+    },
+    "foreground": {
+      "DEFAULT": "hsl(0 0% 3.9%)",
+      "foreground": "hsl(0 0% 98%)"
+    },
     "muted": {
       "DEFAULT": "hsl(0 0% 96.1%)",
       "foreground": "hsl(0 0% 45.1%)"
     },
     "primary": {
       "DEFAULT": "hsl(230 100% 50%)",
-      "foreground": "hsl(0 0% 98%)"
+      "foreground": "hsl(0 0% 98%)",
+      "50": "hsl(230 100% 98%)",
+      "100": "hsl(230 100% 95%)",
+      "200": "hsl(230 100% 90%)",
+      "300": "hsl(230 100% 85%)",
+      "400": "hsl(230 100% 70%)",
+      "500": "hsl(230 100% 50%)",
+      "600": "hsl(230 100% 45%)",
+      "700": "hsl(230 100% 40%)",
+      "800": "hsl(230 100% 35%)",
+      "900": "hsl(230 100% 30%)",
+      "950": "hsl(230 100% 25%)"
     },
     "secondary": {
       "DEFAULT": "hsl(0 0% 96.1%)",
       "foreground": "hsl(0 0% 9%)"
-    },
-    "border": "hsl(0 0% 89.8%)",
-    "input": "hsl(0 0% 89.8%)",
-    "ring": "hsl(230 100% 50%)",
-    "card": {
-      "DEFAULT": "hsl(0 0% 100%)",
-      "foreground": "hsl(0 0% 3.9%)"
     },
     "accent": {
       "DEFAULT": "hsl(0 0% 96.1%)",
@@ -40,6 +57,20 @@
     "popover": {
       "DEFAULT": "hsl(0 0% 100%)",
       "foreground": "hsl(0 0% 3.9%)"
+    },
+    "card": {
+      "DEFAULT": "hsl(0 0% 100%)",
+      "foreground": "hsl(0 0% 3.9%)"
+    },
+    "input": {
+      "DEFAULT": "hsl(0 0% 89.8%)",
+      "foreground": "hsl(0 0% 3.9%)"
+    },
+    "ring": {
+      "DEFAULT": "hsl(230 100% 50%)"
+    },
+    "border": {
+      "DEFAULT": "hsl(0 0% 89.8%)"
     }
   }
 }

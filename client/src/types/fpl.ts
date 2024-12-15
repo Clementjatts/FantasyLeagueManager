@@ -13,6 +13,7 @@ export interface Player {
   goals_scored: number;
   assists: number;
   cost_change_event: number;
+  cost_change_start: number;
   minutes: number;
   clean_sheets: number;
   goals_conceded: number;
@@ -28,6 +29,13 @@ export interface Player {
   creativity: string;
   threat: string;
   ict_index: string;
+  expected_goals?: number;
+  expected_assists?: number;
+  expected_goal_involvements?: number;
+  value_form?: string;
+  transfers_in_event?: number;
+  transfers_out_event?: number;
+  event_points?: number;
   is_optimal?: boolean;
   optimal_reason?: string;
 }
