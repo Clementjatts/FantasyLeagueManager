@@ -339,13 +339,13 @@ export function PlayerTable({
                     <span className="font-semibold text-blue-600">{player.assists}</span>
                   </TableCell>
                   <TableCell className="text-center font-medium">
-                    {player.expected_goals?.toFixed(2) || '0.00'}
+                    {typeof player.expected_goals === 'number' ? player.expected_goals.toFixed(2) : '0.00'}
                   </TableCell>
                   <TableCell className="text-center font-medium">
-                    {player.expected_assists?.toFixed(2) || '0.00'}
+                    {typeof player.expected_assists === 'number' ? player.expected_assists.toFixed(2) : '0.00'}
                   </TableCell>
                   <TableCell className="text-center font-medium">
-                    {player.expected_goal_involvements?.toFixed(2) || '0.00'}
+                    {typeof player.expected_goal_involvements === 'number' ? player.expected_goal_involvements.toFixed(2) : '0.00'}
                   </TableCell>
                   <TableCell className="text-center">
                     <span className="font-semibold text-yellow-600">{player.bonus}</span>
