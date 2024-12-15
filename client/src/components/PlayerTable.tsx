@@ -35,6 +35,14 @@ export function PlayerTable({
   fixtures = [], 
   teams = [] 
 }: PlayerTableProps) {
+  const [selectedTeam, setSelectedTeam] = React.useState<number | null>(null);
+
+  const filteredPlayers = React.useMemo(() => {
+    return selectedTeam
+      ? players.filter(player => player.team === selectedTeam)
+      : players;
+  }, [players, selectedTeam]);
+
   const getNextFixtures = (teamId: number) => {
     if (!fixtures || !teams) return [];
     
@@ -76,7 +84,7 @@ export function PlayerTable({
   };
 
   const sortedPlayers = React.useMemo(() => {
-    return [...players].sort((a, b) => {
+    return [...filteredPlayers].sort((a, b) => {
       let aValue = a[sortConfig.key as keyof Player];
       let bValue = b[sortConfig.key as keyof Player];
       
@@ -90,7 +98,7 @@ export function PlayerTable({
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [players, sortConfig]);
+  }, [filteredPlayers, sortConfig]);
 
   const getPositionName = (element_type: number) => {
     switch (element_type) {
@@ -128,15 +136,28 @@ export function PlayerTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
+      {/* Team Filter */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-sm font-medium">Filter by Team:</span>
+        <select
+          className="rounded-md border border-border bg-background px-3 py-1 text-sm"
+          value={selectedTeam || ""}
+          onChange={(e) => setSelectedTeam(e.target.value ? Number(e.target.value) : null)}
+        >
+          <option value="">All Teams</option>
+          {teams.map((team) => (
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="rounded-xl border bg-gradient-to-br from-background to-background/95 backdrop-blur-sm shadow-lg">
         <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[200px]">
-              <SortableHeader sortKey="web_name">Player</SortableHeader>
-            </TableHead>
-            <TableHead className="w-[150px]">
-              <SortableHeader sortKey="team">Club</SortableHeader>
+          <TableRow className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent hover:from-primary/10">
+            <TableHead className="w-[250px]">
+              <SortableHeader sortKey="web_name">Player Info</SortableHeader>
             </TableHead>
             <TableHead className="text-center">
               <SortableHeader sortKey="element_type">Pos</SortableHeader>
@@ -168,7 +189,6 @@ export function PlayerTable({
             <TableHead className="text-center">
               <SortableHeader sortKey="expected_goals">xG</SortableHeader>
             </TableHead>
-            {/* Show clean sheets for DEF/GK */}
             <TableHead className="text-center">CS</TableHead>
             <TableHead className="text-center">
               <SortableHeader sortKey="selected_by_percent">Sel</SortableHeader>
@@ -181,67 +201,91 @@ export function PlayerTable({
             <TableRow 
               key={player.id}
               className={cn(
-                "cursor-pointer transition-colors hover:bg-muted/50",
-                selectedPlayerId === player.id && "bg-primary/5 hover:bg-primary/10",
-                highlightedPlayer?.id === player.id && "bg-blue-500/5 hover:bg-blue-500/10 ring-2 ring-blue-500/20"
+                "cursor-pointer transition-all duration-200 hover:bg-primary/5 hover:backdrop-blur-lg group",
+                selectedPlayerId === player.id && "bg-primary/10 hover:bg-primary/15",
+                highlightedPlayer?.id === player.id && "bg-blue-500/10 hover:bg-blue-500/15 ring-1 ring-blue-500/30"
               )}
               onClick={() => onPlayerClick(player)}
             >
               <TableCell>
-                <div className="flex items-center font-medium">
-                  {player.web_name}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center text-muted-foreground">
-                  {(() => {
-                    const teamData: Record<number, { name: string, abbr: string }> = {
-                      1: { name: "Arsenal", abbr: "ARS" },
-                      2: { name: "Aston Villa", abbr: "AVL" },
-                      3: { name: "Bournemouth", abbr: "BOU" },
-                      4: { name: "Brentford", abbr: "BRE" },
-                      5: { name: "Brighton", abbr: "BHA" },
-                      6: { name: "Chelsea", abbr: "CHE" },
-                      7: { name: "Crystal Palace", abbr: "CRY" },
-                      8: { name: "Everton", abbr: "EVE" },
-                      9: { name: "Fulham", abbr: "FUL" },
-                      10: { name: "Liverpool", abbr: "LIV" },
-                      11: { name: "Luton", abbr: "LUT" },
-                      12: { name: "Man City", abbr: "MCI" },
-                      13: { name: "Man United", abbr: "MUN" },
-                      14: { name: "Newcastle", abbr: "NEW" },
-                      15: { name: "Nott'm Forest", abbr: "NFO" },
-                      16: { name: "Sheffield Utd", abbr: "SHU" },
-                      17: { name: "Tottenham", abbr: "TOT" },
-                      18: { name: "West Ham", abbr: "WHU" },
-                      19: { name: "Wolves", abbr: "WOL" },
-                      20: { name: "Burnley", abbr: "BUR" }
-                    };
-                    const team = teamData[player.team];
-                    return (
-                      <span 
-                        title={team?.name}
-                        className="font-medium"
-                      >
-                        {team?.abbr || `T${player.team}`}
-                      </span>
-                    );
-                  })()}
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-foreground/90 group-hover:text-primary transition-colors">
+                      {player.web_name}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {(() => {
+                        const teamData: Record<number, { name: string, abbr: string }> = {
+                          3: { name: "Arsenal", abbr: "ARS" },
+                          7: { name: "Aston Villa", abbr: "AVL" },
+                          91: { name: "Bournemouth", abbr: "BOU" },
+                          94: { name: "Brentford", abbr: "BRE" },
+                          36: { name: "Brighton", abbr: "BHA" },
+                          21: { name: "Burnley", abbr: "BUR" },
+                          8: { name: "Chelsea", abbr: "CHE" },
+                          31: { name: "Crystal Palace", abbr: "CRY" },
+                          11: { name: "Everton", abbr: "EVE" },
+                          13: { name: "Fulham", abbr: "FUL" },
+                          14: { name: "Liverpool", abbr: "LIV" },
+                          23: { name: "Luton", abbr: "LUT" },
+                          43: { name: "Man City", abbr: "MCI" },
+                          1: { name: "Man United", abbr: "MUN" },
+                          34: { name: "Newcastle", abbr: "NEW" },
+                          17: { name: "Nott'm Forest", abbr: "NFO" },
+                          49: { name: "Sheffield Utd", abbr: "SHU" },
+                          33: { name: "Tottenham", abbr: "TOT" },
+                          25: { name: "West Ham", abbr: "WHU" },
+                          39: { name: "Wolves", abbr: "WOL" }
+                        };
+                        
+                        // Use the teams prop if available, otherwise fallback to static mapping
+                        if (teams && teams.length > 0) {
+                          const team = teams.find(t => t.id === player.team);
+                          return team ? team.name : `Unknown Team (${player.team})`;
+                        }
+                        
+                        // Fallback to static mapping
+                        const team = teamData[player.team];
+                        return team ? team.name : `Unknown Team (${player.team})`;
+                      })()}
+                    </span>
+                  </div>
                 </div>
               </TableCell>
               <TableCell className="text-center">
-                <Badge variant="outline" className="mx-auto">
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "mx-auto font-medium transition-all duration-200",
+                    player.element_type === 1 && "bg-yellow-500/10 text-yellow-700 border-yellow-200/50",
+                    player.element_type === 2 && "bg-blue-500/10 text-blue-700 border-blue-200/50",
+                    player.element_type === 3 && "bg-green-500/10 text-green-700 border-green-200/50",
+                    player.element_type === 4 && "bg-red-500/10 text-red-700 border-red-200/50"
+                  )}
+                >
                   {getPositionName(player.element_type)}
                 </Badge>
               </TableCell>
-              <TableCell className="text-center font-medium">£{(player.now_cost / 10).toFixed(1)}m</TableCell>
+              <TableCell className="text-center font-medium">
+                <span className="bg-primary/5 px-2 py-1 rounded-md">
+                  £{(player.now_cost / 10).toFixed(1)}m
+                </span>
+              </TableCell>
               <TableCell className="text-center font-medium">{player.form}</TableCell>
-              <TableCell className="text-center font-medium">{player.total_points}</TableCell>
+              <TableCell className="text-center">
+                <span className="font-semibold text-primary">{player.total_points}</span>
+              </TableCell>
               <TableCell className="text-center font-medium">{player.points_per_game}</TableCell>
               <TableCell className="text-center font-medium">{player.minutes}</TableCell>
-              <TableCell className="text-center font-medium">{player.goals_scored}</TableCell>
-              <TableCell className="text-center font-medium">{player.assists}</TableCell>
-              <TableCell className="text-center font-medium">{player.bonus}</TableCell>
+              <TableCell className="text-center">
+                <span className="font-semibold text-green-600">{player.goals_scored}</span>
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="font-semibold text-blue-600">{player.assists}</span>
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="font-semibold text-yellow-600">{player.bonus}</span>
+              </TableCell>
               <TableCell className="text-center font-medium">
                 {((player.goals_scored || 0) * 0.8).toFixed(2)}
               </TableCell>
@@ -249,8 +293,10 @@ export function PlayerTable({
                 {(player.element_type === 1 || player.element_type === 2) ? 
                   player.clean_sheets : '-'}
               </TableCell>
-              <TableCell className="text-center font-medium">
-                {parseFloat(player.selected_by_percent).toFixed(1)}
+              <TableCell className="text-center">
+                <span className="bg-primary/5 px-2 py-1 rounded-md">
+                  {parseFloat(player.selected_by_percent).toFixed(1)}%
+                </span>
               </TableCell>
               <TableCell className="text-center min-w-[200px]">
                 {(() => {
@@ -260,7 +306,15 @@ export function PlayerTable({
                   return (
                     <div className="flex items-center justify-center gap-3">
                       {fixtures.map((fixture, idx) => (
-                        <span key={idx} className={getDifficultyColor(fixture.difficulty)}>
+                        <span 
+                          key={idx} 
+                          className={cn(
+                            "px-2 py-1 rounded-md transition-all duration-200",
+                            fixture.difficulty <= 2 && "bg-green-500/10 text-green-700",
+                            fixture.difficulty === 3 && "bg-yellow-500/10 text-yellow-700",
+                            fixture.difficulty >= 4 && "bg-red-500/10 text-red-700"
+                          )}
+                        >
                           {fixture.opposition} ({fixture.isHome ? 'H' : 'A'})
                         </span>
                       ))}
@@ -280,6 +334,7 @@ export function PlayerTable({
           variant="outline"
           onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
           disabled={currentPage === 1}
+          className="transition-all duration-200 hover:bg-primary/10 hover:border-primary/50"
         >
           Previous
         </Button>
@@ -290,6 +345,7 @@ export function PlayerTable({
           variant="outline"
           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
+          className="transition-all duration-200 hover:bg-primary/10 hover:border-primary/50"
         >
           Next
         </Button>
@@ -297,7 +353,9 @@ export function PlayerTable({
 
       {/* Abbreviations Legend */}
       <div className="space-y-6">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Abbreviations Guide</h3>
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          Abbreviations Guide
+        </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
             { abbr: "Pos", full: "Position" },

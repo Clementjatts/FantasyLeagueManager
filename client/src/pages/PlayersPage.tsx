@@ -46,15 +46,21 @@ export default function PlayersPage() {
 
   // Filter players based on search and filters
   const filteredPlayers = useMemo(() => {
-    if (!players) return [];
+    if (!players || !bootstrapData?.teams) return [];
+    
+    // Get list of valid team IDs that have players
+    const activeTeamIds = new Set(players.map(player => player.team));
+    
+    // Filter teams to only include those that have players
+    const validTeams = bootstrapData.teams.filter(team => activeTeamIds.has(team.id));
     
     return players.filter(player => {
       const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase());
-      const matchesTeam = filters.team === 'ALL' || player.team.toString() === filters.team;
-      const matchesPosition = filters.position === 'ALL' || player.element_type.toString() === filters.position;
+      const matchesTeam = filters.team === 'ALL' || Number(filters.team) === player.team;
+      const matchesPosition = filters.position === 'ALL' || Number(filters.position) === player.element_type;
       return matchesSearch && matchesTeam && matchesPosition;
     });
-  }, [players, search, filters]);
+  }, [players, bootstrapData?.teams, search, filters]);
 
   //These variables are not used anymore
   //const teamValue = (team?.transfers?.value || 0) / 10;
@@ -102,38 +108,10 @@ export default function PlayersPage() {
                 </svg>
               </div>
               <TransferFilters
-                teams={players ? 
-                  Array.from(new Set(players.map(p => p.team)))
-                    .map(teamId => {
-                      const teamNames: Record<number, string> = {
-                        1: "Arsenal",
-                        2: "Aston Villa",
-                        3: "Bournemouth",
-                        4: "Brentford",
-                        5: "Brighton",
-                        6: "Chelsea",
-                        7: "Crystal Palace",
-                        8: "Everton",
-                        9: "Fulham",
-                        10: "Liverpool",
-                        11: "Luton",
-                        12: "Manchester City",
-                        13: "Manchester United",
-                        14: "Newcastle",
-                        15: "Nottingham Forest",
-                        16: "Sheffield United",
-                        17: "Tottenham",
-                        18: "West Ham",
-                        19: "Wolves",
-                        20: "Burnley"
-                      };
-                      return {
-                        id: teamId,
-                        name: teamNames[teamId] || `Team ${teamId}`,
-                        short_name: teamNames[teamId] || `Team ${teamId}`
-                      };
-                    })
-                    .sort((a, b) => a.name.localeCompare(b.name)) 
+                teams={bootstrapData?.teams ? 
+                  bootstrapData.teams
+                    .filter(team => players?.some(p => p.team === team.id))
+                    .sort((a, b) => a.name.localeCompare(b.name))
                   : []}
                 onFilterChange={setFilters}
               />

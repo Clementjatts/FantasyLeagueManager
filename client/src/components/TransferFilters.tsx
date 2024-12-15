@@ -58,13 +58,16 @@ export function TransferFilters({ teams, onFilterChange }: TransferFiltersProps)
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectLabel>Teams</SelectLabel>
-              <SelectItem value="ALL">All Teams</SelectItem>
-              {teams.map((team) => (
-                <SelectItem key={team.id} value={team.id.toString()}>
-                  {team.name}
-                </SelectItem>
-              ))}
+              <SelectLabel>Clubs</SelectLabel>
+              <SelectItem value="ALL">All Clubs</SelectItem>
+              {teams
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((team) => (
+                  <SelectItem key={team.id} value={team.id.toString()}>
+                    {team.name}
+                  </SelectItem>
+                ))
+              }
             </SelectGroup>
           </SelectContent>
         </Select>
