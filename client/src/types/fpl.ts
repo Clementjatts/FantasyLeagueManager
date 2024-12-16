@@ -67,6 +67,7 @@ export interface Team {
   last_deadline_event: number;
   stats: {
     event_points: number;
+    event_rank: number;
     points_on_bench: number;
     overall_points: number;
     overall_rank: number;

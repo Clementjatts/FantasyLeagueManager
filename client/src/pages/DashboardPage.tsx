@@ -9,6 +9,7 @@ import { DeadlineCountdown } from "../components/DeadlineCountdown";
 import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
 import { TeamPitch } from "../components/TeamPitch";
+import { Player, Pick } from "../types/fpl";
 import { ChipsStatus } from "../components/ChipsStatus";
 import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline, fetchBootstrapStatic } from "../lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,7 +98,7 @@ export default function DashboardPage() {
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
-  const hasTransfers = (team.transfers_available || 0) > 0;
+  const hasTransfers = (team.transfers?.limit || 0) > 0;
 
   return (
     <div className="space-y-6">
@@ -164,7 +165,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg">Gameweek Points</CardTitle>
                 </div>
                 <Badge variant="secondary" className="bg-primary/10">
-                  Average: {team.current_event_points_avg || team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
+                  Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
                 </Badge>
               </div>
             </CardHeader>
@@ -179,7 +180,7 @@ export default function DashboardPage() {
                 <div className="space-y-1 p-2 rounded-lg bg-primary/5">
                   <div className="text-sm text-muted-foreground">Gameweek Rank</div>
                   <div className="text-2xl font-bold tabular-nums">
-                    {(team.stats?.event_rank || team.stats?.rank_sort || 0).toLocaleString()}
+                    {(team.stats?.event_rank || 0).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -232,7 +233,7 @@ export default function DashboardPage() {
               <div className="p-2 rounded-lg bg-primary/5">
                 <div className="text-sm text-muted-foreground">Free Transfers</div>
                 <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                  {team.transfers_available || 0}
+                  {team.transfers.limit || 0}
                 </div>
               </div>
             </CardContent>
@@ -248,27 +249,37 @@ export default function DashboardPage() {
           <CardContent className="p-0">
             {allPlayers ? (
               <TeamPitch 
-                players={team.picks
-                  .filter((p: any) => p.position <= 11)
-                  .map((pick: any) => ({
-                    ...allPlayers.find((p: any) => p.id === pick.element),
-                    is_captain: pick.is_captain,
-                    is_vice_captain: pick.is_vice_captain,
-                    multiplier: pick.multiplier
-                  }))}
-                substitutes={team.picks
-                  .filter((p: any) => p.position > 11)
-                  .map((pick: any) => ({
-                    ...allPlayers.find((p: any) => p.id === pick.element),
-                    is_captain: pick.is_captain,
-                    is_vice_captain: pick.is_vice_captain,
-                    multiplier: pick.multiplier
-                  }))}
-                captainId={team.picks.find((p: any) => p.is_captain)?.element}
-                viceCaptainId={team.picks.find((p: any) => p.is_vice_captain)?.element}
-                teams={bootstrapData?.teams || []}
-                displayContext="live"
-              />
+                  players={team.picks
+                    .filter((p: Pick) => p.position <= 11)
+                    .map((pick: Pick) => {
+                      const playerData = allPlayers.find(p => p.id === pick.element);
+                      if (!playerData) return null;
+                      return {
+                        ...playerData,
+                        position: pick.position,
+                        is_captain: pick.is_captain,
+                        is_vice_captain: pick.is_vice_captain,
+                        multiplier: pick.multiplier
+                      };
+                    }).filter((p): p is Player => p !== null)}
+                  substitutes={team.picks
+                    .filter((p: Pick) => p.position > 11)
+                    .map((pick: Pick) => {
+                      const playerData = allPlayers.find(p => p.id === pick.element);
+                      if (!playerData) return null;
+                      return {
+                        ...playerData,
+                        position: pick.position,
+                        is_captain: pick.is_captain,
+                        is_vice_captain: pick.is_vice_captain,
+                        multiplier: pick.multiplier
+                      };
+                    }).filter((p): p is Player => p !== null)}
+                  captainId={team.picks.find((p: Pick) => p.is_captain)?.element}
+                  viceCaptainId={team.picks.find((p: Pick) => p.is_vice_captain)?.element}
+                  teams={bootstrapData?.teams || []}
+                  fixtures={[]}
+                />
             ) : (
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"/>
