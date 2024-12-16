@@ -64,10 +64,10 @@ function getChipAnalytics(teamChips: any[]): ChipAnalysis[] {
     const usedChip = teamChips.find(c => c.name === chip.name);
     return {
       ...chip,
-      status: usedChip ? "used" : "available",
+      status: usedChip ? "PLAYED IN" : "AVAILABLE",
       usedInGameweek: usedChip?.event || null,
       description: usedChip 
-        ? `Used in Gameweek ${usedChip.event}. ${chip.description}`
+        ? `Played in Gameweek ${usedChip.event}. ${chip.description}`
         : chip.description
     };
   });
@@ -108,11 +108,11 @@ function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGamewee
             <CardTitle>{chip.label}</CardTitle>
           </div>
           <Badge 
-            variant={chip.status === "available" ? "default" : "secondary"}
-            className={chip.status === "used" ? "gap-2" : ""}
+            variant={chip.status === "AVAILABLE" ? "default" : "secondary"}
+            className={chip.status === "PLAYED IN" ? "gap-2" : ""}
           >
             {chip.status}
-            {chip.status === "used" && (
+            {chip.status === "PLAYED IN" && (
               <span className="text-xs">GW {chip.usedInGameweek}</span>
             )}
           </Badge>
@@ -131,7 +131,7 @@ function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGamewee
               <p className="text-2xl font-bold">{chip.bestGameweek}</p>
             </div>
           </div>
-          {chip.status === "available" && (
+          {chip.status === "AVAILABLE" && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Recommended Timing</span>

@@ -4,7 +4,7 @@ import { Player } from "../types/fpl";
 import { cn } from "@/lib/utils";
 import { TrendingUp } from "lucide-react";
 
-interface PlayerCardProps {
+interface DreamTeamPlayerCardProps {
   player: Player;
   isCaptain?: boolean;
   isViceCaptain?: boolean;
@@ -21,7 +21,7 @@ const positionMap: Record<number, string> = {
   4: "FWD"
 };
 
-export function PlayerCard({ 
+export function DreamTeamPlayerCard({ 
   player, 
   isCaptain, 
   isViceCaptain, 
@@ -29,7 +29,7 @@ export function PlayerCard({
   className,
   fixtures = [],
   teams = []
-}: PlayerCardProps) {
+}: DreamTeamPlayerCardProps) {
   const teamInfo = teams?.find(t => t.id === player.team) || { short_name: '' };
   const teamAbbr = teamInfo.short_name;
   const formValue = parseFloat(player.form || "0");
@@ -39,8 +39,8 @@ export function PlayerCard({
     <Card 
       className={cn(
         "relative cursor-pointer group",
-        "w-[120px] h-[80px]",
-        "p-2",
+        "w-[120px] h-[90px]", // Slightly taller for dream team
+        "p-3", // Increased padding
         "backdrop-blur-sm bg-gradient-to-br from-background/90 via-background/70 to-background/50",
         "transition-all duration-300 ease-out",
         "hover:shadow-lg hover:shadow-primary/10",
@@ -81,6 +81,13 @@ export function PlayerCard({
           </div>
         </div>
 
+        {/* Expected Points */}
+        {player.optimal_reason && (
+          <div className="text-[10px] text-primary/80 font-medium">
+            {player.optimal_reason.split('(')[0]}
+          </div>
+        )}
+
         {/* Form Indicator */}
         <div className="flex items-center gap-1 text-[10px]">
           <TrendingUp size={12} className={cn(formColor, "transition-colors duration-300")} />
@@ -88,33 +95,28 @@ export function PlayerCard({
         </div>
 
         {/* Info Row */}
-        <div className="grid grid-cols-3 gap-1 text-[10px]">
+        <div className="grid grid-cols-2 gap-1 text-[10px]">
           <Badge 
             variant="secondary" 
             className={cn(
-              "px-1 h-5 flex items-center justify-center",
-              "bg-secondary/30 backdrop-blur-sm",
-              "border border-border/20",
-              "transition-colors duration-300",
-              "group-hover:bg-secondary/40"
+              "px-1 py-0 h-5",
+              "bg-muted/50 text-muted-foreground",
+              "group-hover:bg-primary/10 group-hover:text-primary",
+              "transition-colors duration-300"
+            )}
+          >
+            {teamAbbr}
+          </Badge>
+          <Badge 
+            variant="secondary" 
+            className={cn(
+              "px-1 py-0 h-5",
+              "bg-muted/50 text-muted-foreground",
+              "group-hover:bg-primary/10 group-hover:text-primary",
+              "transition-colors duration-300"
             )}
           >
             {positionMap[player.element_type]}
-          </Badge>
-          <span className="flex items-center justify-center font-medium text-muted-foreground/80">
-            {teamAbbr}
-          </span>
-          <Badge 
-            variant={player.event_points > 0 ? "default" : "outline"} 
-            className={cn(
-              "px-1 h-5 flex items-center justify-center",
-              "transition-all duration-300",
-              player.event_points > 0 
-                ? "bg-primary/20 text-primary hover:bg-primary/30" 
-                : "border-border/30 text-muted-foreground/70"
-            )}
-          >
-            {player.event_points}
           </Badge>
         </div>
       </div>

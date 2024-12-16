@@ -29,15 +29,15 @@ export interface Player {
   creativity: string;
   threat: string;
   ict_index: string;
-  expected_goals?: number;
-  expected_assists?: number;
-  expected_goal_involvements?: number;
+  chance_of_playing_next_round?: number;
+  games_played?: number;
   value_form?: string;
   transfers_in_event?: number;
   transfers_out_event?: number;
   event_points?: number;
   is_optimal?: boolean;
   optimal_reason?: string;
+  score?: number;
 }
 
 export interface Team {
@@ -77,6 +77,7 @@ export interface Team {
     event_transfers: number;
     event_transfers_cost: number;
     average_entry_score: number;
+    event_rank?: number;
   };
 }
 

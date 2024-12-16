@@ -13,6 +13,7 @@ interface TeamPitchProps {
   fixtures?: any[];
   teams?: any[];
   showOptimalReasons?: boolean;
+  PlayerCardComponent?: typeof PlayerCard;
 }
 
 export function TeamPitch({ 
@@ -24,7 +25,8 @@ export function TeamPitch({
   onSubstituteClick,
   fixtures = [],
   teams = [],
-  showOptimalReasons = false
+  showOptimalReasons = false,
+  PlayerCardComponent = PlayerCard
 }: TeamPitchProps) {
   // Ensure both arrays are defined before combining
   const playersList = players || [];
@@ -69,7 +71,7 @@ export function TeamPitch({
                   <div key={player.id} className="flex flex-col items-center">
                     <div className="relative w-[120px]">
                       <div className="relative pt-2">
-                        <PlayerCard
+                        <PlayerCardComponent
                           player={player}
                           onClick={() => onPlayerClick?.(player)}
                           className="transition-transform hover:scale-105 text-center w-full"
@@ -78,11 +80,6 @@ export function TeamPitch({
                           isCaptain={player.id === captainId}
                           isViceCaptain={player.id === viceCaptainId}
                         />
-                        {showOptimalReasons && player.optimal_reason && (
-                          <div className="absolute -bottom-6 left-0 right-0 text-xs text-center text-primary bg-background/90 p-1 rounded-md shadow-sm">
-                            {player.optimal_reason}
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -103,16 +100,18 @@ export function TeamPitch({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 w-full">
           {substitutes.map((player) => (
             <div key={player.id} className="flex flex-col items-center">
-              <div className="relative w-[120px] pt-4">
-                <PlayerCard
-                  player={player}
-                  onClick={() => onSubstituteClick?.(player)}
-                  className="transition-transform hover:scale-105 opacity-80 hover:opacity-100 text-center"
-                  fixtures={fixtures}
-                  teams={teams}
-                  isCaptain={player.id === captainId}
-                  isViceCaptain={player.id === viceCaptainId}
-                />
+              <div className="relative w-[120px]">
+                <div className="relative pt-2">
+                  <PlayerCardComponent
+                    player={player}
+                    onClick={() => onSubstituteClick?.(player)}
+                    className="transition-transform hover:scale-105 text-center w-full"
+                    fixtures={fixtures}
+                    teams={teams}
+                    isCaptain={player.id === captainId}
+                    isViceCaptain={player.id === viceCaptainId}
+                  />
+                </div>
               </div>
             </div>
           ))}

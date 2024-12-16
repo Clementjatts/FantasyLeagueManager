@@ -89,11 +89,12 @@ export default function DashboardPage() {
   };
 
   // Points data for the history chart
+  // Points data for the history chart
   const pointsData = team.points_history?.map(gw => ({
     gameweek: gw.event || 0,
     points: gw.points || 0,
-    average: gw.average || 0
-  })) || [];
+    average: gw.average || 0 // Use the actual average from the API for each gameweek
+  })).filter(gw => gw.gameweek > 0) || [];
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
