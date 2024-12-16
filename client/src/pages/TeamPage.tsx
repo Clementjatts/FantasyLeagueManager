@@ -148,7 +148,7 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
     return score + (baseScore + homeBonus) * gameweekWeight;
   }, 0) / teamFixtures.length;
 }
-import { Users, AlertCircle } from "lucide-react";
+import { Users, AlertCircle, Trophy } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -245,7 +245,8 @@ export default function TeamPage() {
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold">Transfer Planning</h1>
             <Link href="/dream-team">
-              <Button variant="outline">
+              <Button variant="outline" className="gap-2">
+                <Trophy className="w-4 h-4" />
                 Dream Team
               </Button>
             </Link>

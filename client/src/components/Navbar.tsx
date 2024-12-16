@@ -10,7 +10,6 @@ export function Navbar() {
     { href: "/team", label: "Team", icon: Users },
     { href: "/players", label: "Players", icon: Repeat },
     { href: "/statistics", label: "Statistics", icon: BarChart },
-    { href: "/dream-team", label: "Dream Team", icon: Trophy },
   ];
 
   return (

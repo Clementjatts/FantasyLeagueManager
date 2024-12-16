@@ -19,6 +19,7 @@ function App() {
           <Route path="/statistics" component={StatisticsPage} />
           
           <Route path="/chips" component={ChipsPage} />
+          <Route path="/dream-team" component={DreamTeamPage} />
           <Route>404 Page Not Found</Route>
         </Switch>
       </main>
