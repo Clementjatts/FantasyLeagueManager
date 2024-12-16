@@ -7,7 +7,6 @@ import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TeamPitch } from "../components/TeamPitch";
-import { DreamTeamPlayerCard } from "../components/DreamTeamPlayerCard";
 import { fetchPlayers, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { type Player } from "../types/fpl";
 
@@ -51,7 +50,7 @@ function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[
       ...player,
       score: expected_points,
       is_optimal: true,
-      optimal_reason: `Expected: ${expected_points.toFixed(1)}`
+      optimal_reason: `Expected: ${expected_points.toFixed(1)} (Form: ${form.toFixed(1)}, Fixtures: ${fixtures_score.toFixed(1)})`
     };
   });
 
@@ -140,7 +139,7 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
   }, 0) / teamFixtures.length;
 }
 
-export default function DreamTeamPage() {
+export default function OptimalTeamPage() {
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
     queryFn: fetchPlayers
@@ -187,7 +186,7 @@ export default function DreamTeamPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">Dream Team</h1>
+        <h1 className="text-3xl font-bold">Optimal Team</h1>
       </div>
 
       <Card className="bg-accent/50">
@@ -223,8 +222,8 @@ export default function DreamTeamPage() {
         fixtures={fixtures}
         teams={bootstrapData.teams}
         showOptimalReasons={true}
-        PlayerCardComponent={DreamTeamPlayerCard}
       />
     </div>
   );
-}
+
+  }

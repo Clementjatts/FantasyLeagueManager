@@ -30,91 +30,37 @@ interface OptimalTeam {
 }
 
 function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[]): OptimalTeam {
-  type Position = 'GKP' | 'DEF' | 'MID' | 'FWD';
-  type PositionModifier = (points: number) => number;
-  
-  // Calculate player scores using the provided expected points formula
+  // Calculate player scores based on multiple factors for better points prediction
   const playerScores = allPlayers.map(player => {
-    // Base factors that influence expected points
-    const baseFactors = {
-      // Playing time probability
-      chanceOfPlaying: player.chance_of_playing_next_round || 100,
-      averageMinutesPlayed: player.minutes / Math.max(1, player.games_played || 1),
-      
-      // Historical performance
-      form: parseFloat(player.form || '0'),
-      pointsPerGame: parseFloat(player.points_per_game || '0'),
-      
-      // Get next fixture difficulty and home/away status
-      fixture: (() => {
-        const nextFixture = fixtures.find(f => 
-          (f.team_h === player.team || f.team_a === player.team) && !f.finished
-        );
-        const isHome = nextFixture ? nextFixture.team_h === player.team : false;
-        return {
-          difficulty: nextFixture ? 
-            (isHome ? nextFixture.team_h_difficulty : nextFixture.team_a_difficulty) 
-            : 3,
-          isHome
-        };
-      })(),
-      
-      // Position mapping
-      position: ((): Position => {
-        switch (player.element_type) {
-          case 1: return 'GKP';
-          case 2: return 'DEF';
-          case 3: return 'MID';
-          case 4: return 'FWD';
-          default: return 'MID';
-        }
-      })(),
-      
-      // Team strength
-      teamStrength: (() => {
-        const team = teams.find(t => t.id === player.team);
-        return team ? Math.max(1, 5 - Math.floor(team.position / 4)) : 3;
-      })()
-    };
+    // Recent form (weighted more heavily)
+    const form = parseFloat(player.form || '0') * 1.5;
     
-    // Position-specific adjustments
-    const positionModifiers: Record<Position, PositionModifier> = {
-      GKP: (points) => points * (1 + (baseFactors.teamStrength * 0.05)),
-      DEF: (points) => points * (1 + (baseFactors.teamStrength * 0.04)),
-      MID: (points) => points * 1.02,
-      FWD: (points) => points * (1 + ((5 - baseFactors.fixture.difficulty) * 0.06))
-    };
+    // Points per game (consistent performance indicator)
+    const ppg = parseFloat(player.points_per_game || '0');
     
-    // Calculate basic expected points
-    let expectedPoints = (baseFactors.pointsPerGame * 0.5) + (baseFactors.form * 0.5);
+    // Fixture difficulty for upcoming games
+    const fixtures_score = calculateFixtureScore(player.team, fixtures);
     
-    // Adjust for fixture difficulty
-    const difficultyModifier = 1 + ((3 - baseFactors.fixture.difficulty) * 0.1);
-    expectedPoints *= difficultyModifier;
+    // Minutes played (reliability indicator)
+    const minutes_factor = Math.min(player.minutes / 900, 1); // Max out at 900 minutes
     
-    // Home/Away adjustment
-    if (baseFactors.fixture.isHome) {
-      expectedPoints *= 1.1; // 10% bonus for home games
-    }
+    // Bonus points (indicates involvement in play)
+    const bonus_factor = (player.bonus / Math.max(player.minutes / 90, 1)) * 2;
     
-    // Apply position-specific modifiers
-    expectedPoints = positionModifiers[baseFactors.position](expectedPoints);
-    
-    // Playing time probability adjustment
-    expectedPoints *= (baseFactors.chanceOfPlaying / 100);
-    
-    // Minutes played adjustment
-    const minutesModifier = Math.min(baseFactors.averageMinutesPlayed / 90, 1);
-    expectedPoints *= minutesModifier;
-    
-    // Round to 1 decimal place
-    expectedPoints = Math.round(expectedPoints * 10) / 10;
+    // Calculate expected points using weighted components
+    const expected_points = (
+      (form * 0.35) +               // 35% weight on recent form
+      (ppg * 0.25) +               // 25% weight on season performance
+      (fixtures_score * 0.20) +     // 20% weight on upcoming fixtures
+      (minutes_factor * 0.10) +     // 10% weight on playing time
+      (bonus_factor * 0.10)         // 10% weight on bonus point potential
+    ) * 6; // Scale to realistic FPL points
     
     return {
       ...player,
-      score: expectedPoints,
+      score: expected_points,
       is_optimal: true,
-      optimal_reason: `Expected: ${expectedPoints.toFixed(1)} (Form: ${baseFactors.form.toFixed(1)}, Fixture Difficulty: ${baseFactors.fixture.difficulty})`
+      optimal_reason: `Expected: ${expected_points.toFixed(1)} (Form: ${form.toFixed(1)}, Fixtures: ${fixtures_score.toFixed(1)})`
     };
   });
 

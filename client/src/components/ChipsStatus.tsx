@@ -46,7 +46,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                     isUsed ? "opacity-50" : "animate-pulse"
                   )}
                 >
-                  {isUsed ? "PLAYED IN" : "AVAILABLE"}
+                  {isUsed ? "Used" : "Available"}
                 </Badge>
               </div>
             );
