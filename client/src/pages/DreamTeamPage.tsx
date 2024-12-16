@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -41,7 +40,7 @@ function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[
       ...player,
       score: expected_points,
       is_optimal: true,
-      optimal_reason: `Expected: ${expected_points.toFixed(1)} (Form: ${form.toFixed(1)}, Fixtures: ${fixtures_score.toFixed(1)})`
+      optimal_reason: ''
     };
   });
 
