@@ -148,7 +148,7 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
     return score + (baseScore + homeBonus) * gameweekWeight;
   }, 0) / teamFixtures.length;
 }
-import { Users, AlertCircle, Trophy } from "lucide-react";
+import { Users, AlertCircle, Trophy, Zap } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -251,7 +251,8 @@ export default function TeamPage() {
               </Button>
             </Link>
             <Link href="/chips">
-              <Button variant="outline">
+              <Button variant="outline" className="gap-2">
+                <Zap className="w-4 h-4" />
                 Chips Strategy
               </Button>
             </Link>

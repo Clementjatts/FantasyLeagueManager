@@ -97,7 +97,7 @@ export default function DashboardPage() {
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
-  const hasTransfers = (team.transfers?.limit || 0) > 0;
+  const hasTransfers = (team.transfers_available || 0) > 0;
 
   return (
     <div className="space-y-6">
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg">Gameweek Points</CardTitle>
                 </div>
                 <Badge variant="secondary" className="bg-primary/10">
-                  Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
+                  Average: {team.current_event_points_avg || team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
                 </Badge>
               </div>
             </CardHeader>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
               <div className="p-2 rounded-lg bg-primary/5">
                 <div className="text-sm text-muted-foreground">Free Transfers</div>
                 <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                  {team?.transfers?.limit || 0}
+                  {team.transfers_available || 0}
                 </div>
               </div>
             </CardContent>
