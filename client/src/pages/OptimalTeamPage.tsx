@@ -186,7 +186,7 @@ export default function OptimalTeamPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">Optimal Team</h1>
+        <h1 className="text-3xl font-bold">Dream Team</h1>
       </div>
 
       <Card className="bg-accent/50">
