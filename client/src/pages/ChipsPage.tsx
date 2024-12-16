@@ -111,9 +111,9 @@ function ChipCard({ chip, doubleGameweeks }: { chip: ChipAnalysis; doubleGamewee
             variant={chip.status === "available" ? "default" : "secondary"}
             className={chip.status === "used" ? "gap-2" : ""}
           >
-            {chip.status}
+            {chip.status === "available" ? "AVAILABLE" : "PLAYED"}
             {chip.status === "used" && (
-              <span className="text-xs">GW {chip.usedInGameweek}</span>
+              <span className="text-xs ml-1">GW {chip.usedInGameweek}</span>
             )}
           </Badge>
         </div>

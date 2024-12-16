@@ -187,7 +187,7 @@ export default function TeamPage() {
         <h1 className="text-3xl font-bold">Transfer Planning</h1>
         <Link href="/dream-team">
               <Button variant="outline" className="ml-4">
-                View Dream Team
+                Dream Team
               </Button>
             </Link>
         <Card>
@@ -246,7 +246,7 @@ export default function TeamPage() {
             <h1 className="text-3xl font-bold">Transfer Planning</h1>
             <Link href="/dream-team">
               <Button variant="outline">
-                View Dream Team
+                Dream Team
               </Button>
             </Link>
             <Link href="/chips">
