@@ -1,3 +1,4 @@
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "../types/fpl";
@@ -12,6 +13,7 @@ interface PlayerCardProps {
   className?: string;
   fixtures?: any[];
   teams?: any[];
+  displayContext?: 'live' | 'transfer' | 'dream';
 }
 
 const positionMap: Record<number, string> = {
@@ -21,8 +23,6 @@ const positionMap: Record<number, string> = {
   4: "FWD"
 };
 
-
-
 export function PlayerCard({ 
   player, 
   isCaptain, 
@@ -30,15 +30,39 @@ export function PlayerCard({
   onClick, 
   className,
   fixtures = [],
-  teams = []
+  teams = [],
+  displayContext = 'live'
 }: PlayerCardProps) {
-  // Get team abbreviation from teams data
   const teamInfo = teams?.find(t => t.id === player.team) || { short_name: '' };
   const teamAbbr = teamInfo.short_name;
-
-  // Calculate form status
   const formValue = parseFloat(player.form || "0");
   const formColor = formValue >= 6 ? "text-green-500" : formValue >= 4 ? "text-yellow-500" : "text-red-500";
+
+  const renderInfo = () => {
+    switch (displayContext) {
+      case 'live':
+        return (
+          <Badge variant="outline" className="px-1 h-6 flex items-center justify-center">
+            {player.event_points || 0}p
+          </Badge>
+        );
+      case 'transfer':
+        return (
+          <Badge variant="outline" className="px-1 h-6 flex items-center justify-center">
+            £{(player.now_cost / 10).toFixed(1)}m
+          </Badge>
+        );
+      case 'dream':
+        return (
+          <div className="flex items-center gap-1 text-xs">
+            <TrendingUp className={`h-3 w-3 ${formColor}`} />
+            <span>{formValue}</span>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Card 
@@ -54,7 +78,6 @@ export function PlayerCard({
       onClick={onClick}
     >
       <div className="h-full flex flex-col justify-between">
-        {/* Player Name Row */}
         <div className="flex items-center gap-1">
           <div className="flex-1 min-w-0">
             <div className="font-medium text-xs leading-4 truncate">
@@ -65,7 +88,6 @@ export function PlayerCard({
           </div>
         </div>
 
-        {/* Info Row */}
         <div className="grid grid-cols-3 gap-2 text-xs">
           <Badge variant="secondary" className="px-1 h-6 flex items-center justify-center">
             {positionMap[player.element_type]}
@@ -73,9 +95,7 @@ export function PlayerCard({
           <span className="flex items-center justify-center text-muted-foreground">
             {teamAbbr}
           </span>
-          <Badge variant="outline" className="px-1 h-6 flex items-center justify-center">
-            {player.event_points || 0}p
-          </Badge>
+          {renderInfo()}
         </div>
       </div>
     </Card>
