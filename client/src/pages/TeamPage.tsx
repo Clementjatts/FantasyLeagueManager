@@ -185,13 +185,11 @@ export default function TeamPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Transfer Planning</h1>
-        <Button 
-          variant="outline" 
-          className="ml-4"
-          onClick={() => setShowOptimalTeam(true)}
-        >
-          View Dream Team
-        </Button>
+        <Link href="/dream-team">
+              <Button variant="outline" className="ml-4">
+                View Dream Team
+              </Button>
+            </Link>
         <Card>
           <CardContent className="p-6">
             <div className="text-center space-y-2">
@@ -246,7 +244,7 @@ export default function TeamPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <h1 className="text-3xl font-bold">Transfer Planning</h1>
-            <Link href="/optimal-team">
+            <Link href="/dream-team">
               <Button variant="outline">
                 View Dream Team
               </Button>
