@@ -1,6 +1,9 @@
+
 {
   "name": "fantasy-premier-league",
   "type": "light",
+  "className": "default",
+  "radius": "0.5rem",
   "colors": {
     "background": "hsl(0 0% 100%)",
     "foreground": "hsl(222.2 84% 4.9%)",
