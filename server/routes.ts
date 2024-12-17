@@ -83,15 +83,24 @@ export function registerRoutes(app: Express): Server {
         average_entry_score: string | number;
         event: string | number;
       }) => {
+        // Parse values ensuring they're numbers and handling potential string inputs
         const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
         const avgScore = typeof gw.average_entry_score === 'string' ? 
           parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
         const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
         
+        // Log the values for debugging
+        console.log('Processing gameweek:', {
+          event,
+          points,
+          average_entry_score: gw.average_entry_score,
+          parsed_average: avgScore
+        });
+        
         return {
           event,
           points,
-          average: avgScore
+          average: avgScore // This maps to the Team type's points_history.average field
         };
       });
 
