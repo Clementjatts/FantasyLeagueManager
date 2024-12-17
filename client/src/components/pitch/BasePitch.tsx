@@ -1,42 +1,25 @@
-import { Player } from "../types/fpl";
-import { PlayerCard } from "./PlayerCard";
+import { Player } from "../../types/fpl";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 
-interface TeamPitchProps {
+export interface BasePitchProps {
   players: Player[];
   substitutes: Player[];
-  captainId?: number;
-  viceCaptainId?: number;
-  onPlayerClick?: (player: Player) => void;
-  onSubstituteClick?: (player: Player) => void;
-  renderPlayerCard: (player: Player, isSubstitute: boolean) => React.ReactNode;
+  className?: string;
+  renderPlayer: (player: Player, isSubstitute: boolean) => React.ReactNode;
 }
 
-export function TeamPitch({ 
+export function BasePitch({ 
   players, 
   substitutes,
-  captainId, 
-  viceCaptainId, 
-  onPlayerClick,
-  onSubstituteClick,
-  renderPlayerCard
-}: TeamPitchProps) {
+  className,
+  renderPlayer
+}: BasePitchProps) {
   // Ensure both arrays are defined before combining
   const playersList = players || [];
   const substitutesList = substitutes || [];
   
-  // Get formation from players list (e.g., "4-4-2")
-  const getFormation = (players: Player[]) => {
-    const def = players.filter(p => p.element_type === 2).length;
-    const mid = players.filter(p => p.element_type === 3).length;
-    const fwd = players.filter(p => p.element_type === 4).length;
-    return `${def}-${mid}-${fwd}`;
-  };
-
-  const formation = getFormation(playersList);
-  
-  // Create position groups with formation-based ordering
+  // Create position groups
   const positions = {
     1: playersList.filter(p => p.element_type === 1),  // GK
     2: playersList.filter(p => p.element_type === 2),  // DEF
@@ -45,7 +28,10 @@ export function TeamPitch({
   };
 
   return (
-    <div className="relative w-full bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-4 md:p-8 shadow-xl">
+    <div className={cn(
+      "relative w-full bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-4 md:p-8 shadow-xl",
+      className
+    )}>
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik01MCAwdjEwME0wIDUwaDEwMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIGZpbGw9Im5vbmUiLz48L3N2Zz4=')] opacity-20"/>
       <div className="space-y-8">
         {/* Starting XI */}
@@ -55,21 +41,17 @@ export function TeamPitch({
               key={type}
               className="grid gap-x-4 md:gap-x-8 lg:gap-x-12 justify-items-center mx-auto w-full"
               style={{
-                gridTemplateColumns: `repeat(${playersInPosition.filter(p => players.includes(p)).length}, minmax(120px, 1fr))`,
+                gridTemplateColumns: `repeat(${playersInPosition.length}, minmax(120px, 1fr))`,
                 justifyContent: 'space-between'
               }}
             >
-              {playersInPosition
-                .filter(p => players.includes(p))
-                .map((player) => (
-                  <div key={player.id} className="flex flex-col items-center">
-                    <div className="relative w-[120px]">
-                      <div className="relative pt-2">
-                        {renderPlayerCard(player, false)}
-                      </div>
-                    </div>
+              {playersInPosition.map((player) => (
+                <div key={player.id} className="flex flex-col items-center">
+                  <div className="relative w-[120px]">
+                    {renderPlayer(player, false)}
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -84,10 +66,10 @@ export function TeamPitch({
 
         {/* Substitutes Section */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 w-full">
-          {substitutes.map((player) => (
+          {substitutesList.map((player) => (
             <div key={player.id} className="flex flex-col items-center">
-              <div className="relative w-[120px] pt-4">
-                {renderPlayerCard(player, true)}
+              <div className="relative w-[120px]">
+                {renderPlayer(player, true)}
               </div>
             </div>
           ))}

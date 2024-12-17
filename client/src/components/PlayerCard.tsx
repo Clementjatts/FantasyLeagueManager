@@ -49,6 +49,9 @@ export function PlayerCard({
             <Badge variant="outline" className="relative bg-background/40 backdrop-blur-md border-none px-3 py-1.5 font-medium">
               <span className="text-primary">{player.event_points || 0}</span>
               <span className="text-xs ml-0.5">pts</span>
+              {showLiveStats && (
+                <span className="ml-1.5 text-xs text-muted-foreground">({player.minutes}′)</span>
+              )}
             </Badge>
           </div>
         );
@@ -59,6 +62,11 @@ export function PlayerCard({
             <Badge variant="outline" className="relative bg-background/40 backdrop-blur-md border-none px-3 py-1.5 font-medium">
               <span className="text-primary">£{(player.now_cost / 10).toFixed(1)}</span>
               <span className="text-xs ml-0.5">m</span>
+              {showTransferInfo && player.cost_change_event !== 0 && (
+                <span className={`ml-1.5 text-xs ${player.cost_change_event > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {player.cost_change_event > 0 ? '↑' : '↓'}£{Math.abs(player.cost_change_event / 10).toFixed(1)}m
+                </span>
+              )}
             </Badge>
           </div>
         );
@@ -69,6 +77,9 @@ export function PlayerCard({
             <div className="relative flex items-center gap-2 bg-background/40 backdrop-blur-md px-3 py-1.5 rounded-lg">
               <ChevronUp className={`h-4 w-4 ${formColor}`} />
               <span className={`text-xs font-semibold ${formColor}`}>{formValue}</span>
+              {showOptimalStats && player.is_optimal && (
+                <span className="ml-1.5 text-xs text-green-500">★</span>
+              )}
             </div>
           </div>
         );

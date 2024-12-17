@@ -1,7 +1,7 @@
 import { Player } from "../types/fpl";
 import { PlayerCard } from "./PlayerCard";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
+import { TeamPitch } from "./TeamPitch";
 
 interface DreamTeamPitchProps {
   players: Player[];
@@ -45,67 +45,33 @@ export function DreamTeamPitch({
     <div className="relative w-full bg-gradient-to-b from-green-800 to-green-900 rounded-lg p-4 md:p-8 shadow-xl">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik01MCAwdjEwME0wIDUwaDEwMCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMSkiIGZpbGw9Im5vbmUiLz48L3N2Zz4=')] opacity-20"/>
       <div className="space-y-8">
-        {/* Starting XI with Optimal Team Focus */}
-        <div className="relative grid gap-8">
-          {Object.entries(positions).map(([type, playersInPosition]) => (
-            <div 
-              key={type}
-              className="grid gap-x-4 md:gap-x-8 lg:gap-x-12 justify-items-center mx-auto w-full"
-              style={{
-                gridTemplateColumns: `repeat(${playersInPosition.length}, minmax(120px, 1fr))`,
-                justifyContent: 'space-between'
-              }}
-            >
-              {playersInPosition.map((player) => (
-                <div key={player.id} className="flex flex-col items-center">
-                  <div className="relative w-[120px]">
-                    <div className="relative pt-2">
-                      <PlayerCard
-                        player={player}
-                        className="transition-transform hover:scale-105 text-center w-full"
-                        fixtures={fixtures}
-                        teams={teams}
-                        isCaptain={player.id === captainId}
-                        isViceCaptain={player.id === viceCaptainId}
-                        displayContext="dream"
-                      />
-                      {showOptimalReasons && player.optimal_reason && (
-                        <div className="absolute -bottom-6 left-0 right-0 text-xs text-center text-primary bg-background/90 p-1 rounded-md shadow-sm">
-                          {player.optimal_reason}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+        <TeamPitch
+          players={players}
+          substitutes={substitutes}
+          captainId={captainId}
+          viceCaptainId={viceCaptainId}
+          renderPlayerCard={(player: Player, isSubstitute: boolean): React.ReactNode => (
+            <div className="relative pt-2">
+              <PlayerCard
+                player={player}
+                className={cn(
+                  "transition-transform hover:scale-105 text-center w-full",
+                  isSubstitute && "opacity-80 hover:opacity-100"
+                )}
+                teams={teams}
+                fixtures={fixtures}
+                isCaptain={player.id === captainId}
+                isViceCaptain={player.id === viceCaptainId}
+                displayContext="dream"
+              />
+              {showOptimalReasons && player.optimal_reason && !isSubstitute && (
+                <div className="absolute -bottom-6 left-0 right-0 text-xs text-center text-primary bg-background/90 p-1 rounded-md shadow-sm">
+                  {player.optimal_reason}
                 </div>
-              ))}
+              )}
             </div>
-          ))}
-        </div>
-
-        <div className="relative">
-          <Separator className="my-6 bg-white/20" />
-          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 px-2 text-white/80 bg-green-900 text-sm">
-            Optimal Substitutes
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 w-full">
-          {substitutesList.map((player) => (
-            <div key={player.id} className="flex flex-col items-center">
-              <div className="relative w-[120px]">
-                <PlayerCard
-                  player={player}
-                  className="transition-transform hover:scale-105 opacity-80 hover:opacity-100 text-center"
-                  fixtures={fixtures}
-                  teams={teams}
-                  isCaptain={player.id === captainId}
-                  isViceCaptain={player.id === viceCaptainId}
-                  displayContext="dream"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+          )}
+        />
       </div>
     </div>
   );

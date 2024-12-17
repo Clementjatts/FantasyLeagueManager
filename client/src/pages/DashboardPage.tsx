@@ -8,7 +8,7 @@ import { PerformanceTimeline } from "../components/PerformanceTimeline";
 import { DeadlineCountdown } from "../components/DeadlineCountdown";
 import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
-import { TeamPitch } from "../components/TeamPitch";
+import { LivePitch } from "../components/pitch/LivePitch";
 import { Player, Pick } from "../types/fpl";
 import { ChipsStatus } from "../components/ChipsStatus";
 import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline, fetchBootstrapStatic } from "../lib/api";
@@ -248,7 +248,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="p-0">
             {allPlayers ? (
-              <TeamPitch 
+              <LivePitch 
                   players={team.picks
                     .filter((p: Pick) => p.position <= 11)
                     .map((pick: Pick) => {
