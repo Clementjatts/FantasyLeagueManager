@@ -114,6 +114,7 @@ export function registerRoutes(app: Express): Server {
         stats: {
           event_points: lastGwPoints,
           event_average: lastGwAveragePoints,
+          event_rank: lastGw.rank || 0,
           points_on_bench: lastGw.points_on_bench || 0,
           overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
           overall_rank: currentRank,
