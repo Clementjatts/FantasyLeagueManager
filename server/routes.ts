@@ -77,30 +77,19 @@ export function registerRoutes(app: Express): Server {
         picks = picksData.picks || [];
       }
 
-      // Ensure all gameweeks history is available for points graph
+      // Process gameweek history for points graph
       const pointsHistory = currentGw.map((gw: { 
         points: string | number;
-        average_entry_score: string | number;
         event: string | number;
       }) => {
-        // Parse values ensuring they're numbers and handling potential string inputs
+        // Parse values ensuring they're numbers
         const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
-        const avgScore = typeof gw.average_entry_score === 'string' ? 
-          parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
         const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
         
-        // Log the values for debugging
-        console.log('Processing gameweek:', {
-          event,
-          points,
-          average_entry_score: gw.average_entry_score,
-          parsed_average: avgScore
-        });
-        
+        // Only return essential gameweek data
         return {
           event,
-          points,
-          average: avgScore // This maps to the Team type's points_history.average field
+          points
         };
       });
 

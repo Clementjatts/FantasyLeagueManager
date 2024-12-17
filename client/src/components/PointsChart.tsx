@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface PointsData {
   gameweek: number;
   points: number;
-  average: number;
 }
 
 interface PointsChartProps {
@@ -29,14 +28,14 @@ export function PointsChart({ data }: PointsChartProps) {
                 type="monotone" 
                 dataKey="points" 
                 stroke="hsl(var(--primary))" 
+                strokeWidth={2}
                 name="Your Points"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="average" 
-                stroke="hsl(var(--muted-foreground))" 
-                strokeDasharray="5 5" 
-                name="Average"
+                dot={{
+                  stroke: 'hsl(var(--primary))',
+                  strokeWidth: 2,
+                  r: 4,
+                  fill: 'white'
+                }}
               />
             </LineChart>
           </ResponsiveContainer>
