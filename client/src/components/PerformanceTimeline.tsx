@@ -15,7 +15,7 @@ interface PerformanceTimelineProps {
 export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
   // Sort data by gameweek in ascending order
   const sortedData = [...data].sort((a, b) => a.gameweek - b.gameweek);
-  const maxPoints = Math.max(...data.map(d => d.points), 1); // Ensure non-zero denominator
+  const maxPoints = Math.max(...data.map(d => d.points), 1);
 
   return (
     <div className="space-y-4">

@@ -54,8 +54,6 @@ export interface Team {
   points_history: Array<{
     event: number;
     points: number;
-    average: number;
-    average_entry_score?: number;
   }>;
   summary_overall_points: number;
   summary_overall_rank: number;

@@ -172,9 +172,7 @@ export default function DashboardPage() {
                   <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                   <CardTitle className="text-lg">Gameweek Points</CardTitle>
                 </div>
-                <Badge variant="secondary" className="bg-primary/10">
-                  Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
-                </Badge>
+                {/* Removed average badge */}
               </div>
             </CardHeader>
             <CardContent>
@@ -310,13 +308,16 @@ export default function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Performance History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PerformanceTimeline data={pointsData} />
-        </CardContent>
-      </Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <CardTitle>Weekly Performance</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <PerformanceTimeline data={pointsData} />
+          </CardContent>
+        </Card>
     </div>
   );
 }

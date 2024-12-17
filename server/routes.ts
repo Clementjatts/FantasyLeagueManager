@@ -77,7 +77,7 @@ export function registerRoutes(app: Express): Server {
         picks = picksData.picks || [];
       }
 
-      // Process gameweek history for points graph
+      // Process gameweek history for points graph - simplified version
       const pointsHistory = currentGw.map((gw: { 
         points: string | number;
         event: string | number;
@@ -86,12 +86,12 @@ export function registerRoutes(app: Express): Server {
         const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
         const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
         
-        // Only return essential gameweek data
+        // Return only weekly performance data
         return {
           event,
-          points
+          points: Math.max(0, Math.min(200, points)) // Ensure points are between 0 and 200
         };
-      });
+      }).filter(gw => gw.event > 0 && gw.points >= 0); // Filter out invalid entries
 
       // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
       const parseTeamValue = (value: any): number => {
