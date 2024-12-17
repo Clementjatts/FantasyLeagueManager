@@ -1,0 +1,134 @@
+Still 0. Can the implementation attached help us get the average game week point?
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Papa from 'papaparse';
+import _ from 'lodash';
+
+const FPLAverages = () => {
+  const [averages, setAverages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const calculateAverages = async () => {
+      try {
+        const response = await window.fs.readFile('fpl_data.csv', { encoding: 'utf8' });
+        
+        Papa.parse(response, {
+          header: true,
+          dynamicTyping: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            // Group data by gameweek
+            const byGameweek = _.groupBy(results.data, 'gameweek');
+            
+            // Calculate average points for each gameweek
+            const gameweekAverages = _.map(byGameweek, (players, gw) => ({
+              gameweek: parseInt(gw),
+              averagePoints: _.meanBy(players, 'points'),
+              totalPlayers: players.length
+            }));
+
+            // Sort by gameweek
+            const sortedAverages = _.sortBy(gameweekAverages, 'gameweek');
+            setAverages(sortedAverages);
+            setLoading(false);
+          },
+          error: (error) => {
+            setError('Error parsing CSV data');
+            setLoading(false);
+          }
+        });
+      } catch (error) {
+        setError('Error loading data');
+        setLoading(false);
+      }
+    };
+
+    calculateAverages();
+  }, []);
+
+  if (loading) {
+    return (
+      <Card className="w-full max-w-4xl">
+        <CardContent className="p-6">
+          <div className="text-center">Loading FPL data...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full max-w-4xl">
+        <CardContent className="p-6">
+          <div className="text-red-500">{error}</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-4xl">
+      <CardHeader>
+        <CardTitle>Average FPL Points Per Gameweek</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-96">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={averages}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="gameweek" 
+                label={{ value: 'Gameweek', position: 'bottom' }}
+              />
+              <YAxis 
+                label={{ 
+                  value: 'Average Points', 
+                  angle: -90, 
+                  position: 'insideLeft' 
+                }}
+              />
+              <Tooltip 
+                formatter={(value) => [value.toFixed(2), 'Average Points']}
+                labelFormatter={(label) => `Gameweek ${label}`}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="averagePoints" 
+                stroke="#2563eb" 
+                name="Average Points"
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="mt-4">
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="px-4 py-2 text-left">Gameweek</th>
+                <th className="px-4 py-2 text-left">Average Points</th>
+                <th className="px-4 py-2 text-left">Players</th>
+              </tr>
+            </thead>
+            <tbody>
+              {averages.map((gw) => (
+                <tr key={gw.gameweek}>
+                  <td className="px-4 py-2">{gw.gameweek}</td>
+                  <td className="px-4 py-2">{gw.averagePoints.toFixed(2)}</td>
+                  <td className="px-4 py-2">{gw.totalPlayers}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default FPLAverages;

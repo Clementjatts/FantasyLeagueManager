@@ -89,26 +89,52 @@ export default function DashboardPage() {
   };
 
   // Points data for the history chart
-  const pointsData = (team.current || [])
-    .map((gw: { event: number; points: number }) => {
-      // Early return for invalid data
-      if (!gw || typeof gw.event !== 'number' || typeof gw.points !== 'number') {
-        console.warn('Invalid gameweek data:', gw);
+  const pointsData = (team.points_history || [])
+    .map(gw => {
+      try {
+        // Parse and validate all numeric values
+        const parseNumericValue = (value: any, defaultValue?: number): number => {
+          if (value === null || value === undefined) return defaultValue || 0;
+          return typeof value === 'number' ? value : parseInt(String(value), 10) || (defaultValue || 0);
+        };
+
+        const gameweek = parseNumericValue(gw.event, 0);
+        const points = parseNumericValue(gw.points, 0);
+        const average = gw.average;
+
+        // Validate the gameweek number
+        if (gameweek < 1 || gameweek > 38) {
+          console.warn(`Invalid gameweek number: ${gameweek}`, gw);
+          return null;
+        }
+
+        // Validate points and average are within reasonable bounds
+        const validPoints = Math.max(0, Math.min(150, points));
+        const validAverage = Math.max(0, Math.min(150, average));
+
+        // Enhanced debug logging
+        console.log('Processed gameweek data:', {
+          gameweek,
+          raw_points: points,
+          valid_points: validPoints,
+          raw_average: average,
+          valid_average: validAverage,
+          original_data: gw
+        });
+
+        return {
+          gameweek,
+          points: validPoints,
+          average: validAverage
+        };
+      } catch (error) {
+        console.error('Error processing gameweek data:', error, gw);
         return null;
       }
-      
-      // Validate ranges
-      const gameweek = Math.max(1, Math.min(38, gw.event));
-      const points = Math.max(0, Math.min(200, gw.points)); // Cap points at reasonable maximum
-      
-      return { gameweek, points };
     })
-    .filter((entry): entry is { gameweek: number; points: number } => entry !== null)
-    .sort((a, b) => a.gameweek - b.gameweek);
-
-  console.log("Performance history data:", pointsData);
-
-  console.log("Processed points data:", pointsData);
+    .filter((data): data is { gameweek: number; points: number; average: number } => 
+      data !== null && data.gameweek > 0
+    );
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
@@ -178,7 +204,9 @@ export default function DashboardPage() {
                   <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                   <CardTitle className="text-lg">Gameweek Points</CardTitle>
                 </div>
-                {/* Removed average badge */}
+                <Badge variant="secondary" className="bg-primary/10">
+                  Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
+                </Badge>
               </div>
             </CardHeader>
             <CardContent>
@@ -314,13 +342,8 @@ export default function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <CardTitle>Performance History</CardTitle>
-            </div>
-          </div>
+        <CardHeader>
+          <CardTitle>Performance History</CardTitle>
         </CardHeader>
         <CardContent>
           <PerformanceTimeline data={pointsData} />

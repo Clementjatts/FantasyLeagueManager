@@ -4,26 +4,11 @@ import { db } from "../db";
 import { teams } from "../db/schema";
 import { eq } from "drizzle-orm";
 
-interface GameweekData {
-  event: number;
-  points: number;
-  value?: number;
-  bank?: number;
-  total_points?: number;
-  event_rank?: number;
-  points_on_bench?: number;
-  overall_rank?: number;
-  rank_sort?: number;
-  average_entry_score?: number;
-}
+export function registerRoutes(app: Express): Server {
+  const httpServer = createServer(app);
 
-interface HistoryResponse {
-  current: GameweekData[];
-  past: any[];
-  chips: any[];
-}
-
-export function registerRoutes(app: Express) {
+  // Set port from environment or use 5000 as fallback
+  const port = process.env.PORT || 5000;
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
@@ -51,7 +36,7 @@ export function registerRoutes(app: Express) {
       const entryData = await entryResponse.json();
 
       // Fetch history data which includes current gameweek stats
-      const historyFetchResponse = await fetch(
+      const historyResponse = await fetch(
         `https://fantasy.premierleague.com/api/entry/${managerId}/history/`,
         {
           headers: {
@@ -61,14 +46,14 @@ export function registerRoutes(app: Express) {
         }
       );
 
-      if (!historyFetchResponse.ok) {
-        console.error(`History response error: ${historyFetchResponse.status}`);
+      if (!historyResponse.ok) {
+        console.error(`History response error: ${historyResponse.status}`);
         return res.status(500).json({ message: "Unable to fetch history data" });
       }
 
-      const historyData = await historyFetchResponse.json() as HistoryResponse;
+      const historyData = await historyResponse.json();
       const currentGw = historyData.current || [];
-      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {} as GameweekData;
+      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {};
 
       // Get the current and last event from data
       const currentEvent = entryData.current_event || 1;
@@ -92,19 +77,32 @@ export function registerRoutes(app: Express) {
         picks = picksData.picks || [];
       }
 
-      // Process gameweek history for points graph - focus on weekly performance only
-      const pointsHistory = (historyData.current || [])
-        .map((gw) => {
-          if (!gw || typeof gw.event !== 'number' || typeof gw.points !== 'number') {
-            return null;
-          }
-          return {
-            gameweek: Math.max(1, Math.min(38, gw.event)),
-            points: Math.max(0, Math.min(200, gw.points))
-          };
-        })
-        .filter((gw): gw is { gameweek: number; points: number } => gw !== null)
-        .sort((a, b) => a.gameweek - b.gameweek);
+      // Ensure all gameweeks history is available for points graph
+      const pointsHistory = currentGw.map((gw: { 
+        points: string | number;
+        average_entry_score: string | number;
+        event: string | number;
+      }) => {
+        // Parse values ensuring they're numbers and handling potential string inputs
+        const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
+        const avgScore = typeof gw.average_entry_score === 'string' ? 
+          parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
+        const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
+        
+        // Log the values for debugging
+        console.log('Processing gameweek:', {
+          event,
+          points,
+          average_entry_score: gw.average_entry_score,
+          parsed_average: avgScore
+        });
+        
+        return {
+          event,
+          points,
+          average: avgScore // This maps to the Team type's points_history.average field
+        };
+      });
 
       // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
       const parseTeamValue = (value: any): number => {
@@ -427,6 +425,5 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // All routes have been registered
-  return app;
+  return httpServer;
 }

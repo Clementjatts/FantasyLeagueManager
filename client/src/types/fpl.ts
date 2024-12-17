@@ -38,7 +38,6 @@ export interface Player {
   event_points?: number;
   is_optimal?: boolean;
   optimal_reason?: string;
-  multiplier?: number;
 }
 
 export interface Team {
@@ -55,6 +54,8 @@ export interface Team {
   points_history: Array<{
     event: number;
     points: number;
+    average: number;
+    average_entry_score?: number;
   }>;
   summary_overall_points: number;
   summary_overall_rank: number;
@@ -63,15 +64,6 @@ export interface Team {
   last_deadline_value: number;
   current_event: number;
   last_deadline_event: number;
-  current: Array<{
-    event: number;
-    points: number;
-    total_points?: number;
-    rank?: number;
-    event_rank?: number;
-    bank?: number;
-    value?: number;
-  }>;
   stats: {
     event_points: number;
     event_rank: number;

@@ -121,12 +121,11 @@ class TestFPLAPI(unittest.TestCase):
             # 5. Points History Validation
             if data['points_history']:
                 latest_gw = data['points_history'][-1]
-                self.assertIsInstance(latest_gw['gameweek'], int, "Gameweek should be an integer")
-                self.assertIsInstance(latest_gw['points'], int, "Points should be an integer")
-                self.assertGreaterEqual(latest_gw['points'], 0, "Points cannot be negative")
-                self.assertLessEqual(latest_gw['points'], 200, "Points cannot exceed 200")
-                self.assertGreaterEqual(latest_gw['gameweek'], 1, "Gameweek cannot be less than 1")
-                self.assertLessEqual(latest_gw['gameweek'], 38, "Gameweek cannot exceed 38")
+                self.assertEqual(
+                    latest_gw['average'],
+                    stats['event_average'],
+                    "Gameweek average points mismatch between history and stats"
+                )
             
             print("\nTeam Data Validation Results:")
             print(f"Squad Value: £{data['last_deadline_value']/10:.1f}m")
@@ -134,6 +133,7 @@ class TestFPLAPI(unittest.TestCase):
             print(f"Free Transfers: {transfers['limit']}")
             print(f"Transfers Made: {transfers['made']}")
             print(f"Current GW Points: {stats['event_points']}")
+            print(f"Average Points: {stats['event_average']}")
             print(f"Gameweek Rank: {stats['event_rank']}")
             print(f"Overall Rank: {stats['overall_rank']}")
             

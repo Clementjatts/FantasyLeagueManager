@@ -10,18 +10,8 @@ interface PlayerCardProps {
   isViceCaptain?: boolean;
   onClick?: () => void;
   className?: string;
-  fixtures?: Array<{
-    id: number;
-    event: number;
-    started: boolean;
-    finished: boolean;
-    team_h: number;
-    team_a: number;
-  }>;
-  teams?: Array<{
-    id: number;
-    short_name: string;
-  }>;
+  fixtures?: any[];
+  teams?: any[];
   displayContext?: 'live' | 'transfer' | 'dream';
   showTransferInfo?: boolean;
   showLiveStats?: boolean;
