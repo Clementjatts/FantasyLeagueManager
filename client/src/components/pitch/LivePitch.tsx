@@ -1,7 +1,7 @@
 import { Player } from "../../types/fpl";
 import { PlayerCard } from "../PlayerCard";
 import { cn } from "@/lib/utils";
-import { BasePitch } from "./BasePitch";
+import { TeamPitch } from "../TeamPitch";
 
 interface LivePitchProps {
   players: Player[];
@@ -43,10 +43,12 @@ export function LivePitch({
         </div>
       </div>
 
-      <BasePitch
+      <TeamPitch
         players={players}
         substitutes={substitutes}
-        renderPlayer={(player: Player, isSubstitute: boolean) => (
+        captainId={captainId}
+        viceCaptainId={viceCaptainId}
+        renderPlayerCard={(player: Player, isSubstitute: boolean) => (
           <PlayerCard
             player={player}
             className={cn(
@@ -58,6 +60,7 @@ export function LivePitch({
             isCaptain={player.id === captainId}
             isViceCaptain={player.id === viceCaptainId}
             showLiveStats={showLiveStats}
+            displayContext="live"
           />
         )}
       />
