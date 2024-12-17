@@ -92,7 +92,7 @@ export default function DashboardPage() {
   const pointsData = team.points_history?.map(gw => ({
     gameweek: gw.event || 0,
     points: gw.points || 0,
-    average: team.stats?.average_entry_score || Math.round((gw.points || 0) * 0.85)
+    average: gw.average_entry_score || 0
   })) || [];
 
   // Stats for quick actions
