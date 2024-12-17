@@ -4,10 +4,20 @@ import { db } from "../db";
 import { teams } from "../db/schema";
 import { eq } from "drizzle-orm";
 
+interface GameweekData {
+  event: number;
+  points: number;
+  average_entry_score: number;
+  total_points: number;
+  overall_rank: number;
+  bank: number;
+  value: number;
+  event_rank: number;
+  points_on_bench: number;
+}
+
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
-
-  // Set port from environment or use 5000 as fallback
   const port = process.env.PORT || 5000;
   
   // FPL API proxy endpoints
@@ -52,12 +62,12 @@ export function registerRoutes(app: Express): Server {
       }
 
       const historyData = await historyResponse.json();
-      const currentGw = historyData.current || [];
-      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {};
+      const currentGw = (historyData.current || []) as GameweekData[];
+      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : null;
 
       // Get the current and last event from data
       const currentEvent = entryData.current_event || 1;
-      const lastCompletedEvent = lastGw.event || (currentEvent > 1 ? currentEvent - 1 : 1);
+      const lastCompletedEvent = lastGw?.event || (currentEvent > 1 ? currentEvent - 1 : 1);
 
       // Fetch picks for the current gameweek
       const picksResponse = await fetch(
@@ -70,188 +80,96 @@ export function registerRoutes(app: Express): Server {
         }
       );
 
-      // Get picks from response
       let picks = [];
       if (picksResponse.ok) {
         const picksData = await picksResponse.json();
         picks = picksData.picks || [];
       }
 
-      // Ensure all gameweeks history is available for points graph
-      const pointsHistory = currentGw.map((gw: { 
-        points: string | number;
-        average_entry_score: string | number;
-        event: string | number;
-      }) => {
-        // Parse values ensuring they're numbers and handling potential string inputs
-        const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
-        const avgScore = typeof gw.average_entry_score === 'string' ? 
-          parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
-        const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
-        
-        // Log the values for debugging
-        console.log('Processing gameweek:', {
-          event,
-          points,
-          average_entry_score: gw.average_entry_score,
-          parsed_average: avgScore
-        });
-        
-        return {
-          event,
-          points,
-          average: avgScore // This maps to the Team type's points_history.average field
-        };
-      });
-
-      // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
-      const parseTeamValue = (value: any): number => {
-        if (!value) return 1000; // Default £100.0m
-        
+      // Process gameweek history for points graph
+      const pointsHistory = currentGw.map(gw => {
         try {
-          // If it's already a number
-          if (typeof value === 'number') {
-            // If it's in the correct range (950-1200 = £95.0m-£120.0m)
-            if (value >= 950 && value <= 1200) {
-              return value;
-            }
-            // If it needs to be converted to tenths (95-120 = £95.0m-£120.0m)
-            if (value >= 95 && value <= 120) {
-              return Math.floor(value * 10);
-            }
+          // Parse and validate all numeric values
+          const parseNumericValue = (value: any, defaultValue = 0): number => {
+            if (value === null || value === undefined) return defaultValue;
+            return typeof value === 'number' ? value : parseInt(String(value), 10) || defaultValue;
+          };
+
+          const gameweek = parseNumericValue(gw.event);
+          const points = parseNumericValue(gw.points);
+          const average = parseNumericValue(gw.average_entry_score);
+
+          // Validate the gameweek number
+          if (gameweek < 1 || gameweek > 38) {
+            console.warn(`Invalid gameweek number: ${gameweek}`, gw);
+            return null;
           }
-          
-          // Convert to string and clean it
-          const strValue = value.toString().trim();
-          
-          // If it's a decimal format (e.g., "100.6")
-          if (strValue.includes('.')) {
-            const [whole, decimal] = strValue.split('.');
-            const wholeNum = parseInt(whole);
-            const decimalNum = parseInt(decimal.charAt(0) || '0');
-            
-            // Combine whole and decimal to get tenths
-            const combined = wholeNum * 10 + decimalNum;
-            if (combined >= 950 && combined <= 1200) {
-              return combined;
-            }
-          }
-          
-          // If it's a whole number string
-          const parsed = parseInt(strValue);
-          if (!isNaN(parsed)) {
-            if (parsed >= 950 && parsed <= 1200) {
-              return parsed;
-            }
-            if (parsed >= 95 && parsed <= 120) {
-              return parsed * 10;
-            }
-          }
-          
-          // Log the problematic value for debugging
-          console.log('Invalid team value format:', value);
-          return 1000; // Default to £100.0m
+
+          // Validate points and average are within reasonable bounds
+          const validPoints = Math.max(0, Math.min(150, points));
+          const validAverage = Math.max(0, Math.min(150, average));
+
+          // Enhanced debug logging
+          console.log('Processed gameweek data:', {
+            gameweek,
+            raw_points: points,
+            valid_points: validPoints,
+            raw_average: average,
+            valid_average: validAverage,
+            original_data: gw
+          });
+
+          return {
+            gameweek,
+            points: validPoints,
+            average: validAverage
+          };
         } catch (error) {
-          console.error('Error parsing team value:', error);
-          return 1000; // Default to £100.0m
+          console.error('Error processing gameweek data:', error, gw);
+          return null;
         }
-      };
-      
-      // Parse bank value (in tenths of millions, max £30.0m)
-      const parseBankValue = (value: any): number => {
-        if (!value) return 0;
-        
-        let numericValue: number;
-        
-        if (typeof value === 'number') {
-          numericValue = value;
-        } else {
-          const cleanStr = value.toString().replace(/[^\d.]/g, '');
-          numericValue = parseFloat(cleanStr);
-        }
-        
-        // If it's already in tenths format (e.g., 300 = £30.0m)
-        if (numericValue >= 0 && numericValue <= 300) {
-          return Math.round(numericValue);
-        }
-        
-        // If it's in regular format (e.g., 30.0)
-        if (numericValue >= 0 && numericValue <= 30) {
-          return Math.round(numericValue * 10);
-        }
-        
-        return 0; // Default to £0.0m if value is invalid
-      };
+      })
+      .filter((data): data is { gameweek: number; points: number; average: number } => 
+        data !== null && data.gameweek > 0
+      );
 
-      // Calculate team and bank values
-      const teamValue = parseTeamValue(lastGw?.value || entryData.last_deadline_value);
-      const bankValue = parseBankValue(lastGw?.bank || entryData.last_deadline_bank);
+      // Parse team value
+      const teamValue = lastGw?.value || entryData.last_deadline_value || 1000;
+      const bankValue = lastGw?.bank || entryData.last_deadline_bank || 0;
 
-      // Calculate free transfers based on rules
-      const baseTransfers = 1;
-      const savedTransfers = entryData.transfers?.limit !== undefined ? 
-        parseInt(entryData.transfers.limit.toString()) : 2; // Default to 2 if undefined
-      const transfersMade = entryData.transfers?.made !== undefined ? 
-        parseInt(entryData.transfers.made.toString()) : 0;
-      
-      // Always ensure 2 free transfers are available as per user requirement
-      const freeTransfers = 2;
-
-      // Get the last gameweek's data for points and rank with proper type handling
-      const parseNumber = (value: any): number => {
-        if (!value) return 0;
-        const parsed = parseInt(value.toString());
-        return isNaN(parsed) ? 0 : parsed;
-      };
-
+      // Safe integer parsing
       const parseIntSafe = (value: any, defaultValue: number): number => {
         if (value === undefined || value === null) return defaultValue;
         const parsed = parseInt(String(value).replace(/[^0-9-]/g, ''));
         return isNaN(parsed) ? defaultValue : parsed;
       };
 
-      const lastGwPoints = parseIntSafe(lastGw?.points || entryData.summary_event_points, 0);
-      const lastGwAveragePoints = parseIntSafe(lastGw?.average_entry_score, 0);
-      const currentRank = Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1));
-      const previousRank = Math.max(1, parseIntSafe(
-        currentGw.length > 1 
-          ? currentGw[currentGw.length - 2].overall_rank 
-          : entryData.summary_overall_rank,
-        1
-      ));
-
-      // Validate numeric ranges
-      const validatedPoints = Math.min(200, Math.max(0, lastGwPoints));
-      const validatedAverage = Math.min(150, Math.max(0, lastGwAveragePoints));
-      const validatedRank = Math.min(10000000, Math.max(1, currentRank));
-
-      // Structure the response data with proper type handling
+      // Structure the response data
       const combinedData = {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: freeTransfers, // Set to 2 as per requirement
-          made: Math.max(0, parseIntSafe(transfersMade, 0)),
+          limit: 2,
+          made: Math.max(0, parseIntSafe(entryData.transfers?.made, 0)),
           bank: bankValue,
           value: teamValue,
         },
         points_history: pointsHistory,
         stats: {
-          event_points: Math.min(200, Math.max(0, parseIntSafe(lastGw?.points || entryData.summary_event_points, 0))),
-          event_average: Math.min(150, Math.max(0, parseIntSafe(currentGw.length > 0 ? currentGw[currentGw.length - 1].average_entry_score : 0, 0))),
-          event_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.event_rank || entryData.summary_event_rank, 1))),
-          points_on_bench: Math.min(100, Math.max(0, parseIntSafe(lastGw?.points_on_bench, 0))),
-          overall_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
-          overall_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1))),
-          rank_sort: Math.max(1, previousRank),
-          total_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
+          event_points: Math.max(0, parseIntSafe(lastGw?.points, 0)),
+          event_average: Math.max(0, parseIntSafe(lastGw?.average_entry_score, 0)),
+          event_rank: Math.max(1, parseIntSafe(lastGw?.event_rank, 1)),
+          points_on_bench: Math.max(0, parseIntSafe(lastGw?.points_on_bench, 0)),
+          overall_points: Math.max(0, parseIntSafe(lastGw?.total_points, 0)),
+          overall_rank: Math.max(1, parseIntSafe(lastGw?.overall_rank, 1)),
+          rank_sort: Math.max(1, parseIntSafe(currentGw[currentGw.length - 2]?.overall_rank, 1)),
           value: teamValue,
           bank: bankValue,
         },
-        current_event: parseInt(String(currentEvent)) || 1,
-        last_deadline_event: parseInt(String(lastCompletedEvent)) || 1,
-        summary_overall_points: Math.max(0, parseInt(String(lastGw.total_points)) || parseInt(String(entryData.summary_overall_points)) || 0),
-        summary_overall_rank: Math.max(1, parseInt(String(currentRank)) || 1),
+        current_event: currentEvent,
+        last_deadline_event: lastCompletedEvent,
+        summary_overall_points: Math.max(0, parseIntSafe(lastGw?.total_points, 0)),
+        summary_overall_rank: Math.max(1, parseIntSafe(lastGw?.overall_rank, 1)),
         last_deadline_bank: bankValue,
         last_deadline_value: teamValue
       };
@@ -298,24 +216,20 @@ export function registerRoutes(app: Express): Server {
         return;
       }
 
-      // Get the current picks and transfers
       const picks = Array.isArray(team.picks) ? team.picks : [];
       const transfers = team.transfers as any;
 
-      // Validate transfer
       if (transfers.limit <= 0) {
         res.status(400).json({ message: "No free transfers available" });
         return;
       }
 
-      // Get the positions of both players
       const outPlayer = picks.find(p => p.element === outId);
       if (!outPlayer) {
         res.status(400).json({ message: "Player not found in your team" });
         return;
       }
 
-      // Validate position replacement
       const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
       const data = await response.json();
       const newPlayer = data.elements.find((p: any) => p.id === playerId);
@@ -326,18 +240,15 @@ export function registerRoutes(app: Express): Server {
         return;
       }
 
-      // Ensure players are of the same position type
       if (newPlayer.element_type !== oldPlayer.element_type) {
         res.status(400).json({ message: "Players must be of the same position" });
         return;
       }
 
-      // Update picks by replacing the outgoing player
       const updatedPicks = picks.map(pick => 
         pick.element === outId ? { ...pick, element: playerId } : pick
       );
 
-      // Update transfers count and save
       const updatedTransfers = {
         ...transfers,
         limit: transfers.limit - 1,
@@ -403,11 +314,8 @@ export function registerRoutes(app: Express): Server {
       }
 
       const fixtures = await fixturesResponse.json();
-      
-      // Get current timestamp
       const now = new Date().getTime();
       
-      // Find the next fixture that hasn't started yet
       const nextFixture = fixtures
         .filter((f: any) => new Date(f.kickoff_time).getTime() > now)
         .sort((a: any, b: any) => 
