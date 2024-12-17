@@ -33,7 +33,10 @@ export function PlayerCard({
   className,
   fixtures = [],
   teams = [],
-  displayContext = 'live'
+  displayContext = 'live',
+  showLiveStats = false,
+  showTransferInfo = false,
+  showOptimalStats = false
 }: PlayerCardProps) {
   const teamInfo = teams?.find(t => t.id === player.team) || { short_name: '' };
   const teamAbbr = teamInfo.short_name;
