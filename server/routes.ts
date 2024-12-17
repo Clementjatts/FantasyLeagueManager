@@ -23,11 +23,7 @@ interface HistoryResponse {
   chips: any[];
 }
 
-export function registerRoutes(app: Express): Server {
-  const httpServer = createServer(app);
-
-  // Set port from environment or use 5000 as fallback
-  const port = process.env.PORT || 5000;
+export function registerRoutes(app: Express) {
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
@@ -431,5 +427,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  return httpServer;
+  // All routes have been registered
+  return app;
 }

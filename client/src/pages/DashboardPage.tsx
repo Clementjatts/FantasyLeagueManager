@@ -91,18 +91,21 @@ export default function DashboardPage() {
   // Points data for the history chart
   const pointsData = (team.points_history || [])
     .map(gw => {
-      if (!gw || typeof gw !== 'object') return null;
+      if (!gw) return null;
       
-      const gameweek = Number(gw.event);
-      const points = Number(gw.points);
+      // Convert values and provide defaults if needed
+      const gameweek = gw.event ? Number(gw.event) : null;
+      const points = gw.points ? Number(gw.points) : null;
 
-      // Validate data
-      if (!Number.isInteger(gameweek) || gameweek < 1 || gameweek > 38) return null;
-      if (!Number.isFinite(points) || points < 0) return null;
+      // Basic validation while being more lenient
+      if (gameweek === null || points === null) return null;
+      if (gameweek < 1 || gameweek > 38) return null;
+      if (points < 0) return null;
 
       return { gameweek, points };
     })
-    .filter((data): data is { gameweek: number; points: number } => data !== null);
+    .filter((data): data is { gameweek: number; points: number } => data !== null)
+    .sort((a, b) => a.gameweek - b.gameweek);
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);

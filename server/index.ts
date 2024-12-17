@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -38,7 +39,8 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
-    const server = registerRoutes(app);
+    // Register routes
+    registerRoutes(app);
 
     // Global error handler
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -51,6 +53,10 @@ app.use((req, res, next) => {
       }
     });
 
+    const server = createServer(app);
+    const PORT = parseInt(process.env.PORT || '5000', 10);
+    const HOST = "0.0.0.0";
+
     // Setup development/production environment
     if (app.get("env") === "development") {
       log("Starting server in development mode");
@@ -60,52 +66,42 @@ app.use((req, res, next) => {
       serveStatic(app);
     }
 
-    // Server configuration
-    const PORT = process.env.PORT || 5000;
-    const HOST = "0.0.0.0";
+    // Start server
+    server.listen(PORT, HOST, () => {
+      log(`Server started successfully on http://${HOST}:${PORT}`);
+    });
 
-    // Start server with proper error handling
-    if (!server.listening) {
-      try {
-        server.listen(Number(PORT), HOST, () => {
-          log(`Server started successfully on http://${HOST}:${PORT}`);
-        });
-      } catch (error) {
-        console.error('Failed to start server:', error);
-        process.exit(1);
+    // Handle specific listen errors
+    server.on('error', (error: any) => {
+      if (error.syscall !== 'listen') {
+        throw error;
       }
 
-      server.on('error', (error: any) => {
-        if (error.syscall !== 'listen') {
+      const bind = typeof PORT === 'string' ? 'Pipe ' + PORT : 'Port ' + PORT;
+
+      switch (error.code) {
+        case 'EACCES':
+          console.error(bind + ' requires elevated privileges');
+          process.exit(1);
+          break;
+        case 'EADDRINUSE':
+          console.error(bind + ' is already in use');
+          process.exit(1);
+          break;
+        default:
           throw error;
-        }
+      }
+    });
 
-        const bind = typeof PORT === 'string' ? 'Pipe ' + PORT : 'Port ' + PORT;
-
-        // Handle specific listen errors with friendly messages
-        switch (error.code) {
-          case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-            break;
-          case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-            break;
-          default:
-            throw error;
-        }
+    // Handle graceful shutdown
+    process.on('SIGTERM', () => {
+      log('SIGTERM signal received: closing HTTP server');
+      server.close(() => {
+        log('HTTP server closed');
+        process.exit(0);
       });
+    });
 
-      // Handle graceful shutdown
-      process.on('SIGTERM', () => {
-        log('SIGTERM signal received: closing HTTP server');
-        server.close(() => {
-          log('HTTP server closed');
-          process.exit(0);
-        });
-      });
-    }
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);

@@ -10,7 +10,12 @@ interface PerformanceTimelineProps {
 }
 
 export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
-  if (!data.length) return null;
+  console.log('PerformanceTimeline received data:', data);
+  
+  if (!data?.length) {
+    console.log('No performance data available');
+    return null;
+  }
   
   const maxPoints = Math.max(...data.map(gw => gw.points), 1);
   
