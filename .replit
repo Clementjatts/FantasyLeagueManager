@@ -40,10 +40,6 @@ args = "Start application"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "API Tests"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Express Server"
 
 [[workflows.workflow]]
@@ -60,20 +56,6 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
-
-[[workflows.workflow]]
-name = "API Tests"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python server/tests/test_fpl_api.py"
 
 [[workflows.workflow]]
 name = "Express Server"
