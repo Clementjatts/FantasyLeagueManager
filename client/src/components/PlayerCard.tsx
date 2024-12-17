@@ -50,11 +50,9 @@ export function PlayerCard({
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg blur-sm group-hover:blur-md transition-all" />
             <Badge variant="outline" className="relative bg-background/40 backdrop-blur-md border-none px-3 py-1.5 font-medium">
-              <span className="text-primary">
-                {(player.event_points || 0) * (isCaptain ? 2 : 1)}
-              </span>
+              <span className="text-primary">{player.event_points || 0}</span>
               <span className="text-xs ml-0.5">pts</span>
-              {showLiveStats && player.minutes !== undefined && (
+              {showLiveStats && (
                 <span className="ml-1.5 text-xs text-muted-foreground">({player.minutes}′)</span>
               )}
             </Badge>
