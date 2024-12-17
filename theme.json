@@ -1,10 +1,13 @@
 {
-  "name": "light",
-  "variant": "default",
-  "type": "light",
-  "appearance": "light",
-  "radius": 0.5,
-  "primary": "#000000",
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rounding": "default",
+  "colors": {
+    "primary": "slate",
+    "gray": "slate"
+  },
+  "radius": "0.5rem",
+  "themeSwitcher": true,
   "themes": [
     {
       "name": "light",
@@ -14,12 +17,23 @@
       },
       "cssVars": {
         "background": "0 0% 100%",
-        "foreground": "224 71.4% 4.1%",
-        "primary": "220.9 39.3% 11%",
-        "primary-foreground": "210 20% 98%"
+        "foreground": "222.2 84% 4.9%",
+        "primary": "222.2 47.4% 11.2%",
+        "primary-foreground": "210 40% 98%"
+      }
+    },
+    {
+      "name": "dark",
+      "label": "Dark",
+      "activeWhen": {
+        "dark": true
+      },
+      "cssVars": {
+        "background": "222.2 84% 4.9%",
+        "foreground": "210 40% 98%",
+        "primary": "210 40% 98%",
+        "primary-foreground": "222.2 47.4% 11.2%"
       }
     }
-  ],
-  "activeTheme": "light",
-  "extend": {}
+  ]
 }
