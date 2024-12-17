@@ -72,19 +72,71 @@ export function registerRoutes(app: Express): Server {
 
       // Get picks from response
       let picks = [];
+      interface PickStats {
+        total_points: number;
+        minutes: number;
+      }
+
+      interface Pick {
+        element: number;
+        position: number;
+        multiplier: number;
+        is_captain: boolean;
+        is_vice_captain: boolean;
+        stats?: PickStats;
+      }
+
       if (picksResponse.ok) {
         const picksData = await picksResponse.json();
         picks = picksData.picks || [];
+        
+        // Calculate actual points including captain multiplier and substitutes
+        let totalPoints = 0;
+        let playersPlayed = 0;
+        
+        // Calculate points for all players (starting 11 and substitutes)
+        (picks as Pick[]).forEach(pick => {
+          const points = pick.stats?.total_points || 0;
+          const minutes = pick.stats?.minutes || 0;
+          
+          // Count player if they've played any minutes (including substitutes)
+          if (minutes > 0) {
+            playersPlayed++;
+          }
+          
+          // Apply captain multiplier (always 2 for captain)
+          let effectivePoints = points;
+          if (pick.is_captain) {
+            effectivePoints *= 2;
+          } else if (pick.multiplier && pick.multiplier > 1) {
+            effectivePoints *= pick.multiplier;
+          }
+          
+          totalPoints += effectivePoints;
+        });
+
+        console.log('Points calculation:', { 
+          totalPoints, 
+          playersPlayed,
+          hasCaptain: (picks as Pick[]).some(pick => pick.is_captain),
+          captainPoints: (picks as Pick[]).find(pick => pick.is_captain)?.stats?.total_points || 0
+        });
       }
 
       // Ensure all gameweeks history is available for points graph
-      const pointsHistory = currentGw.map(gw => {
-        const points = parseInt(gw.points) || 0;
-        const average = parseInt(gw.average_entry_score) || Math.round(points * 0.85);
+      const pointsHistory = currentGw.map((gw: { 
+        event: string | number;
+        points: string | number;
+        average_entry_score: string | number;
+        rank: string | number;
+      }) => {
+        const points = parseInt(gw.points.toString()) || 0;
+        const average = parseInt(gw.average_entry_score.toString()) || Math.round(points * 0.85);
         return {
-          event: parseInt(gw.event) || 0,
+          event: parseInt(gw.event.toString()) || 0,
           points: points,
-          average: average
+          average: average,
+          rank: parseInt(gw.rank.toString()) || 0
         };
       });
 
@@ -100,15 +152,23 @@ export function registerRoutes(app: Express): Server {
       const lastGwPoints = lastGw.points || 0;
       const lastGwAveragePoints = lastGw.average_entry_score || Math.round(lastGwPoints * 0.85);
 
+      // Declare playersPlayed in outer scope if not already counted
+      let playersPlayed = 0;
+      if (!picksResponse.ok) {
+        playersPlayed = lastGw.players_played || 0;
+      }
+
       // Structure the response data
       const combinedData = {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: entryData.transfers?.limit || 1,
+          limit: entryData.transfers?.limit || 1,  // Default to 1 free transfer if not specified
           made: entryData.transfers?.made || 0,
           bank: bankValue,
           value: teamValue,
+          cost: entryData.transfers?.cost || 0,
+          status: entryData.transfers?.status || 'active'
         },
         points_history: pointsHistory,
         stats: {
@@ -118,9 +178,11 @@ export function registerRoutes(app: Express): Server {
           overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
           overall_rank: currentRank,
           rank_sort: previousRank,
+          event_rank: lastGw.rank || 0,  // Add event (gameweek) rank
           total_points: lastGw.total_points || entryData.summary_overall_points || 0,
           value: teamValue,
           bank: bankValue,
+          players_played: playersPlayed,  // Add count of players who have played
         },
         current_event: currentEvent,
         last_deadline_event: lastCompletedEvent,

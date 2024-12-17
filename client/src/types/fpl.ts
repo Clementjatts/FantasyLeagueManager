@@ -78,6 +78,7 @@ export interface Team {
     event_transfers: number;
     event_transfers_cost: number;
     average_entry_score: number;
+    players_played: number;
   };
 }
 

@@ -86,6 +86,7 @@ export default function DashboardPage() {
     lastRank: team.stats?.rank_sort || 0,
     teamValue: ((team.last_deadline_value || 0) / 10).toFixed(1),
     bankValue: ((team.last_deadline_bank || 0) / 10).toFixed(1),
+    playersPlayed: team.stats?.players_played || 0,
   };
 
   // Points data for the history chart
@@ -180,6 +181,9 @@ export default function DashboardPage() {
                   <div className="text-sm text-muted-foreground">Gameweek Rank</div>
                   <div className="text-2xl font-bold tabular-nums">
                     {(team.stats?.event_rank || 0).toLocaleString()}
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {team.stats?.players_played || 0} players played
+                    </div>
                   </div>
                 </div>
               </div>
@@ -280,7 +284,7 @@ export default function DashboardPage() {
                   viceCaptainId={team.picks.find((p: Pick) => p.is_vice_captain)?.element}
                   teams={bootstrapData?.teams || []}
                   fixtures={bootstrapData?.fixtures || []}
-                  showLiveStats={true}
+                  showLiveStats
                 />
             ) : (
               <div className="flex items-center justify-center p-8">

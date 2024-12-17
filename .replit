@@ -44,11 +44,7 @@ args = "Start application"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "API Tests"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Flask Server"
+args = "Express Server"
 
 [[workflows.workflow]]
 name = "Start application"
