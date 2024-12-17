@@ -10,6 +10,7 @@ interface LivePitchProps {
   viceCaptainId?: number;
   teams?: any[];
   fixtures?: any[];
+  showLiveStats?: boolean;
 }
 
 export function LivePitch({ 
@@ -18,7 +19,8 @@ export function LivePitch({
   captainId, 
   viceCaptainId,
   teams = [],
-  fixtures = []
+  fixtures = [],
+  showLiveStats
 }: LivePitchProps) {
   const totalPoints = players.reduce((sum, p) => sum + (p.event_points || 0), 0);
   const playersPlayed = players.filter(p => p.minutes > 0).length;
@@ -55,7 +57,7 @@ export function LivePitch({
             fixtures={fixtures}
             isCaptain={player.id === captainId}
             isViceCaptain={player.id === viceCaptainId}
-            showLiveStats={true}
+            showLiveStats={showLiveStats}
           />
         )}
       />
