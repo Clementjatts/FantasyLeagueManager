@@ -55,7 +55,8 @@ export interface Team {
     event: number;
     points: number;
     average: number;
-    average_entry_score?: number;
+    highest: number;
+    chip?: string;
   }>;
   summary_overall_points: number;
   summary_overall_rank: number;

@@ -19,10 +19,6 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 33987
-externalPort = 3002
-
-[[ports]]
 localPort = 40831
 externalPort = 3001
 
@@ -46,6 +42,10 @@ args = "Start application"
 task = "workflow.run"
 args = "API Tests"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Express Server"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -58,7 +58,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "tsx server/index.ts"
+args = "npm run dev"
 waitForPort = 5000
 
 [[workflows.workflow]]
