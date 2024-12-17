@@ -1,6 +1,2 @@
-[project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
-dependencies = []
+# This project now uses Node.js/Express
+# Python configuration has been removed

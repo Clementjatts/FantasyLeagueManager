@@ -1,7 +1,2 @@
-version = 1
-requires-python = ">=3.11"
-
-[[package]]
-name = "repl-nix-workspace"
-version = "0.1.0"
-source = { virtual = "." }
+# Python package manager lock file
+# No longer needed as project uses npm
