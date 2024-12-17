@@ -38,6 +38,7 @@ export interface Player {
   event_points?: number;
   is_optimal?: boolean;
   optimal_reason?: string;
+  multiplier?: number;
 }
 
 export interface Team {

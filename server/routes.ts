@@ -52,8 +52,21 @@ export function registerRoutes(app: Express): Server {
       }
 
       const historyData = await historyResponse.json();
-      const currentGw = historyData.current || [];
-      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {};
+      interface GameweekData {
+        event: number;
+        points: number;
+        value?: number;
+        bank?: number;
+        total_points?: number;
+        event_rank?: number;
+        points_on_bench?: number;
+        overall_rank?: number;
+        rank_sort?: number;
+        average_entry_score?: number;
+      }
+
+      const currentGw = (historyData.current || []) as GameweekData[];
+      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {} as GameweekData;
 
       // Get the current and last event from data
       const currentEvent = entryData.current_event || 1;
@@ -77,21 +90,11 @@ export function registerRoutes(app: Express): Server {
         picks = picksData.picks || [];
       }
 
-      // Process gameweek history for points graph - simplified version
-      const pointsHistory = currentGw.map((gw: { 
-        points: string | number;
-        event: string | number;
-      }) => {
-        // Parse values ensuring they're numbers
-        const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
-        const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
-        
-        // Return only weekly performance data
-        return {
-          event,
-          points: Math.max(0, Math.min(200, points)) // Ensure points are between 0 and 200
-        };
-      }).filter(gw => gw.event > 0 && gw.points >= 0); // Filter out invalid entries
+      // Process gameweek history for points graph
+      const pointsHistory = (currentGw || []).map((gw: GameweekData) => ({
+        gameweek: Number(gw.event),
+        points: Math.max(0, Math.min(200, Number(gw.points)))
+      })).filter(gw => gw.gameweek > 0);
 
       // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
       const parseTeamValue = (value: any): number => {

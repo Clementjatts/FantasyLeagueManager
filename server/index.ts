@@ -66,9 +66,14 @@ app.use((req, res, next) => {
 
     // Start server with proper error handling
     if (!server.listening) {
-      server.listen(Number(PORT), HOST, () => {
-        log(`Server started successfully on http://${HOST}:${PORT}`);
-      });
+      try {
+        server.listen(Number(PORT), HOST, () => {
+          log(`Server started successfully on http://${HOST}:${PORT}`);
+        });
+      } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
+      }
 
       server.on('error', (error: any) => {
         if (error.syscall !== 'listen') {

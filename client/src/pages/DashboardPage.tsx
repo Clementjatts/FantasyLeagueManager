@@ -307,17 +307,17 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary" />
-              <CardTitle>Weekly Performance</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <PerformanceTimeline data={pointsData} />
-          </CardContent>
-        </Card>
+      <Card className="hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-primary" />
+            <CardTitle>Performance History</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <PerformanceTimeline data={pointsData} />
+        </CardContent>
+      </Card>
     </div>
   );
 }
