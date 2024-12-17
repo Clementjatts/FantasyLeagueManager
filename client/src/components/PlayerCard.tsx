@@ -13,6 +13,9 @@ interface PlayerCardProps {
   fixtures?: any[];
   teams?: any[];
   displayContext?: 'live' | 'transfer' | 'dream';
+  showTransferInfo?: boolean;
+  showLiveStats?: boolean;
+  showOptimalStats?: boolean;
 }
 
 const positionMap: Record<number, string> = {
