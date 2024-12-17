@@ -52,17 +52,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       const historyData = await historyResponse.json();
-      
-      // Add detailed logging of the history data
-      console.log('Raw history data:', JSON.stringify(historyData, null, 2));
-      
       const currentGw = historyData.current || [];
-      
-      // Log a sample gameweek if available
-      if (currentGw.length > 0) {
-        console.log('Sample gameweek data:', currentGw[0]);
-      }
-      
       const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {};
 
       // Get the current and last event from data
@@ -87,98 +77,32 @@ export function registerRoutes(app: Express): Server {
         picks = picksData.picks || [];
       }
 
-      // Type definition for gameweek data
-      interface GameweekData {
-        event: number;
-        points: number;
-        average_entry_score?: number | null;
-        event_average?: number | null;
-      }
-
-      interface FPLGameweekData {
-        event: number | string;
-        points: number | string;
-        average_entry_score?: number | string | null;
-        event_average?: number | string | null;
-        bank?: number | string;
-        value?: number | string;
-        total_points?: number | string;
-        overall_rank?: number | string;
-        [key: string]: any;  // Allow other properties
-      }
-
-      // Process and validate gameweek history
-      const pointsHistory = (currentGw || []).map((gw: {
-        event: number | string;
-        points: number | string;
-        average_entry_score?: number | string | null;
-        event_average?: number | string | null;
+      // Ensure all gameweeks history is available for points graph
+      const pointsHistory = currentGw.map((gw: { 
+        points: string | number;
+        average_entry_score: string | number;
+        event: string | number;
       }) => {
-        try {
-          // Parse numeric values safely
-          const parseNumber = (value: number | string | null | undefined): number => {
-            if (typeof value === 'number') return value;
-            if (!value) return 0;
-            const parsed = parseInt(String(value).replace(/[^0-9-]/g, ''));
-            return isNaN(parsed) ? 0 : parsed;
-          };
-
-          const event = parseNumber(gw.event);
-          const points = parseNumber(gw.points);
-          
-          // Get average score with fallbacks
-          let average: number;
-          
-          // First try average_entry_score
-          const entryScore = parseNumber(gw.average_entry_score);
-          if (entryScore > 0 && entryScore <= 150) {
-            average = entryScore;
-          } else {
-            // Then try event_average
-            const eventAvg = parseNumber(gw.event_average);
-            if (eventAvg > 0 && eventAvg <= 150) {
-              average = eventAvg;
-            } else {
-              // Use default if both are invalid
-              average = 47;
-            }
-          }
-
-          // Validate event number
-          if (event < 1 || event > 38) {
-            console.warn('Invalid gameweek:', { event, raw: gw.event });
-            return null;
-          }
-
-          // Validate points and average
-          const validPoints = Math.max(0, Math.min(150, points));
-          const validAverage = Math.max(0, Math.min(150, average));
-
-          // Debug logging
-          console.log('Processed gameweek:', {
-            event,
-            points: validPoints,
-            average: validAverage,
-            raw: {
-              event: gw.event,
-              points: gw.points,
-              average_entry_score: gw.average_entry_score,
-              event_average: gw.event_average
-            }
-          });
-
-          return {
-            event,
-            points: validPoints,
-            average: validAverage
-          };
-        } catch (error) {
-          console.error('Error processing gameweek:', error, gw);
-          return null;
-        }
-      }).filter((gw): gw is { event: number; points: number; average: number } => 
-        gw !== null && gw.event > 0
-      );
+        // Parse values ensuring they're numbers and handling potential string inputs
+        const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
+        const avgScore = typeof gw.average_entry_score === 'string' ? 
+          parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
+        const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
+        
+        // Log the values for debugging
+        console.log('Processing gameweek:', {
+          event,
+          points,
+          average_entry_score: gw.average_entry_score,
+          parsed_average: avgScore
+        });
+        
+        return {
+          event,
+          points,
+          average: avgScore // This maps to the Team type's points_history.average field
+        };
+      });
 
       // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
       const parseTeamValue = (value: any): number => {

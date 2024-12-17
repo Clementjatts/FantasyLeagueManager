@@ -93,14 +93,14 @@ export default function DashboardPage() {
     .map(gw => {
       try {
         // Parse and validate all numeric values
-        const parseNumericValue = (value: any, defaultValue: number): number => {
-          if (value === null || value === undefined) return defaultValue;
-          return typeof value === 'number' ? value : parseInt(String(value), 10) || defaultValue;
+        const parseNumericValue = (value: any, defaultValue?: number): number => {
+          if (value === null || value === undefined) return defaultValue || 0;
+          return typeof value === 'number' ? value : parseInt(String(value), 10) || (defaultValue || 0);
         };
 
         const gameweek = parseNumericValue(gw.event, 0);
         const points = parseNumericValue(gw.points, 0);
-        const average = parseNumericValue(gw.average, 47);
+        const average = gw.average;
 
         // Validate the gameweek number
         if (gameweek < 1 || gameweek > 38) {
