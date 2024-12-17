@@ -156,28 +156,33 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-lg transition-all duration-300">
+          <Card className="group hover:shadow-lg transition-all duration-300 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-50" />
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                  <CardTitle className="text-lg">Gameweek Points</CardTitle>
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg">Gameweek Points</CardTitle>
+                    <p className="text-sm text-muted-foreground">Current Performance</p>
+                  </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                  <div className="text-sm text-muted-foreground">Gameweek Points</div>
-                  <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <div className="text-4xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
                     {gameweekData.points}
                   </div>
-                </div>
-                <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                  <div className="text-sm text-muted-foreground">Gameweek Rank</div>
-                  <div className="text-2xl font-bold tabular-nums">
-                    {(team.stats?.event_rank || 0).toLocaleString()}
+                  <div className="text-sm text-muted-foreground">
+                    Rank: #{(team.stats?.event_rank || 0).toLocaleString()}
                   </div>
+                </div>
+                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <span className="text-xl font-bold text-primary">GW{gameweekData.gameweek}</span>
                 </div>
               </div>
             </CardContent>
