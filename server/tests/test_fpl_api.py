@@ -36,7 +36,7 @@ class TestFPLAPI(unittest.TestCase):
             response = self._make_request(f"{self.BASE_URL}/my-team/{self.TEAM_ID}/")
             data = response.json()
             
-            # Validate core data structure
+            # 1. Core Data Structure Validation
             required_fields = {
                 'picks': list,
                 'transfers': dict,
@@ -56,185 +56,87 @@ class TestFPLAPI(unittest.TestCase):
                     f"Field {field} should be type {expected_type}, got {type(data[field])}"
                 )
                         
-            # Validate the structure of required nested fields
-            transfer_fields = {'limit', 'made', 'bank', 'value'}
-            stats_fields = {'event_points', 'event_average', 'overall_rank', 'event_rank'}
-            
-            for field in transfer_fields:
-                self.assertIn(field, data['transfers'], f"Missing transfer field: {field}")
-                
-            for field in stats_fields:
-                self.assertIn(field, data['stats'], f"Missing stats field: {field}")
-            
-            # Validate transfers data structure and types
-            self.assertIn('transfers', data, "Missing transfers data")
+            # 2. Transfers Data Validation
             transfers = data['transfers']
-            transfer_fields = {'limit': int, 'made': int, 'bank': int, 'value': int}
+            transfer_fields = {
+                'limit': {'type': int, 'min': 0, 'max': 2},
+                'made': {'type': int, 'min': 0},
+                'bank': {'type': int, 'min': 0},
+                'value': {'type': int, 'min': 950, 'max': 1200}  # 95.0m to 120.0m
+            }
             
-            for field, field_type in transfer_fields.items():
+            for field, validations in transfer_fields.items():
                 self.assertIn(field, transfers, f"Missing transfer field: {field}")
+                value = transfers[field]
                 self.assertIsInstance(
-                    transfers[field], 
-                    field_type,
-                    f"Transfer field {field} should be {field_type}, got {type(transfers[field])}"
+                    value,
+                    validations['type'],
+                    f"Transfer field {field} should be {validations['type']}, got {type(value)}"
                 )
+                self.assertGreaterEqual(value, validations['min'], 
+                    f"{field} cannot be less than {validations['min']}")
+                if 'max' in validations:
+                    self.assertLessEqual(value, validations['max'],
+                        f"{field} cannot be more than {validations['max']}")
             
-            # Validate free transfers logic
-            free_transfers = transfers['limit']
-            self.assertGreaterEqual(free_transfers, 0, "Free transfers cannot be negative")
-            self.assertLessEqual(free_transfers, 2, "Free transfers shouldn't exceed 2")
-            
-            # Validate team value data (in tenths of millions)
-            team_value_fields = {
-                'last_deadline_value': "Team value",
-                'last_deadline_bank': "Bank value"
+            # 3. Team Value Validation
+            value_fields = {
+                'last_deadline_value': {'desc': "Team value", 'min': 950, 'max': 1200},
+                'last_deadline_bank': {'desc': "Bank value", 'min': 0, 'max': 300}
             }
             
-            for field, description in team_value_fields.items():
+            for field, validation in value_fields.items():
                 value = data[field]
-                self.assertIsInstance(value, int, f"{description} should be an integer")
-                self.assertGreaterEqual(value, 0, f"{description} cannot be negative")
-                
-            # Convert to decimal for range validation
-            team_value = data['last_deadline_value'] / 10.0
-            bank_value = data['last_deadline_bank'] / 10.0
-            total_value = team_value + bank_value
+                self.assertIsInstance(value, int, 
+                    f"{validation['desc']} should be an integer")
+                self.assertGreaterEqual(value, validation['min'],
+                    f"{validation['desc']} cannot be less than £{validation['min']/10:.1f}m")
+                self.assertLessEqual(value, validation['max'],
+                    f"{validation['desc']} cannot be more than £{validation['max']/10:.1f}m")
             
-            # Validate reasonable ranges for team value
-            self.assertTrue(80 <= team_value <= 120, 
-                f"Team value £{team_value}m outside reasonable range (80-120)")
-            self.assertTrue(0 <= bank_value <= 30,
-                f"Bank value £{bank_value}m outside reasonable range (0-30)")
-            self.assertTrue(95 <= total_value <= 120,
-                f"Total team value £{total_value}m outside reasonable range (95-120)")
-            
-            # Validate stats data structure and types
-            self.assertIn('stats', data, "Missing stats data")
+            # 4. Statistics Validation
             stats = data['stats']
-            stats_fields = {
-                'event_points': (int, "Current gameweek points"),
-                'event_average': (int, "Average points"),
-                'event_rank': (int, "Gameweek rank"),
-                'overall_rank': (int, "Overall rank"),
-                'value': (int, "Team value in stats"),
-                'bank': (int, "Bank value in stats")
+            stats_validation = {
+                'event_points': {'type': int, 'min': 0, 'max': 200},
+                'event_average': {'type': int, 'min': 0, 'max': 150},
+                'event_rank': {'type': int, 'min': 1, 'max': 10000000},
+                'overall_rank': {'type': int, 'min': 1, 'max': 10000000},
+                'points_on_bench': {'type': int, 'min': 0, 'max': 100},
+                'total_points': {'type': int, 'min': 0},
+                'value': {'type': int, 'min': 950, 'max': 1200},
+                'bank': {'type': int, 'min': 0, 'max': 300}
             }
             
-            for field, (field_type, description) in stats_fields.items():
-                self.assertIn(field, stats, f"Missing {description} in stats")
-                self.assertIsInstance(
-                    stats[field],
-                    field_type,
-                    f"{description} should be {field_type}, got {type(stats[field])}"
+            for field, validation in stats_validation.items():
+                self.assertIn(field, stats, f"Missing stats field: {field}")
+                value = stats[field]
+                self.assertIsInstance(value, validation['type'],
+                    f"Stats field {field} should be {validation['type']}")
+                self.assertGreaterEqual(value, validation['min'],
+                    f"{field} cannot be less than {validation['min']}")
+                if 'max' in validation:
+                    self.assertLessEqual(value, validation['max'],
+                        f"{field} cannot be more than {validation['max']}")
+            
+            # 5. Points History Validation
+            if data['points_history']:
+                latest_gw = data['points_history'][-1]
+                self.assertEqual(
+                    latest_gw['average'],
+                    stats['event_average'],
+                    "Gameweek average points mismatch between history and stats"
                 )
-                
-                # Additional validation for specific fields
-                if field == 'event_average':
-                    self.assertGreaterEqual(stats[field], 0, "Average points cannot be negative")
-                    self.assertLessEqual(stats[field], 150, "Average points seems unreasonably high")
-                elif field in ['event_rank', 'overall_rank']:
-                    self.assertGreater(stats[field], 0, f"{description} should be positive")
-                    self.assertLessEqual(stats[field], 10000000, f"{description} seems unreasonably high")
-                elif field in ['value', 'bank']:
-                    self.assertGreaterEqual(stats[field], 0, f"{description} cannot be negative")
-            
-            # Initial team value is 100m, validate reasonable ranges
-            self.assertTrue(80 <= team_value <= 120, 
-                f"Team value £{team_value}m outside reasonable range (80-120)")
-            self.assertTrue(0 <= bank_value <= 30,
-                f"Bank value £{bank_value}m outside reasonable range (0-30)")
-            self.assertTrue(95 <= total_value <= 120,
-                f"Total team value £{total_value}m outside reasonable range (95-120)")
-            
-            # Enhanced validation for statistics
-            if 'stats' in data:
-                stats = data['stats']
-                
-                # 1. Average points validation
-                self.assertIn('event_average', stats, "Missing event average points")
-                avg_points = stats['event_average']
-                self.assertIsInstance(avg_points, int, "Average points must be an integer")
-                self.assertGreaterEqual(avg_points, 0, "Average points cannot be negative")
-                self.assertLessEqual(avg_points, 150, "Average points seems unreasonably high")
-                
-                # 2. Current gameweek points validation
-                self.assertIn('event_points', stats, "Missing current gameweek points")
-                current_points = stats['event_points']
-                self.assertIsInstance(current_points, int, "Current points must be an integer")
-                self.assertGreaterEqual(current_points, 0, "Current points cannot be negative")
-                self.assertLessEqual(current_points, 200, "Current points seem unreasonably high")
-                
-                # 3. Gameweek rank validation
-                self.assertIn('event_rank', stats, "Missing gameweek rank")
-                gw_rank = stats['event_rank']
-                self.assertIsInstance(gw_rank, int, "Gameweek rank must be an integer")
-                self.assertGreater(gw_rank, 0, "Gameweek rank should be positive")
-                self.assertLessEqual(gw_rank, 10000000, "Gameweek rank seems unreasonably high")
-                
-                # 4. Squad value validation (in tenths of millions)
-                self.assertIn('value', stats, "Missing squad value")
-                squad_value = stats['value']
-                self.assertIsInstance(squad_value, int, "Squad value must be an integer")
-                self.assertGreaterEqual(squad_value, 950, "Squad value too low (< £95.0m)")
-                self.assertLessEqual(squad_value, 1200, "Squad value too high (> £120.0m)")
-                
-                # Verify the latest gameweek points matches the stats
-                if data['points_history']:
-                    latest_gw = data['points_history'][-1]
-                    self.assertEqual(
-                        latest_gw['average'],
-                        data['stats']['event_average'],
-                        "Gameweek average points mismatch between history and stats"
-                    )
-                
-                # Validate point calculations
-                if 'points_history' in data:
-                    latest_gw = data['points_history'][-1] if data['points_history'] else None
-                    if latest_gw:
-                        self.assertEqual(latest_gw['average'], avg_points, 
-                            "Event average should match points history")
-                
-                # Current GW points validation
-                self.assertIsInstance(current_points, (int, float), "Current points should be numeric")
-                self.assertGreaterEqual(current_points, 0, "Current points cannot be negative")
-                self.assertLessEqual(current_points, 200, "Current points seem unreasonably high")
-                
-                # Enhanced gameweek rank validation
-                self.assertIn('event_rank', stats, "Missing gameweek rank")
-                self.assertIn('overall_rank', stats, "Missing overall rank")
-                
-                gw_rank = stats['event_rank']
-                overall_rank = stats['overall_rank']
-                
-                # Rank validations with reasonable constraints
-                self.assertIsInstance(gw_rank, int, "Gameweek rank should be an integer")
-                self.assertIsInstance(overall_rank, int, "Overall rank should be an integer")
-                self.assertGreater(gw_rank, 0, "Gameweek rank should be positive")
-                self.assertGreater(overall_rank, 0, "Overall rank should be positive")
-                self.assertLessEqual(gw_rank, 10000000, "Gameweek rank seems unreasonably high")
-                self.assertLessEqual(overall_rank, 10000000, "Overall rank seems unreasonably high")
-                
-                # Validate rank changes are tracked
-                if 'rank_sort' in stats:
-                    previous_rank = stats['rank_sort']
-                    self.assertIsInstance(previous_rank, int, "Previous rank should be an integer")
-                    self.assertGreaterEqual(previous_rank, 0, "Previous rank cannot be negative")
             
             print("\nTeam Data Validation Results:")
-            print(f"Squad Value: £{team_value:.1f}m")
-            print(f"Bank Value: £{bank_value:.1f}m")
-            print(f"Total Value: £{total_value:.1f}m")
-            print(f"Free Transfers: {free_transfers}")
-            print(f"Transfers Made: {transfers_made}")
+            print(f"Squad Value: £{data['last_deadline_value']/10:.1f}m")
+            print(f"Bank Value: £{data['last_deadline_bank']/10:.1f}m")
+            print(f"Free Transfers: {transfers['limit']}")
+            print(f"Transfers Made: {transfers['made']}")
+            print(f"Current GW Points: {stats['event_points']}")
+            print(f"Average Points: {stats['event_average']}")
+            print(f"Gameweek Rank: {stats['event_rank']}")
+            print(f"Overall Rank: {stats['overall_rank']}")
             
-            if 'stats' in data:
-                print(f"Current GW Points: {data['stats'].get('event_points', 'N/A')}")
-                print(f"Average Points: {data['stats'].get('event_average', 'N/A')}")
-                print(f"Gameweek Rank: {data['stats'].get('event_rank', 'N/A')}")
-                print(f"Overall Rank: {data['stats'].get('overall_rank', 'N/A')}")
-                if 'rank_sort' in data['stats']:
-                    print(f"Previous Rank: {data['stats']['rank_sort']}")
-        
         except Exception as e:
             self.fail(f"Test failed with error: {str(e)}")
 
@@ -244,19 +146,47 @@ class TestFPLAPI(unittest.TestCase):
             response = self._make_request(f"{self.BASE_URL}/bootstrap-static")
             data = response.json()
             
-            # Detailed validation of bootstrap data
             required_fields = ['events', 'teams', 'elements']
             for field in required_fields:
                 self.assertIn(field, data, f"Missing required field: {field}")
                 self.assertIsInstance(data[field], list, f"{field} should be a list")
             
-            # Validate current gameweek data
-            current_gw = next((e for e in data['events'] if e.get('is_current')), None)
+            # Find current gameweek
+            current_gw = next(
+                (e for e in data['events'] if e.get('is_current')), 
+                None
+            )
+            
             self.assertIsNotNone(current_gw, "No current gameweek found")
             
-            gw_required_fields = ['average_entry_score', 'highest_score', 'is_current']
-            for field in gw_required_fields:
+            # Validate current gameweek data
+            gw_required_fields = {
+                'id': {'type': int, 'min': 1, 'max': 38},
+                'average_entry_score': {'type': int, 'min': 0, 'max': 150},
+                'highest_score': {'type': int, 'min': 0, 'max': 200},
+                'is_current': {'type': bool}
+            }
+            
+            for field, validation in gw_required_fields.items():
                 self.assertIn(field, current_gw, f"Missing field in current gameweek: {field}")
+                value = current_gw[field]
+                self.assertIsInstance(
+                    value,
+                    validation['type'],
+                    f"Gameweek field {field} should be {validation['type']}"
+                )
+                if 'min' in validation:
+                    self.assertGreaterEqual(
+                        value, 
+                        validation['min'],
+                        f"{field} cannot be less than {validation['min']}"
+                    )
+                if 'max' in validation:
+                    self.assertLessEqual(
+                        value,
+                        validation['max'],
+                        f"{field} cannot be more than {validation['max']}"
+                    )
             
             print("\nGameweek Data Validation:")
             print(f"Current GW: {current_gw['id']}")

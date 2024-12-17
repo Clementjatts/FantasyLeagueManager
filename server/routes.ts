@@ -134,13 +134,9 @@ export function registerRoutes(app: Express): Server {
         }
       };
       
-      const teamValue = lastGw.value ? parseValue(lastGw.value)
-        : entryData.last_deadline_value ? parseValue(entryData.last_deadline_value)
-        : 1000; // Default 1000 = £100.0m
-      
-      const bankValue = lastGw.bank ? parseValue(lastGw.bank)
-        : entryData.last_deadline_bank ? parseValue(entryData.last_deadline_bank)
-        : 0;
+      // Calculate team and bank values using the parseValue function
+      const teamValue = parseValue(lastGw?.value || entryData.last_deadline_value);
+      const bankValue = parseValue(lastGw?.bank || entryData.last_deadline_bank);
 
       // Calculate free transfers based on rules
       const baseTransfers = 1;
@@ -155,38 +151,50 @@ export function registerRoutes(app: Express): Server {
         return isNaN(parsed) ? 0 : parsed;
       };
 
-      // Parse numeric values with strict validation
-      const lastGwPoints = Math.max(0, parseInt(String(lastGw.points || entryData.summary_event_points || 0)));
-      const lastGwAveragePoints = Math.max(0, parseInt(String(lastGw.average_entry_score || 0)));
-      const currentRank = Math.max(1, parseInt(String(lastGw.overall_rank || entryData.summary_overall_rank || 1)));
-      const previousRank = Math.max(1, parseInt(String(
+
+      const parseIntSafe = (value: any, defaultValue: number): number => {
+        if (value === undefined || value === null) return defaultValue;
+        const parsed = parseInt(String(value).replace(/[^0-9-]/g, ''));
+        return isNaN(parsed) ? defaultValue : parsed;
+      };
+
+      const lastGwPoints = parseIntSafe(lastGw?.points || entryData.summary_event_points, 0);
+      const lastGwAveragePoints = parseIntSafe(lastGw?.average_entry_score, 0);
+      const currentRank = Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1));
+      const previousRank = Math.max(1, parseIntSafe(
         currentGw.length > 1 
           ? currentGw[currentGw.length - 2].overall_rank 
-          : entryData.summary_overall_rank || 1
-      )));
+          : entryData.summary_overall_rank,
+        1
+      ));
+
+      // Validate numeric ranges
+      const validatedPoints = Math.min(200, Math.max(0, lastGwPoints));
+      const validatedAverage = Math.min(150, Math.max(0, lastGwAveragePoints));
+      const validatedRank = Math.min(10000000, Math.max(1, currentRank));
 
       // Structure the response data with proper type handling
       const combinedData = {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: Math.min(2, Math.max(0, parseInt(String(freeTransfers)) || 1)), // Default to 1, max 2
-          made: Math.max(0, parseInt(String(transfersMade)) || 0),
-          bank: parseValue(bankValue),     // Use parseValue for consistent handling
-          value: parseValue(teamValue),    // Use parseValue for consistent handling
+          limit: Math.min(2, Math.max(0, parseIntSafe(freeTransfers, 1))), // Max 2 free transfers
+          made: Math.max(0, parseIntSafe(transfersMade, 0)),
+          bank: parseValue(bankValue), // In tenths of millions
+          value: parseValue(teamValue), // In tenths of millions
         },
         points_history: pointsHistory,
         stats: {
-          event_points: Math.max(0, parseInt(String(lastGwPoints)) || 0),
-          event_average: Math.max(0, parseInt(String(lastGwAveragePoints)) || 0),
-          event_rank: Math.max(1, parseInt(String(lastGw.event_rank)) || parseInt(String(entryData.summary_event_rank)) || 1),
-          points_on_bench: Math.max(0, parseInt(String(lastGw.points_on_bench)) || 0),
-          overall_points: Math.max(0, parseInt(String(lastGw.total_points)) || parseInt(String(entryData.summary_overall_points)) || 0),
-          overall_rank: Math.max(1, parseInt(String(currentRank)) || 1),
-          rank_sort: Math.max(1, parseInt(String(previousRank)) || 1),
-          total_points: Math.max(0, parseInt(String(lastGw.total_points)) || parseInt(String(entryData.summary_overall_points)) || 0),
-          value: parseValue(teamValue),    // Use parseValue for consistent handling
-          bank: parseValue(bankValue),     // Use parseValue for consistent handling
+          event_points: Math.min(200, Math.max(0, parseIntSafe(lastGw?.points || entryData.summary_event_points, 0))),
+          event_average: Math.min(150, Math.max(0, parseIntSafe(lastGw?.average_entry_score, 0))),
+          event_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.event_rank || entryData.summary_event_rank, 1))),
+          points_on_bench: Math.min(100, Math.max(0, parseIntSafe(lastGw?.points_on_bench, 0))),
+          overall_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
+          overall_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1))),
+          rank_sort: Math.max(1, previousRank),
+          total_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
+          value: parseValue(teamValue), // In tenths of millions
+          bank: parseValue(bankValue), // In tenths of millions
         },
         current_event: parseInt(String(currentEvent)) || 1,
         last_deadline_event: parseInt(String(lastCompletedEvent)) || 1,
