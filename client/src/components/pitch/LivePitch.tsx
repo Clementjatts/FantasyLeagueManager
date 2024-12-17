@@ -22,9 +22,9 @@ export function LivePitch({
   fixtures = [],
   showLiveStats = true
 }: LivePitchProps) {
-  const totalPoints = players.reduce((sum, p) => sum + (p.event_points || 0), 0);
-  const playersPlayed = players.filter(p => p.minutes > 0).length;
-  const playersToPlay = players.length - playersPlayed;
+  const totalPoints = [...players, ...substitutes].reduce((sum, p) => sum + ((p.event_points || 0) * (p.multiplier || 1)), 0);
+  const playersPlayed = [...players, ...substitutes].filter(p => p.minutes > 0).length;
+  const playersToPlay = players.length + substitutes.length - playersPlayed;
 
   return (
     <div className="space-y-4">
