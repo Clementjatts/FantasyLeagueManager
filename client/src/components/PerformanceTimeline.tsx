@@ -13,8 +13,11 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
   console.log('PerformanceTimeline received data:', data);
   
   if (!data?.length) {
-    console.log('No performance data available');
-    return null;
+    return (
+      <div className="flex items-center justify-center p-8 text-muted-foreground">
+        No performance history available
+      </div>
+    );
   }
   
   const maxPoints = Math.max(...data.map(gw => gw.points), 1);

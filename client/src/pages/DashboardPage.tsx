@@ -89,23 +89,26 @@ export default function DashboardPage() {
   };
 
   // Points data for the history chart
-  const pointsData = (team.points_history || [])
-    .map(gw => {
-      if (!gw) return null;
+  const pointsData = (team.current || [])
+    .map((gw: { event: number; points: number }) => {
+      // Early return for invalid data
+      if (!gw || typeof gw.event !== 'number' || typeof gw.points !== 'number') {
+        console.warn('Invalid gameweek data:', gw);
+        return null;
+      }
       
-      // Convert values and provide defaults if needed
-      const gameweek = gw.event ? Number(gw.event) : null;
-      const points = gw.points ? Number(gw.points) : null;
-
-      // Basic validation while being more lenient
-      if (gameweek === null || points === null) return null;
-      if (gameweek < 1 || gameweek > 38) return null;
-      if (points < 0) return null;
-
+      // Validate ranges
+      const gameweek = Math.max(1, Math.min(38, gw.event));
+      const points = Math.max(0, Math.min(200, gw.points)); // Cap points at reasonable maximum
+      
       return { gameweek, points };
     })
-    .filter((data): data is { gameweek: number; points: number } => data !== null)
+    .filter((entry): entry is { gameweek: number; points: number } => entry !== null)
     .sort((a, b) => a.gameweek - b.gameweek);
+
+  console.log("Performance history data:", pointsData);
+
+  console.log("Processed points data:", pointsData);
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);

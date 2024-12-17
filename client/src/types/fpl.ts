@@ -63,6 +63,15 @@ export interface Team {
   last_deadline_value: number;
   current_event: number;
   last_deadline_event: number;
+  current: Array<{
+    event: number;
+    points: number;
+    total_points?: number;
+    rank?: number;
+    event_rank?: number;
+    bank?: number;
+    value?: number;
+  }>;
   stats: {
     event_points: number;
     event_rank: number;
