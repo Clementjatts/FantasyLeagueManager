@@ -163,9 +163,6 @@ export default function DashboardPage() {
                   <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                   <CardTitle className="text-lg">Gameweek Points</CardTitle>
                 </div>
-                <Badge variant="secondary" className="bg-primary/10">
-                  Average: {team.stats?.average_entry_score || Math.round(gameweekData.points * 0.85)}
-                </Badge>
               </div>
             </CardHeader>
             <CardContent>
