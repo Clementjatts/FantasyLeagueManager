@@ -1,7 +1,7 @@
 import { Player } from "../../types/fpl";
 import { PlayerCard } from "../PlayerCard";
 import { cn } from "@/lib/utils";
-import { TeamPitch } from "../TeamPitch";
+import { TeamPitch } from "@/components/TeamPitch";
 
 interface LivePitchProps {
   players: Player[];
@@ -20,7 +20,7 @@ export function LivePitch({
   viceCaptainId,
   teams = [],
   fixtures = [],
-  showLiveStats
+  showLiveStats = true
 }: LivePitchProps) {
   const totalPoints = players.reduce((sum, p) => sum + (p.event_points || 0), 0);
   const playersPlayed = players.filter(p => p.minutes > 0).length;
