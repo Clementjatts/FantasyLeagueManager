@@ -105,10 +105,11 @@ export function registerRoutes(app: Express): Server {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: entryData.transfers?.limit || 1,
-          made: entryData.transfers?.made || 0,
+          limit: lastGw?.event_transfers_cost ? 1 : 2,
+          made: lastGw?.event_transfers || 0,
           bank: bankValue,
           value: teamValue,
+          cost: lastGw?.event_transfers_cost || 0
         },
         points_history: pointsHistory,
         stats: {
