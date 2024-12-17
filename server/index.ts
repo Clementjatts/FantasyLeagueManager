@@ -60,7 +60,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client
   const PORT = process.env.PORT || 5000;
   if (!server.listening) {
-    server.listen(PORT, "0.0.0.0", () => {
+    server.listen(Number(PORT), "0.0.0.0", () => {
       log(`serving on port ${PORT}`);
     });
   }
