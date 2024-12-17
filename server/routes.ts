@@ -78,56 +78,107 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Ensure all gameweeks history is available for points graph
-      const pointsHistory = currentGw.map(gw => {
-        const points = parseInt(gw.points) || 0;
-        const average = parseInt(gw.average_entry_score) || Math.round(points * 0.85);
+      const pointsHistory = currentGw.map((gw: { 
+        points: string | number;
+        average_entry_score: string | number;
+        event: string | number;
+      }) => {
+        const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
+        const avgScore = typeof gw.average_entry_score === 'string' ? 
+          parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
+        const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
+        
         return {
-          event: parseInt(gw.event) || 0,
-          points: points,
-          average: average
+          event,
+          points,
+          average: avgScore
         };
       });
 
-      // Get the most recent team value and bank, maintaining decimal precision
-      const teamValue = parseFloat((entryData.last_deadline_value || lastGw.value || 0).toFixed(1));
-      const bankValue = parseFloat((entryData.last_deadline_bank || lastGw.bank || 0).toFixed(1));
+      // Get the most recent team value and bank from the last gameweek
+      // Values must be integers representing tenths of millions (e.g., 1002 for £100.2m)
+      const parseValue = (value: any): number => {
+        if (!value) return 0;
+        
+        // Convert the value to a string and handle different formats
+        const strValue = value.toString().trim();
+        
+        // If it's already an integer in the correct format (e.g., "1002")
+        if (/^\d+$/.test(strValue) && !strValue.includes('.')) {
+          return parseInt(strValue);
+        }
+        
+        // If it's a decimal number (e.g., "100.2" or "100.20")
+        if (strValue.includes('.')) {
+          // Multiply by 10 and round to handle potential floating point issues
+          return Math.round(parseFloat(strValue) * 10);
+        }
+        
+        // For any other case, try to parse as float and convert
+        try {
+          return Math.round(parseFloat(strValue) * 10);
+        } catch {
+          return 0;
+        }
+      };
+      
+      const teamValue = lastGw.value ? parseValue(lastGw.value)
+        : entryData.last_deadline_value ? parseValue(entryData.last_deadline_value)
+        : 1000; // Default 1000 = £100.0m
+      
+      const bankValue = lastGw.bank ? parseValue(lastGw.bank)
+        : entryData.last_deadline_bank ? parseValue(entryData.last_deadline_bank)
+        : 0;
 
-      // Get ranks from last completed gameweek
-      const currentRank = lastGw.overall_rank || entryData.summary_overall_rank || 0;
-      const previousRank = (currentGw.length > 1 ? currentGw[currentGw.length - 2].overall_rank : currentRank) || 0;
+      // Calculate free transfers based on rules
+      const baseTransfers = 1;
+      const savedTransfers = parseInt(entryData.transfers?.limit?.toString() || '0');
+      const transfersMade = parseInt(entryData.transfers?.made?.toString() || '0');
+      const freeTransfers = Math.min(savedTransfers + baseTransfers, 2); // Max 2 free transfers
 
-      // Get points data
-      const lastGwPoints = lastGw.points || 0;
-      const lastGwAveragePoints = lastGw.average_entry_score || Math.round(lastGwPoints * 0.85);
+      // Get the last gameweek's data for points and rank with proper type handling
+      const parseNumber = (value: any): number => {
+        if (!value) return 0;
+        const parsed = parseInt(value.toString());
+        return isNaN(parsed) ? 0 : parsed;
+      };
 
-      // Structure the response data
+      const lastGwPoints = parseNumber(lastGw.points) || parseNumber(entryData.summary_event_points);
+      const lastGwAveragePoints = parseNumber(lastGw.average_entry_score);
+      const currentRank = parseNumber(lastGw.overall_rank) || parseNumber(entryData.summary_overall_rank);
+      const previousRank = currentGw.length > 1 
+        ? parseNumber(currentGw[currentGw.length - 2].overall_rank)
+        : parseNumber(entryData.summary_overall_rank);
+
+      // Structure the response data with proper type handling
       const combinedData = {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: entryData.transfers?.limit || 1,
-          made: entryData.transfers?.made || 0,
-          bank: bankValue,
-          value: teamValue,
+          limit: Math.max(0, Math.min(parseInt(String(freeTransfers)), 2)), // Ensure int between 0-2
+          made: Math.max(0, parseInt(String(transfersMade))),
+          bank: Math.max(0, parseInt(String(bankValue))),     // Ensure positive integer
+          value: Math.max(1000, parseInt(String(teamValue))), // Minimum 1000 (£100.0m)
         },
         points_history: pointsHistory,
         stats: {
-          event_points: lastGwPoints,
-          event_average: lastGwAveragePoints,
-          points_on_bench: lastGw.points_on_bench || 0,
-          overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
-          overall_rank: currentRank,
-          rank_sort: previousRank,
-          total_points: lastGw.total_points || entryData.summary_overall_points || 0,
-          value: teamValue,
-          bank: bankValue,
+          event_points: Math.max(0, parseInt(String(lastGwPoints))),
+          event_average: Math.max(0, parseInt(String(lastGwAveragePoints))),
+          event_rank: Math.max(1, parseInt(String(parseNumber(lastGw.event_rank))) || parseInt(String(parseNumber(entryData.summary_event_rank)))),
+          points_on_bench: Math.max(0, parseInt(String(parseNumber(lastGw.points_on_bench)))),
+          overall_points: Math.max(0, parseInt(String(parseNumber(lastGw.total_points))) || parseInt(String(parseNumber(entryData.summary_overall_points)))),
+          overall_rank: Math.max(1, parseInt(String(currentRank))),
+          rank_sort: Math.max(1, parseInt(String(previousRank))),
+          total_points: Math.max(0, parseInt(String(parseNumber(lastGw.total_points))) || parseInt(String(parseNumber(entryData.summary_overall_points)))),
+          value: Math.max(1000, parseInt(String(teamValue))), // Minimum 1000 (£100.0m)
+          bank: Math.max(0, parseInt(String(bankValue))),     // Ensure positive integer
         },
-        current_event: currentEvent,
-        last_deadline_event: lastCompletedEvent,
-        summary_overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
-        summary_overall_rank: currentRank,
-        last_deadline_bank: bankValue,
-        last_deadline_value: teamValue
+        current_event: parseInt(String(currentEvent)),
+        last_deadline_event: parseInt(String(lastCompletedEvent)),
+        summary_overall_points: Math.max(0, parseInt(String(parseNumber(lastGw.total_points))) || parseInt(String(parseNumber(entryData.summary_overall_points)))),
+        summary_overall_rank: Math.max(1, parseInt(String(currentRank))),
+        last_deadline_bank: Math.max(0, parseInt(String(bankValue))),     // Ensure positive integer
+        last_deadline_value: Math.max(1000, parseInt(String(teamValue))) // Minimum 1000 (£100.0m)
       };
 
       res.json(combinedData);
