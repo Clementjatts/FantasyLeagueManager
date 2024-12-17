@@ -12,12 +12,14 @@ import { fetchMyTeam } from "../lib/api";
 
 interface ChipAnalysis {
   name: string;
+  label: string;
   averagePoints: number;
   bestGameweek: number;
   recommendedGameweek: number;
   status: "available" | "used" | "expired";
   description: string;
   icon: typeof Rocket;
+  usedInGameweek?: number | null;
 }
 
 function getChipAnalytics(teamChips: any[]): ChipAnalysis[] {

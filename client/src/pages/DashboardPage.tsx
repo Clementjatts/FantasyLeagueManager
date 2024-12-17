@@ -10,7 +10,6 @@ import { QuickActions } from "../components/QuickActions";
 import { TeamIdInput } from "../components/TeamIdInput";
 import { LivePitch } from "../components/pitch/LivePitch";
 import { Player, Pick } from "../types/fpl";
-import { ChipsStatus } from "../components/ChipsStatus";
 import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline, fetchBootstrapStatic } from "../lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -225,7 +224,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-lg">Transfers</CardTitle>
                 </div>
                 <Badge variant="secondary" className="bg-primary/10">
-                  Cost: {team?.transfers?.made || 0} pts
+                  Cost: {team?.transfers?.cost || 0} pts
                 </Badge>
               </div>
             </CardHeader>
@@ -233,7 +232,7 @@ export default function DashboardPage() {
               <div className="p-2 rounded-lg bg-primary/5">
                 <div className="text-sm text-muted-foreground">Free Transfers</div>
                 <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                  {team.transfers.limit || 0}
+                  {team?.transfers?.limit || 0}
                 </div>
               </div>
             </CardContent>
@@ -252,7 +251,7 @@ export default function DashboardPage() {
                   players={team.picks
                     .filter((p: Pick) => p.position <= 11)
                     .map((pick: Pick) => {
-                      const playerData = allPlayers.find(p => p.id === pick.element);
+                      const playerData = allPlayers?.find(p => p.id === pick.element);
                       if (!playerData) return null;
                       return {
                         ...playerData,
@@ -260,12 +259,13 @@ export default function DashboardPage() {
                         is_captain: pick.is_captain,
                         is_vice_captain: pick.is_vice_captain,
                         multiplier: pick.multiplier
-                      };
-                    }).filter((p): p is Player => p !== null)}
+                      } as Player & Pick;
+                    })
+                    .filter((p): p is (Player & Pick) => p !== null)}
                   substitutes={team.picks
                     .filter((p: Pick) => p.position > 11)
                     .map((pick: Pick) => {
-                      const playerData = allPlayers.find(p => p.id === pick.element);
+                      const playerData = allPlayers?.find(p => p.id === pick.element);
                       if (!playerData) return null;
                       return {
                         ...playerData,
@@ -273,12 +273,13 @@ export default function DashboardPage() {
                         is_captain: pick.is_captain,
                         is_vice_captain: pick.is_vice_captain,
                         multiplier: pick.multiplier
-                      };
-                    }).filter((p): p is Player => p !== null)}
+                      } as Player & Pick;
+                    })
+                    .filter((p): p is (Player & Pick) => p !== null)}
                   captainId={team.picks.find((p: Pick) => p.is_captain)?.element}
                   viceCaptainId={team.picks.find((p: Pick) => p.is_vice_captain)?.element}
                   teams={bootstrapData?.teams || []}
-                  fixtures={[]}
+                  fixtures={bootstrapData?.fixtures || []}
                   showLiveStats={true}
                 />
             ) : (
