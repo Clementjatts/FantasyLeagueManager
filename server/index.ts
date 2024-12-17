@@ -6,6 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -61,13 +62,13 @@ app.use((req, res, next) => {
     }
 
     // Server configuration
-    const PORT = process.env.PORT || 5000;
-    const HOST = "0.0.0.0";
+    const port = Number(process.env.PORT || 5000);
+    const host = "0.0.0.0";
 
     // Start server with proper error handling
-    if (!server.listening) {
-      server.listen(Number(PORT), HOST, () => {
-        log(`Server started successfully on http://${HOST}:${PORT}`);
+    const startServer = () => {
+      server.listen(port, host, () => {
+        log(`Server started successfully on http://${host}:${port}`);
       });
 
       server.on('error', (error: any) => {
@@ -75,18 +76,16 @@ app.use((req, res, next) => {
           throw error;
         }
 
-        const bind = typeof PORT === 'string' ? 'Pipe ' + PORT : 'Port ' + PORT;
+        const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
 
         // Handle specific listen errors with friendly messages
         switch (error.code) {
           case 'EACCES':
             console.error(bind + ' requires elevated privileges');
             process.exit(1);
-            break;
           case 'EADDRINUSE':
             console.error(bind + ' is already in use');
             process.exit(1);
-            break;
           default:
             throw error;
         }
@@ -100,6 +99,10 @@ app.use((req, res, next) => {
           process.exit(0);
         });
       });
+    };
+
+    if (!server.listening) {
+      startServer();
     }
   } catch (error) {
     console.error('Failed to start server:', error);
