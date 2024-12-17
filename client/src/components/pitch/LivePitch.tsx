@@ -22,11 +22,9 @@ export function LivePitch({
   fixtures = [],
   showLiveStats = true
 }: LivePitchProps) {
-  // Only count points for starting XI
-  const totalPoints = players.reduce((sum, p) => sum + ((p.event_points || 0) * (p.multiplier || 1)), 0);
-  // Count all players (starting XI + substitutes) that have played
-  const playersPlayed = [...players, ...substitutes].filter(p => p.minutes > 0).length;
-  const playersToPlay = players.length + substitutes.length - playersPlayed;
+  const totalPoints = players.reduce((sum, p) => sum + (p.event_points || 0), 0);
+  const playersPlayed = players.filter(p => p.minutes > 0).length;
+  const playersToPlay = players.length - playersPlayed;
 
   return (
     <div className="space-y-4">

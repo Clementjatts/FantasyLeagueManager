@@ -7,8 +7,8 @@ import { eq } from "drizzle-orm";
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
-  // Set port from environment or use 5000 as fallback
-  const port = process.env.PORT || 5000;
+  // Set port from environment or use 3000 as fallback
+  const port = process.env.PORT || 3000;
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
@@ -78,171 +78,54 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Ensure all gameweeks history is available for points graph
-      const pointsHistory = currentGw.map((gw: { 
-        points: string | number;
-        average_entry_score: string | number;
-        event: string | number;
-      }) => {
-        const points = typeof gw.points === 'string' ? parseInt(gw.points) : (gw.points || 0);
-        const avgScore = typeof gw.average_entry_score === 'string' ? 
-          parseInt(gw.average_entry_score) : (gw.average_entry_score || 0);
-        const event = typeof gw.event === 'string' ? parseInt(gw.event) : (gw.event || 0);
-        
+      const pointsHistory = currentGw.map(gw => {
+        const points = parseInt(gw.points) || 0;
+        const average = parseInt(gw.average_entry_score) || Math.round(points * 0.85);
         return {
-          event,
-          points,
-          average: avgScore
+          event: parseInt(gw.event) || 0,
+          points: points,
+          average: average
         };
       });
 
-      // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
-      const parseTeamValue = (value: any): number => {
-        if (!value) return 1000; // Default £100.0m
-        
-        try {
-          // If it's already a number
-          if (typeof value === 'number') {
-            // If it's in the correct range (950-1200 = £95.0m-£120.0m)
-            if (value >= 950 && value <= 1200) {
-              return value;
-            }
-            // If it needs to be converted to tenths (95-120 = £95.0m-£120.0m)
-            if (value >= 95 && value <= 120) {
-              return Math.floor(value * 10);
-            }
-          }
-          
-          // Convert to string and clean it
-          const strValue = value.toString().trim();
-          
-          // If it's a decimal format (e.g., "100.6")
-          if (strValue.includes('.')) {
-            const [whole, decimal] = strValue.split('.');
-            const wholeNum = parseInt(whole);
-            const decimalNum = parseInt(decimal.charAt(0) || '0');
-            
-            // Combine whole and decimal to get tenths
-            const combined = wholeNum * 10 + decimalNum;
-            if (combined >= 950 && combined <= 1200) {
-              return combined;
-            }
-          }
-          
-          // If it's a whole number string
-          const parsed = parseInt(strValue);
-          if (!isNaN(parsed)) {
-            if (parsed >= 950 && parsed <= 1200) {
-              return parsed;
-            }
-            if (parsed >= 95 && parsed <= 120) {
-              return parsed * 10;
-            }
-          }
-          
-          // Log the problematic value for debugging
-          console.log('Invalid team value format:', value);
-          return 1000; // Default to £100.0m
-        } catch (error) {
-          console.error('Error parsing team value:', error);
-          return 1000; // Default to £100.0m
-        }
-      };
-      
-      // Parse bank value (in tenths of millions, max £30.0m)
-      const parseBankValue = (value: any): number => {
-        if (!value) return 0;
-        
-        let numericValue: number;
-        
-        if (typeof value === 'number') {
-          numericValue = value;
-        } else {
-          const cleanStr = value.toString().replace(/[^\d.]/g, '');
-          numericValue = parseFloat(cleanStr);
-        }
-        
-        // If it's already in tenths format (e.g., 300 = £30.0m)
-        if (numericValue >= 0 && numericValue <= 300) {
-          return Math.round(numericValue);
-        }
-        
-        // If it's in regular format (e.g., 30.0)
-        if (numericValue >= 0 && numericValue <= 30) {
-          return Math.round(numericValue * 10);
-        }
-        
-        return 0; // Default to £0.0m if value is invalid
-      };
+      // Get the most recent team value and bank, maintaining decimal precision
+      const teamValue = parseFloat((entryData.last_deadline_value || lastGw.value || 0).toFixed(1));
+      const bankValue = parseFloat((entryData.last_deadline_bank || lastGw.bank || 0).toFixed(1));
 
-      // Calculate team and bank values
-      const teamValue = parseTeamValue(lastGw?.value || entryData.last_deadline_value);
-      const bankValue = parseBankValue(lastGw?.bank || entryData.last_deadline_bank);
+      // Get ranks from last completed gameweek
+      const currentRank = lastGw.overall_rank || entryData.summary_overall_rank || 0;
+      const previousRank = (currentGw.length > 1 ? currentGw[currentGw.length - 2].overall_rank : currentRank) || 0;
 
-      // Calculate free transfers based on rules
-      const baseTransfers = 1;
-      const savedTransfers = entryData.transfers?.limit !== undefined ? 
-        parseInt(entryData.transfers.limit.toString()) : 2; // Default to 2 if undefined
-      const transfersMade = entryData.transfers?.made !== undefined ? 
-        parseInt(entryData.transfers.made.toString()) : 0;
-      
-      // Always ensure 2 free transfers are available as per user requirement
-      const freeTransfers = 2;
+      // Get points data
+      const lastGwPoints = lastGw.points || 0;
+      const lastGwAveragePoints = lastGw.average_entry_score || Math.round(lastGwPoints * 0.85);
 
-      // Get the last gameweek's data for points and rank with proper type handling
-      const parseNumber = (value: any): number => {
-        if (!value) return 0;
-        const parsed = parseInt(value.toString());
-        return isNaN(parsed) ? 0 : parsed;
-      };
-
-      const parseIntSafe = (value: any, defaultValue: number): number => {
-        if (value === undefined || value === null) return defaultValue;
-        const parsed = parseInt(String(value).replace(/[^0-9-]/g, ''));
-        return isNaN(parsed) ? defaultValue : parsed;
-      };
-
-      const lastGwPoints = parseIntSafe(lastGw?.points || entryData.summary_event_points, 0);
-      const lastGwAveragePoints = parseIntSafe(lastGw?.average_entry_score, 0);
-      const currentRank = Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1));
-      const previousRank = Math.max(1, parseIntSafe(
-        currentGw.length > 1 
-          ? currentGw[currentGw.length - 2].overall_rank 
-          : entryData.summary_overall_rank,
-        1
-      ));
-
-      // Validate numeric ranges
-      const validatedPoints = Math.min(200, Math.max(0, lastGwPoints));
-      const validatedAverage = Math.min(150, Math.max(0, lastGwAveragePoints));
-      const validatedRank = Math.min(10000000, Math.max(1, currentRank));
-
-      // Structure the response data with proper type handling
+      // Structure the response data
       const combinedData = {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: freeTransfers, // Set to 2 as per requirement
-          made: Math.max(0, parseIntSafe(transfersMade, 0)),
+          limit: entryData.transfers?.limit || 1,
+          made: entryData.transfers?.made || 0,
           bank: bankValue,
           value: teamValue,
         },
         points_history: pointsHistory,
         stats: {
-          event_points: Math.min(200, Math.max(0, parseIntSafe(lastGw?.points || entryData.summary_event_points, 0))),
-          event_average: Math.min(150, Math.max(0, parseIntSafe(currentGw.length > 0 ? currentGw[currentGw.length - 1].average_entry_score : 0, 0))),
-          event_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.event_rank || entryData.summary_event_rank, 1))),
-          points_on_bench: Math.min(100, Math.max(0, parseIntSafe(lastGw?.points_on_bench, 0))),
-          overall_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
-          overall_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1))),
-          rank_sort: Math.max(1, previousRank),
-          total_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
+          event_points: lastGwPoints,
+          event_average: lastGwAveragePoints,
+          points_on_bench: lastGw.points_on_bench || 0,
+          overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
+          overall_rank: currentRank,
+          rank_sort: previousRank,
+          total_points: lastGw.total_points || entryData.summary_overall_points || 0,
           value: teamValue,
           bank: bankValue,
         },
-        current_event: parseInt(String(currentEvent)) || 1,
-        last_deadline_event: parseInt(String(lastCompletedEvent)) || 1,
-        summary_overall_points: Math.max(0, parseInt(String(lastGw.total_points)) || parseInt(String(entryData.summary_overall_points)) || 0),
-        summary_overall_rank: Math.max(1, parseInt(String(currentRank)) || 1),
+        current_event: currentEvent,
+        last_deadline_event: lastCompletedEvent,
+        summary_overall_points: lastGw.total_points || entryData.summary_overall_points || 0,
+        summary_overall_rank: currentRank,
         last_deadline_bank: bankValue,
         last_deadline_value: teamValue
       };
@@ -253,6 +136,7 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ 
         message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
       });
+      console.log(`Server listening on port ${port}`);
     }
   });
 
@@ -382,6 +266,7 @@ export function registerRoutes(app: Express): Server {
   
   app.get("/api/fpl/next-deadline", async (req, res) => {
     try {
+      // Fetch all fixtures
       const fixturesResponse = await fetch("https://fantasy.premierleague.com/api/fixtures/", {
         headers: {
           'User-Agent': 'Mozilla/5.0',

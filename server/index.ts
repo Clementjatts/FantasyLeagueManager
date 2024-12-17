@@ -6,7 +6,6 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Request logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -38,74 +37,31 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  try {
-    const server = registerRoutes(app);
+  const server = registerRoutes(app);
 
-    // Global error handler
-    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-      console.error('Server Error:', err);
-      const status = err.status || err.statusCode || 500;
-      const message = err.message || "Internal Server Error";
-      
-      if (!res.headersSent) {
-        res.status(status).json({ message });
-      }
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+
+    res.status(status).json({ message });
+    throw err;
+  });
+
+  // importantly only setup vite in development and after
+  // setting up all the other routes so the catch-all route
+  // doesn't interfere with the other routes
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client
+  const PORT = process.env.PORT || 5000;
+  if (!server.listening) {
+    server.listen(Number(PORT), "0.0.0.0", () => {
+      log(`serving on port ${PORT}`);
     });
-
-    // Setup development/production environment
-    if (app.get("env") === "development") {
-      log("Starting server in development mode");
-      await setupVite(app, server);
-    } else {
-      log("Starting server in production mode");
-      serveStatic(app);
-    }
-
-    // Server configuration
-    const port = Number(process.env.PORT || 5000);
-    const host = "0.0.0.0";
-
-    // Start server with proper error handling
-    const startServer = () => {
-      server.listen(port, host, () => {
-        log(`Server started successfully on http://${host}:${port}`);
-      });
-
-      server.on('error', (error: any) => {
-        if (error.syscall !== 'listen') {
-          throw error;
-        }
-
-        const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
-
-        // Handle specific listen errors with friendly messages
-        switch (error.code) {
-          case 'EACCES':
-            console.error(bind + ' requires elevated privileges');
-            process.exit(1);
-          case 'EADDRINUSE':
-            console.error(bind + ' is already in use');
-            process.exit(1);
-          default:
-            throw error;
-        }
-      });
-
-      // Handle graceful shutdown
-      process.on('SIGTERM', () => {
-        log('SIGTERM signal received: closing HTTP server');
-        server.close(() => {
-          log('HTTP server closed');
-          process.exit(0);
-        });
-      });
-    };
-
-    if (!server.listening) {
-      startServer();
-    }
-  } catch (error) {
-    console.error('Failed to start server:', error);
-    process.exit(1);
   }
 })();
