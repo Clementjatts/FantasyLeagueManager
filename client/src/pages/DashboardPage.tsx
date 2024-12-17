@@ -92,11 +92,8 @@ export default function DashboardPage() {
   const pointsData = (team.points_history || []).map(gw => ({
     gameweek: gw.event || 0,
     points: gw.points || 0,
-    average: gw.average_entry_score || gw.average || 0
+    average: gw.average // Using the average directly from API
   }));
-
-  console.log('Points History Data:', team.points_history);
-  console.log('Processed Points Data:', pointsData);
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
