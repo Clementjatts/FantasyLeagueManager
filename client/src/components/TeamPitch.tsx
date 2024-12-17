@@ -10,7 +10,7 @@ interface TeamPitchProps {
   viceCaptainId?: number;
   onPlayerClick?: (player: Player) => void;
   onSubstituteClick?: (player: Player) => void;
-  renderPlayerCard: (player: Player, isSubstitute: boolean) => React.ReactNode;
+  renderPlayerCard?: (player: Player, isSubstitute: boolean) => React.ReactNode;
 }
 
 export function TeamPitch({ 
@@ -20,7 +20,18 @@ export function TeamPitch({
   viceCaptainId, 
   onPlayerClick,
   onSubstituteClick,
-  renderPlayerCard
+  renderPlayerCard = (player: Player, isSubstitute: boolean) => (
+    <PlayerCard
+      player={player}
+      className={cn(
+        "transition-transform hover:scale-105 text-center w-full",
+        isSubstitute && "opacity-80 hover:opacity-100"
+      )}
+      isCaptain={player.id === captainId}
+      isViceCaptain={player.id === viceCaptainId}
+      displayContext="live"
+    />
+  )
 }: TeamPitchProps) {
   // Ensure both arrays are defined before combining
   const playersList = players || [];
