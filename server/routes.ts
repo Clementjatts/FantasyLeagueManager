@@ -80,7 +80,7 @@ export function registerRoutes(app: Express): Server {
       // Ensure all gameweeks history is available for points graph
       const pointsHistory = currentGw.map(gw => {
         const points = parseInt(gw.points) || 0;
-        const average = parseInt(gw.average_entry_score) || Math.round(points * 0.85);
+        const average = parseInt(gw.average_entry_score) || 0;
         return {
           event: parseInt(gw.event) || 0,
           points: points,
