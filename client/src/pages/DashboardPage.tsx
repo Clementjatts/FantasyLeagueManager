@@ -279,6 +279,7 @@ export default function DashboardPage() {
                   viceCaptainId={team.picks.find((p: Pick) => p.is_vice_captain)?.element}
                   teams={bootstrapData?.teams || []}
                   fixtures={[]}
+                  showLiveStats={true}
                 />
             ) : (
               <div className="flex items-center justify-center p-8">
