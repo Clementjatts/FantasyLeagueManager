@@ -109,12 +109,12 @@ export function registerRoutes(app: Express): Server {
           numericValue = parseFloat(cleanStr);
         }
         
-        // If it's already in tenths format (e.g., 1002)
+        // If it's already in tenths format (e.g., 1006 for £100.6m)
         if (numericValue >= 950 && numericValue <= 1200) {
           return Math.round(numericValue);
         }
         
-        // If it's in regular format (e.g., 100.2)
+        // If it's in regular format (e.g., 100.6)
         if (numericValue >= 95 && numericValue <= 120) {
           return Math.round(numericValue * 10);
         }
@@ -155,15 +155,12 @@ export function registerRoutes(app: Express): Server {
       // Calculate free transfers based on rules
       const baseTransfers = 1;
       const savedTransfers = entryData.transfers?.limit !== undefined ? 
-        parseInt(entryData.transfers.limit.toString()) : 1;
+        parseInt(entryData.transfers.limit.toString()) : 2; // Default to 2 if undefined
       const transfersMade = entryData.transfers?.made !== undefined ? 
         parseInt(entryData.transfers.made.toString()) : 0;
       
-      // Calculate free transfers (max 2)
-      const freeTransfers = Math.min(
-        Math.max(0, savedTransfers),
-        2
-      );
+      // Always ensure 2 free transfers are available as per user requirement
+      const freeTransfers = 2;
 
       // Get the last gameweek's data for points and rank with proper type handling
       const parseNumber = (value: any): number => {
@@ -171,7 +168,6 @@ export function registerRoutes(app: Express): Server {
         const parsed = parseInt(value.toString());
         return isNaN(parsed) ? 0 : parsed;
       };
-
 
       const parseIntSafe = (value: any, defaultValue: number): number => {
         if (value === undefined || value === null) return defaultValue;
@@ -199,10 +195,10 @@ export function registerRoutes(app: Express): Server {
         picks,
         chips: historyData.chips || [],
         transfers: {
-          limit: Math.min(2, Math.max(0, parseIntSafe(freeTransfers, 1))), // Max 2 free transfers
+          limit: freeTransfers, // Set to 2 as per requirement
           made: Math.max(0, parseIntSafe(transfersMade, 0)),
-          bank: parseBankValue(bankValue), // In tenths of millions
-          value: parseTeamValue(teamValue), // In tenths of millions
+          bank: bankValue,
+          value: teamValue,
         },
         points_history: pointsHistory,
         stats: {
@@ -221,8 +217,8 @@ export function registerRoutes(app: Express): Server {
         last_deadline_event: parseInt(String(lastCompletedEvent)) || 1,
         summary_overall_points: Math.max(0, parseInt(String(lastGw.total_points)) || parseInt(String(entryData.summary_overall_points)) || 0),
         summary_overall_rank: Math.max(1, parseInt(String(currentRank)) || 1),
-        last_deadline_bank: parseBankValue(bankValue),     // Use parseValue for consistent handling
-        last_deadline_value: parseTeamValue(teamValue)     // Use parseValue for consistent handling
+        last_deadline_bank: bankValue,
+        last_deadline_value: teamValue
       };
 
       res.json(combinedData);
@@ -231,7 +227,6 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ 
         message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
       });
-      console.log(`Server listening on port ${port}`);
     }
   });
 
@@ -361,7 +356,6 @@ export function registerRoutes(app: Express): Server {
   
   app.get("/api/fpl/next-deadline", async (req, res) => {
     try {
-      // Fetch all fixtures
       const fixturesResponse = await fetch("https://fantasy.premierleague.com/api/fixtures/", {
         headers: {
           'User-Agent': 'Mozilla/5.0',
