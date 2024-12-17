@@ -89,11 +89,11 @@ export default function DashboardPage() {
   };
 
   // Points data for the history chart
-  const pointsData = team.history?.map(gw => ({
+  const pointsData = (team.entry_history || []).map(gw => ({
     gameweek: gw.event || 0,
     points: gw.points || 0,
-    average: gw.average_entry_points || 0
-  })) || [];
+    average: gw.average_entry_score || 0
+  }));
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
