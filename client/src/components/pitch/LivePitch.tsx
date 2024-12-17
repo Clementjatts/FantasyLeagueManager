@@ -22,9 +22,12 @@ export function LivePitch({
   fixtures = [],
   showLiveStats = true
 }: LivePitchProps) {
-  const totalPoints = players.reduce((sum, p) => sum + (p.event_points || 0), 0);
-  const playersPlayed = players.filter(p => p.minutes > 0).length;
-  const playersToPlay = players.length - playersPlayed;
+  const totalPoints = players.reduce((sum, p) => {
+    const points = p.event_points || 0;
+    return sum + (p.is_captain ? points * 2 : points);
+  }, 0);
+  const allPlayersPlayed = [...players, ...substitutes].filter(p => p.minutes > 0).length;
+  const allPlayersToPlay = players.length + substitutes.length - allPlayersPlayed;
 
   return (
     <div className="space-y-4">
@@ -34,11 +37,11 @@ export function LivePitch({
           <div className="text-sm text-muted-foreground">Total Points</div>
         </div>
         <div className="bg-background/80 backdrop-blur-sm rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-green-500">{playersPlayed}</div>
+          <div className="text-2xl font-bold text-green-500">{allPlayersPlayed}</div>
           <div className="text-sm text-muted-foreground">Players Played</div>
         </div>
         <div className="bg-background/80 backdrop-blur-sm rounded-lg p-4 text-center">
-          <div className="text-2xl font-bold text-yellow-500">{playersToPlay}</div>
+          <div className="text-2xl font-bold text-yellow-500">{allPlayersToPlay}</div>
           <div className="text-sm text-muted-foreground">Yet to Play</div>
         </div>
       </div>
