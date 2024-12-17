@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TeamPitch } from "../components/TeamPitch";
+import { DreamPitch } from "../components/pitch/DreamPitch";
 import { fetchPlayers, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { type Player } from "../types/fpl";
 
@@ -193,7 +193,7 @@ export default function DreamTeamPage() {
         </CardContent>
       </Card>
 
-      <TeamPitch 
+      <DreamPitch 
         players={optimalTeam.firstTeam}
         substitutes={optimalTeam.substitutes}
         captainId={optimalTeam.captainId}

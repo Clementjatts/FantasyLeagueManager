@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Link, useLocation } from "wouter";
-import { TeamPitch } from "../components/TeamPitch";
+import { TransferPitch } from "../components/pitch/TransferPitch";
 import { TransferSuggestions } from "../components/TransferSuggestions";
 import { CaptainSuggestions } from "../components/CaptainSuggestions";
 import { PlayerStats } from "../components/PlayerStats";
@@ -263,7 +263,7 @@ export default function TeamPage() {
       
 
       {/* Team View - Full Width */}
-      <TeamPitch 
+      <TransferPitch 
         players={startingXI}
         substitutes={substitutes}
         captainId={captainId}
