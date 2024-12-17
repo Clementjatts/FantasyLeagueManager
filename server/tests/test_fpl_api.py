@@ -43,7 +43,7 @@ class TestFPLAPI(unittest.TestCase):
                 'last_deadline_value': int,
                 'last_deadline_bank': int,
                 'stats': dict,
-                'points_history': list  # For average points validation
+                'points_history': list
             }
             
             for field, expected_type in required_fields.items():
@@ -51,81 +51,90 @@ class TestFPLAPI(unittest.TestCase):
                 self.assertIsInstance(data[field], expected_type, 
                     f"Field {field} should be type {expected_type}")
             
-            # Validate transfers data (free transfers)
-            self.assertIn('limit', data['transfers'], "Missing 'limit' in transfers data")
-            self.assertIsInstance(data['transfers']['limit'], int)
-            self.assertGreaterEqual(data['transfers']['limit'], 0, 
-                "Free transfers should be non-negative")
-            self.assertLessEqual(data['transfers']['limit'], 2, 
-                "Free transfers should not exceed 2 under normal circumstances")
+            # Enhanced transfers validation
+            self.assertIn('transfers', data, "Missing transfers data")
+            transfers = data['transfers']
+            self.assertIn('limit', transfers, "Missing free transfers limit")
+            self.assertIn('made', transfers, "Missing transfers made count")
+            self.assertIn('bank', transfers, "Missing transfer bank value")
+            self.assertIn('value', transfers, "Missing transfer team value")
             
-            # Validate team value and bank with detailed validation
-            self.assertIn('last_deadline_value', data, "Missing team value")
-            self.assertIn('last_deadline_bank', data, "Missing bank value")
-            self.assertGreater(data['last_deadline_value'], 0, "Team value should be greater than 0")
+            free_transfers = transfers['limit']
+            transfers_made = transfers['made']
             
+            # Validate transfer limits and logic
+            self.assertIsInstance(free_transfers, int, "Free transfers should be an integer")
+            self.assertGreaterEqual(free_transfers, 0, "Free transfers cannot be negative")
+            self.assertLessEqual(free_transfers, 2, "Free transfers shouldn't exceed 2 under normal circumstances")
+            self.assertGreaterEqual(transfers_made, 0, "Transfers made cannot be negative")
+            
+            # Enhanced team value validation
             team_value = data['last_deadline_value'] / 10
             bank_value = data['last_deadline_bank'] / 10
             total_value = team_value + bank_value
             
-            # Squad value validation with specific range checks
+            # Initial team value is 100m, validate reasonable ranges
             self.assertTrue(80 <= team_value <= 120, 
                 f"Team value £{team_value}m outside reasonable range (80-120)")
             self.assertTrue(0 <= bank_value <= 30,
                 f"Bank value £{bank_value}m outside reasonable range (0-30)")
+            self.assertTrue(95 <= total_value <= 120,
+                f"Total team value £{total_value}m outside reasonable range (95-120)")
             
-            # Validate free transfers
-            self.assertIn('transfers', data, "Missing transfers data")
-            self.assertIn('limit', data['transfers'], "Missing free transfers limit")
-            free_transfers = data['transfers']['limit']
-            self.assertIsInstance(free_transfers, int, "Free transfers should be an integer")
-            self.assertGreaterEqual(free_transfers, 0, "Free transfers cannot be negative")
-            self.assertLessEqual(free_transfers, 2, "Free transfers shouldn't exceed 2 under normal circumstances")
-            
-            # Validate average points
+            # Enhanced average points validation
             if 'stats' in data:
                 stats = data['stats']
                 self.assertIn('event_average', stats, "Missing event average points")
+                self.assertIn('event_points', stats, "Missing current gameweek points")
+                
                 avg_points = stats['event_average']
+                current_points = stats['event_points']
+                
+                # Validate points are within reasonable ranges
                 self.assertIsInstance(avg_points, (int, float), "Average points should be numeric")
                 self.assertGreaterEqual(avg_points, 0, "Average points cannot be negative")
                 self.assertLessEqual(avg_points, 150, "Average points seem unreasonably high")
                 
-                # Gameweek rank validation
-                self.assertIn('event_rank', stats, "Missing gameweek rank")
-                gw_rank = stats['event_rank']
-                self.assertIsInstance(gw_rank, int, "Gameweek rank should be an integer")
-                self.assertGreater(gw_rank, 0, "Gameweek rank should be positive")
-                self.assertLessEqual(gw_rank, 10000000, "Gameweek rank seems unreasonably high")
-            
-            # Gameweek rank validation
-            if 'stats' in data:
-                self.assertIn('event_rank', data['stats'], "Missing gameweek rank")
-                rank = data['stats'].get('event_rank')
-                if rank is not None:
-                    self.assertIsInstance(rank, int, "Gameweek rank should be an integer")
-                    self.assertGreater(rank, 0, "Gameweek rank should be positive")
+                # Current GW points validation
+                self.assertIsInstance(current_points, (int, float), "Current points should be numeric")
+                self.assertGreaterEqual(current_points, 0, "Current points cannot be negative")
+                self.assertLessEqual(current_points, 200, "Current points seem unreasonably high")
                 
-                # Validate average points
-                self.assertIn('event_average', data['stats'], "Missing average points")
-                avg_points = data['stats'].get('event_average')
-                if avg_points is not None:
-                    self.assertIsInstance(avg_points, (int, float), 
-                        "Average points should be numeric")
-                    self.assertGreaterEqual(avg_points, 0, 
-                        "Average points should be non-negative")
+                # Enhanced gameweek rank validation
+                self.assertIn('event_rank', stats, "Missing gameweek rank")
+                self.assertIn('overall_rank', stats, "Missing overall rank")
+                
+                gw_rank = stats['event_rank']
+                overall_rank = stats['overall_rank']
+                
+                # Rank validations with reasonable constraints
+                self.assertIsInstance(gw_rank, int, "Gameweek rank should be an integer")
+                self.assertIsInstance(overall_rank, int, "Overall rank should be an integer")
+                self.assertGreater(gw_rank, 0, "Gameweek rank should be positive")
+                self.assertGreater(overall_rank, 0, "Overall rank should be positive")
+                self.assertLessEqual(gw_rank, 10000000, "Gameweek rank seems unreasonably high")
+                self.assertLessEqual(overall_rank, 10000000, "Overall rank seems unreasonably high")
+                
+                # Validate rank changes are tracked
+                if 'rank_sort' in stats:
+                    previous_rank = stats['rank_sort']
+                    self.assertIsInstance(previous_rank, int, "Previous rank should be an integer")
+                    self.assertGreaterEqual(previous_rank, 0, "Previous rank cannot be negative")
             
             print("\nTeam Data Validation Results:")
             print(f"Squad Value: £{team_value:.1f}m")
             print(f"Bank Value: £{bank_value:.1f}m")
             print(f"Total Value: £{total_value:.1f}m")
-            print(f"Free Transfers: {data['transfers']['limit']}")
+            print(f"Free Transfers: {free_transfers}")
+            print(f"Transfers Made: {transfers_made}")
             
             if 'stats' in data:
                 print(f"Current GW Points: {data['stats'].get('event_points', 'N/A')}")
                 print(f"Average Points: {data['stats'].get('event_average', 'N/A')}")
                 print(f"Gameweek Rank: {data['stats'].get('event_rank', 'N/A')}")
                 print(f"Overall Rank: {data['stats'].get('overall_rank', 'N/A')}")
+                if 'rank_sort' in data['stats']:
+                    print(f"Previous Rank: {data['stats']['rank_sort']}")
         
         except Exception as e:
             self.fail(f"Test failed with error: {str(e)}")

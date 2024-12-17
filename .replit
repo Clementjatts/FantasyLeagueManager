@@ -19,10 +19,6 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 36053
-externalPort = 3002
-
-[[ports]]
 localPort = 40831
 externalPort = 3001
 
@@ -48,7 +44,7 @@ args = "API Tests"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Flask Server"
+args = "Express Server"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -80,7 +76,7 @@ task = "shell.exec"
 args = "python server/tests/test_fpl_api.py"
 
 [[workflows.workflow]]
-name = "Flask Server"
+name = "Express Server"
 author = "agent"
 
 [workflows.workflow.metadata]
