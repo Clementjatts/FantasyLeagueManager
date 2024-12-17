@@ -27,11 +27,12 @@ interface StatCategory {
   icon: React.ReactNode;
   stats: {
     label: string;
-    value: string;
+    value: keyof Player;
     divideBy?: number;
     reverse?: boolean;
     showTrend?: boolean;
     suffix?: string;
+    showIf?: (player: Player) => boolean;
   }[];
 }
 
@@ -180,12 +181,12 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
       description: "Position-specific performance metrics",
       icon: <Shield className="w-5 h-5 text-green-500" />,
       stats: [
-        { label: "Clean Sheets", value: "clean_sheets", showIf: (p) => p.element_type <= 2 },
-        { label: "Goals Conceded", value: "goals_conceded", reverse: true, showIf: (p) => p.element_type <= 2 },
-        { label: "Saves", value: "saves", showIf: (p) => p.element_type === 1 },
-        { label: "Penalties Saved", value: "penalties_saved", showIf: (p) => p.element_type === 1 },
-        { label: "Expected Goal Involvements", value: "expected_goal_involvements", showIf: (p) => p.element_type >= 3 }
-      ].filter(stat => stat.showIf?.(player) || stat.showIf?.(comparedPlayer))
+        { label: "Clean Sheets", value: "clean_sheets" as keyof Player, showIf: (p: Player) => p.element_type <= 2 },
+        { label: "Goals Conceded", value: "goals_conceded" as keyof Player, reverse: true, showIf: (p: Player) => p.element_type <= 2 },
+        { label: "Saves", value: "saves" as keyof Player, showIf: (p: Player) => p.element_type === 1 },
+        { label: "Penalties Saved", value: "penalties_saved" as keyof Player, showIf: (p: Player) => p.element_type === 1 },
+        { label: "Expected Goal Involvements", value: "expected_goal_involvements" as keyof Player, showIf: (p: Player) => p.element_type >= 3 }
+      ].filter(stat => stat.showIf?.(player) || (comparedPlayer && stat.showIf?.(comparedPlayer)))
     }
   ];
 
@@ -218,12 +219,12 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
                   key={stat.label}
                   label={stat.label}
                   value1={stat.divideBy 
-                    ? (player[stat.value] / stat.divideBy) 
-                    : player[stat.value] || 0}
+                    ? ((player[stat.value] as number) / stat.divideBy) 
+                    : (player[stat.value] as number) || 0}
                   value2={comparedPlayer 
                     ? (stat.divideBy 
-                      ? (comparedPlayer[stat.value] / stat.divideBy)
-                      : comparedPlayer[stat.value] || 0)
+                      ? ((comparedPlayer[stat.value] as number) / stat.divideBy)
+                      : (comparedPlayer[stat.value] as number) || 0)
                     : undefined}
                   reverse={stat.reverse}
                   showTrend={stat.showTrend}

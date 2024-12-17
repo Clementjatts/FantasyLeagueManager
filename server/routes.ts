@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "../db";
 import { teams } from "../db/schema";
+import { eq } from "drizzle-orm";
+
 interface GameweekData {
   event: number;
   points: number;
@@ -12,8 +14,14 @@ interface GameweekData {
   points_on_bench?: number;
   overall_rank?: number;
   rank_sort?: number;
+  average_entry_score?: number;
 }
-import { eq } from "drizzle-orm";
+
+interface HistoryResponse {
+  current: GameweekData[];
+  past: any[];
+  chips: any[];
+}
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
@@ -47,7 +55,7 @@ export function registerRoutes(app: Express): Server {
       const entryData = await entryResponse.json();
 
       // Fetch history data which includes current gameweek stats
-      const historyResponse = await fetch(
+      const historyFetchResponse = await fetch(
         `https://fantasy.premierleague.com/api/entry/${managerId}/history/`,
         {
           headers: {
@@ -57,26 +65,13 @@ export function registerRoutes(app: Express): Server {
         }
       );
 
-      if (!historyResponse.ok) {
-        console.error(`History response error: ${historyResponse.status}`);
+      if (!historyFetchResponse.ok) {
+        console.error(`History response error: ${historyFetchResponse.status}`);
         return res.status(500).json({ message: "Unable to fetch history data" });
       }
 
-      const historyData = await historyResponse.json();
-      interface GameweekData {
-        event: number;
-        points: number;
-        value?: number;
-        bank?: number;
-        total_points?: number;
-        event_rank?: number;
-        points_on_bench?: number;
-        overall_rank?: number;
-        rank_sort?: number;
-        average_entry_score?: number;
-      }
-
-      const currentGw = (historyData.current || []) as GameweekData[];
+      const historyData = await historyFetchResponse.json() as HistoryResponse;
+      const currentGw = historyData.current || [];
       const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : {} as GameweekData;
 
       // Get the current and last event from data
@@ -102,25 +97,17 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Process gameweek history for points graph - focus on weekly performance only
-      const rawHistory = Array.isArray(historyData.current) ? historyData.current : [];
-      const pointsHistory = rawHistory
-        .map((gw: any) => {
-          const event = Number(gw?.event);
-          const points = Number(gw?.points);
-          
-          if (!isNaN(event) && !isNaN(points)) {
-            return {
-              gameweek: Math.max(1, Math.min(38, event)),
-              points: Math.max(0, Math.min(200, points))
-            };
+      const pointsHistory = (historyData.current || [])
+        .map((gw) => {
+          if (!gw || typeof gw.event !== 'number' || typeof gw.points !== 'number') {
+            return null;
           }
-          return null;
+          return {
+            gameweek: Math.max(1, Math.min(38, gw.event)),
+            points: Math.max(0, Math.min(200, gw.points))
+          };
         })
-        .filter((gw): gw is { gameweek: number; points: number } => 
-          gw !== null && 
-          typeof gw.gameweek === 'number' && 
-          typeof gw.points === 'number'
-        )
+        .filter((gw): gw is { gameweek: number; points: number } => gw !== null)
         .sort((a, b) => a.gameweek - b.gameweek);
 
       // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)

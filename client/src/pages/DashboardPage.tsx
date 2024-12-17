@@ -307,21 +307,16 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Card className="hover:shadow-lg transition-all duration-300">
+      <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+              <TrendingUp className="w-4 h-4 text-primary" />
               <CardTitle>Performance History</CardTitle>
             </div>
-            {pointsData.length > 0 && (
-              <Badge variant="secondary" className="bg-primary/10">
-                GW {pointsData[pointsData.length - 1].gameweek}: {pointsData[pointsData.length - 1].points} pts
-              </Badge>
-            )}
           </div>
         </CardHeader>
-        <CardContent className="pt-2">
+        <CardContent>
           <PerformanceTimeline data={pointsData} />
         </CardContent>
       </Card>
