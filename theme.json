@@ -1,39 +1,22 @@
 {
   "$schema": "https://ui.shadcn.com/schema.json",
   "style": "default",
-  "rounding": "default",
-  "colors": {
-    "primary": "slate",
-    "gray": "slate"
-  },
   "radius": "0.5rem",
-  "themeSwitcher": true,
-  "themes": [
-    {
-      "name": "light",
-      "label": "Light",
-      "activeWhen": {
-        "dark": false
-      },
-      "cssVars": {
-        "background": "0 0% 100%",
-        "foreground": "222.2 84% 4.9%",
-        "primary": "222.2 47.4% 11.2%",
-        "primary-foreground": "210 40% 98%"
-      }
+  "colors": {
+    "background": {
+      "DEFAULT": "hsl(var(--background))",
+      "foreground": "hsl(var(--foreground))"
     },
-    {
-      "name": "dark",
-      "label": "Dark",
-      "activeWhen": {
-        "dark": true
-      },
-      "cssVars": {
-        "background": "222.2 84% 4.9%",
-        "foreground": "210 40% 98%",
-        "primary": "210 40% 98%",
-        "primary-foreground": "222.2 47.4% 11.2%"
-      }
-    }
-  ]
+    "primary": {
+      "DEFAULT": "hsl(var(--primary))",
+      "foreground": "hsl(var(--primary-foreground))"
+    },
+    "secondary": {
+      "DEFAULT": "hsl(var(--secondary))",
+      "foreground": "hsl(var(--secondary-foreground))"
+    },
+    "border": "hsl(var(--border))",
+    "input": "hsl(var(--input))",
+    "ring": "hsl(var(--ring))"
+  }
 }
