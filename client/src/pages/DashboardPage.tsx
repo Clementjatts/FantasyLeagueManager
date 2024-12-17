@@ -89,11 +89,52 @@ export default function DashboardPage() {
   };
 
   // Points data for the history chart
-  const pointsData = (team.points_history || []).map(gw => ({
-    gameweek: gw.event || 0,
-    points: gw.points || 0,
-    average: gw.average // Using the average directly from API
-  }));
+  const pointsData = (team.points_history || [])
+    .map(gw => {
+      try {
+        // Parse and validate all numeric values
+        const parseNumericValue = (value: any, defaultValue: number): number => {
+          if (value === null || value === undefined) return defaultValue;
+          return typeof value === 'number' ? value : parseInt(String(value), 10) || defaultValue;
+        };
+
+        const gameweek = parseNumericValue(gw.event, 0);
+        const points = parseNumericValue(gw.points, 0);
+        const average = parseNumericValue(gw.average, 47);
+
+        // Validate the gameweek number
+        if (gameweek < 1 || gameweek > 38) {
+          console.warn(`Invalid gameweek number: ${gameweek}`, gw);
+          return null;
+        }
+
+        // Validate points and average are within reasonable bounds
+        const validPoints = Math.max(0, Math.min(150, points));
+        const validAverage = Math.max(0, Math.min(150, average));
+
+        // Enhanced debug logging
+        console.log('Processed gameweek data:', {
+          gameweek,
+          raw_points: points,
+          valid_points: validPoints,
+          raw_average: average,
+          valid_average: validAverage,
+          original_data: gw
+        });
+
+        return {
+          gameweek,
+          points: validPoints,
+          average: validAverage
+        };
+      } catch (error) {
+        console.error('Error processing gameweek data:', error, gw);
+        return null;
+      }
+    })
+    .filter((data): data is { gameweek: number; points: number; average: number } => 
+      data !== null && data.gameweek > 0
+    );
 
   // Stats for quick actions
   const needsCaptain = !team.picks?.some(p => p.is_captain);
