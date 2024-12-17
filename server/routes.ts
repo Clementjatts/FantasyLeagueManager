@@ -95,31 +95,57 @@ export function registerRoutes(app: Express): Server {
         };
       });
 
-      // Parse team value (in tenths of millions, e.g., 1000 = £100.0m)
+      // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
       const parseTeamValue = (value: any): number => {
         if (!value) return 1000; // Default £100.0m
         
-        let numericValue: number;
-        
-        if (typeof value === 'number') {
-          numericValue = value;
-        } else {
-          // Remove any non-numeric characters except decimal point
-          const cleanStr = value.toString().replace(/[^\d.]/g, '');
-          numericValue = parseFloat(cleanStr);
+        try {
+          // If it's already a number
+          if (typeof value === 'number') {
+            // If it's in the correct range (950-1200 = £95.0m-£120.0m)
+            if (value >= 950 && value <= 1200) {
+              return value;
+            }
+            // If it needs to be converted to tenths (95-120 = £95.0m-£120.0m)
+            if (value >= 95 && value <= 120) {
+              return Math.floor(value * 10);
+            }
+          }
+          
+          // Convert to string and clean it
+          const strValue = value.toString().trim();
+          
+          // If it's a decimal format (e.g., "100.6")
+          if (strValue.includes('.')) {
+            const [whole, decimal] = strValue.split('.');
+            const wholeNum = parseInt(whole);
+            const decimalNum = parseInt(decimal.charAt(0) || '0');
+            
+            // Combine whole and decimal to get tenths
+            const combined = wholeNum * 10 + decimalNum;
+            if (combined >= 950 && combined <= 1200) {
+              return combined;
+            }
+          }
+          
+          // If it's a whole number string
+          const parsed = parseInt(strValue);
+          if (!isNaN(parsed)) {
+            if (parsed >= 950 && parsed <= 1200) {
+              return parsed;
+            }
+            if (parsed >= 95 && parsed <= 120) {
+              return parsed * 10;
+            }
+          }
+          
+          // Log the problematic value for debugging
+          console.log('Invalid team value format:', value);
+          return 1000; // Default to £100.0m
+        } catch (error) {
+          console.error('Error parsing team value:', error);
+          return 1000; // Default to £100.0m
         }
-        
-        // If it's already in tenths format (e.g., 1006 for £100.6m)
-        if (numericValue >= 950 && numericValue <= 1200) {
-          return Math.round(numericValue);
-        }
-        
-        // If it's in regular format (e.g., 100.6)
-        if (numericValue >= 95 && numericValue <= 120) {
-          return Math.round(numericValue * 10);
-        }
-        
-        return 1000; // Default to £100.0m if value is invalid
       };
       
       // Parse bank value (in tenths of millions, max £30.0m)
