@@ -95,54 +95,75 @@ export function registerRoutes(app: Express): Server {
         };
       });
 
-      // Get the most recent team value and bank from the last gameweek
-      // Values must be integers representing tenths of millions (e.g., 1002 for £100.2m)
-      const parseValue = (value: any): number => {
-        if (!value) return 1000; // Default to £100.0m
+      // Parse team value (in tenths of millions, e.g., 1000 = £100.0m)
+      const parseTeamValue = (value: any): number => {
+        if (!value) return 1000; // Default £100.0m
         
-        try {
-          // Convert the value to a string and handle different formats
-          const strValue = value.toString().trim();
-          
-          // If it's already an integer in the correct format (e.g., "1002")
-          if (/^\d+$/.test(strValue) && !strValue.includes('.')) {
-            const parsedInt = parseInt(strValue);
-            // If the value is already in tenths of millions format (e.g., 1002)
-            if (parsedInt >= 950 && parsedInt <= 1200) {
-              return parsedInt;
-            }
-            // If it's a whole number in millions (e.g., 100), convert to tenths
-            const inTenths = parsedInt * 10;
-            return inTenths >= 950 && inTenths <= 1200 ? inTenths : 1000;
-          }
-          
-          // If it's a decimal number (e.g., "100.2" or "100.20")
-          if (strValue.includes('.')) {
-            const [whole, decimal] = strValue.split('.');
-            const wholeNum = parseInt(whole);
-            const decimalNum = parseInt(decimal.charAt(0) || '0');
-            const result = wholeNum * 10 + decimalNum;
-            return result >= 950 && result <= 1200 ? result : 1000;
-          }
-          
-          // For any other case, try to parse as float and convert to tenths
-          const value = parseFloat(strValue);
-          const result = Math.round(value * 10);
-          return result >= 950 && result <= 1200 ? result : 1000;
-        } catch {
-          return 1000; // Default to £100.0m for any parsing errors
+        let numericValue: number;
+        
+        if (typeof value === 'number') {
+          numericValue = value;
+        } else {
+          // Remove any non-numeric characters except decimal point
+          const cleanStr = value.toString().replace(/[^\d.]/g, '');
+          numericValue = parseFloat(cleanStr);
         }
+        
+        // If it's already in tenths format (e.g., 1002)
+        if (numericValue >= 950 && numericValue <= 1200) {
+          return Math.round(numericValue);
+        }
+        
+        // If it's in regular format (e.g., 100.2)
+        if (numericValue >= 95 && numericValue <= 120) {
+          return Math.round(numericValue * 10);
+        }
+        
+        return 1000; // Default to £100.0m if value is invalid
       };
       
-      // Calculate team and bank values using the parseValue function
-      const teamValue = parseValue(lastGw?.value || entryData.last_deadline_value);
-      const bankValue = parseValue(lastGw?.bank || entryData.last_deadline_bank);
+      // Parse bank value (in tenths of millions, max £30.0m)
+      const parseBankValue = (value: any): number => {
+        if (!value) return 0;
+        
+        let numericValue: number;
+        
+        if (typeof value === 'number') {
+          numericValue = value;
+        } else {
+          const cleanStr = value.toString().replace(/[^\d.]/g, '');
+          numericValue = parseFloat(cleanStr);
+        }
+        
+        // If it's already in tenths format (e.g., 300 = £30.0m)
+        if (numericValue >= 0 && numericValue <= 300) {
+          return Math.round(numericValue);
+        }
+        
+        // If it's in regular format (e.g., 30.0)
+        if (numericValue >= 0 && numericValue <= 30) {
+          return Math.round(numericValue * 10);
+        }
+        
+        return 0; // Default to £0.0m if value is invalid
+      };
+
+      // Calculate team and bank values
+      const teamValue = parseTeamValue(lastGw?.value || entryData.last_deadline_value);
+      const bankValue = parseBankValue(lastGw?.bank || entryData.last_deadline_bank);
 
       // Calculate free transfers based on rules
       const baseTransfers = 1;
-      const savedTransfers = parseInt(entryData.transfers?.limit?.toString() || '0');
-      const transfersMade = parseInt(entryData.transfers?.made?.toString() || '0');
-      const freeTransfers = Math.min(savedTransfers + baseTransfers, 2); // Max 2 free transfers
+      const savedTransfers = entryData.transfers?.limit !== undefined ? 
+        parseInt(entryData.transfers.limit.toString()) : 1;
+      const transfersMade = entryData.transfers?.made !== undefined ? 
+        parseInt(entryData.transfers.made.toString()) : 0;
+      
+      // Calculate free transfers (max 2)
+      const freeTransfers = Math.min(
+        Math.max(0, savedTransfers),
+        2
+      );
 
       // Get the last gameweek's data for points and rank with proper type handling
       const parseNumber = (value: any): number => {
@@ -180,28 +201,28 @@ export function registerRoutes(app: Express): Server {
         transfers: {
           limit: Math.min(2, Math.max(0, parseIntSafe(freeTransfers, 1))), // Max 2 free transfers
           made: Math.max(0, parseIntSafe(transfersMade, 0)),
-          bank: parseValue(bankValue), // In tenths of millions
-          value: parseValue(teamValue), // In tenths of millions
+          bank: parseBankValue(bankValue), // In tenths of millions
+          value: parseTeamValue(teamValue), // In tenths of millions
         },
         points_history: pointsHistory,
         stats: {
           event_points: Math.min(200, Math.max(0, parseIntSafe(lastGw?.points || entryData.summary_event_points, 0))),
-          event_average: Math.min(150, Math.max(0, parseIntSafe(lastGw?.average_entry_score, 0))),
+          event_average: Math.min(150, Math.max(0, parseIntSafe(currentGw.length > 0 ? currentGw[currentGw.length - 1].average_entry_score : 0, 0))),
           event_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.event_rank || entryData.summary_event_rank, 1))),
           points_on_bench: Math.min(100, Math.max(0, parseIntSafe(lastGw?.points_on_bench, 0))),
           overall_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
           overall_rank: Math.min(10000000, Math.max(1, parseIntSafe(lastGw?.overall_rank || entryData.summary_overall_rank, 1))),
           rank_sort: Math.max(1, previousRank),
           total_points: Math.max(0, parseIntSafe(lastGw?.total_points || entryData.summary_overall_points, 0)),
-          value: parseValue(teamValue), // In tenths of millions
-          bank: parseValue(bankValue), // In tenths of millions
+          value: teamValue,
+          bank: bankValue,
         },
         current_event: parseInt(String(currentEvent)) || 1,
         last_deadline_event: parseInt(String(lastCompletedEvent)) || 1,
         summary_overall_points: Math.max(0, parseInt(String(lastGw.total_points)) || parseInt(String(entryData.summary_overall_points)) || 0),
         summary_overall_rank: Math.max(1, parseInt(String(currentRank)) || 1),
-        last_deadline_bank: parseValue(bankValue),     // Use parseValue for consistent handling
-        last_deadline_value: parseValue(teamValue)     // Use parseValue for consistent handling
+        last_deadline_bank: parseBankValue(bankValue),     // Use parseValue for consistent handling
+        last_deadline_value: parseTeamValue(teamValue)     // Use parseValue for consistent handling
       };
 
       res.json(combinedData);
