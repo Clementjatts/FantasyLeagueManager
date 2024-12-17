@@ -2,6 +2,17 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { db } from "../db";
 import { teams } from "../db/schema";
+interface GameweekData {
+  event: number;
+  points: number;
+  value?: number;
+  bank?: number;
+  total_points?: number;
+  event_rank?: number;
+  points_on_bench?: number;
+  overall_rank?: number;
+  rank_sort?: number;
+}
 import { eq } from "drizzle-orm";
 
 export function registerRoutes(app: Express): Server {
@@ -90,11 +101,27 @@ export function registerRoutes(app: Express): Server {
         picks = picksData.picks || [];
       }
 
-      // Process gameweek history for points graph
-      const pointsHistory = (currentGw || []).map((gw: GameweekData) => ({
-        gameweek: Number(gw.event),
-        points: Math.max(0, Math.min(200, Number(gw.points)))
-      })).filter(gw => gw.gameweek > 0);
+      // Process gameweek history for points graph - focus on weekly performance only
+      const rawHistory = Array.isArray(historyData.current) ? historyData.current : [];
+      const pointsHistory = rawHistory
+        .map((gw: any) => {
+          const event = Number(gw?.event);
+          const points = Number(gw?.points);
+          
+          if (!isNaN(event) && !isNaN(points)) {
+            return {
+              gameweek: Math.max(1, Math.min(38, event)),
+              points: Math.max(0, Math.min(200, points))
+            };
+          }
+          return null;
+        })
+        .filter((gw): gw is { gameweek: number; points: number } => 
+          gw !== null && 
+          typeof gw.gameweek === 'number' && 
+          typeof gw.points === 'number'
+        )
+        .sort((a, b) => a.gameweek - b.gameweek);
 
       // Parse team value (in tenths of millions, e.g., 1006 = £100.6m)
       const parseTeamValue = (value: any): number => {
