@@ -104,6 +104,7 @@ export interface Fixture {
   team_h_difficulty: number;
   team_a_difficulty: number;
   event: number;
+  difficulty?: number; 
 }
 
 export interface BootstrapTeam {
@@ -117,4 +118,65 @@ export interface BootstrapTeam {
   strength_attack_away: number;
   strength_defence_home: number;
   strength_defence_away: number;
+}
+
+export interface BootstrapStatic {
+  events: GameweekEvent[];
+  teams: BootstrapTeam[];
+  total_players: number;
+  elements: Player[];
+  element_stats: ElementStats[];
+  element_types: ElementType[];
+  chips?: ChipInfo[]; 
+}
+
+export interface ChipInfo {
+  name: string;
+  played: number;
+  max_played: number;
+}
+
+export interface GameweekEvent {
+  id: number;
+  name: string;
+  deadline_time: string;
+  average_entry_score: number;
+  finished: boolean;
+  data_checked: boolean;
+  highest_scoring_entry: number;
+  deadline_time_epoch: number;
+  deadline_time_game_offset: number;
+  highest_score: number;
+  is_previous: boolean;
+  is_current: boolean;
+  is_next: boolean;
+  chip_plays: ChipPlay[];
+  most_selected: number;
+  most_transferred_in: number;
+  top_element: number;
+  transfers_made: number;
+  most_captained: number;
+  most_vice_captained: number;
+}
+
+export interface ElementStats {
+  label: string;
+  name: string;
+}
+
+export interface ElementType {
+  id: number;
+  plural_name: string;
+  plural_name_short: string;
+  singular_name: string;
+  singular_name_short: string;
+  squad_select: number;
+  squad_min_play: number;
+  squad_max_play: number;
+  element_count: number;
+}
+
+export interface ChipPlay {
+  chip_name: string;
+  num_played: number;
 }

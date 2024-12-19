@@ -181,7 +181,7 @@ export default function TeamPage() {
                 currentPlayers={[...startingXI, ...substitutes]}
                 allPlayers={players}
                 fixtures={fixtures || []}
-                teams={bootstrapData?.teams}
+                teams={bootstrapData?.teams || []}
                 onTransferClick={(inPlayer, outPlayer) => {
                   toast({
                     title: "Transfer Initiated",
@@ -200,7 +200,7 @@ export default function TeamPage() {
               <CaptainSuggestions 
                 allPlayers={players}
                 fixtures={fixtures || []}
-                teams={bootstrapData?.teams}
+                teams={bootstrapData?.teams || []}
                 onSelectCaptain={handleCaptainSelect}
                 currentCaptainId={captainId}
                 currentViceCaptainId={viceCaptainId}

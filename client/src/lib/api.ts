@@ -1,4 +1,4 @@
-import { Player, Team, Fixture } from "../types/fpl";
+import { Player, Team, Fixture, BootstrapStatic } from "../types/fpl";
 
 const API_BASE = "/api/fpl";
 
@@ -23,7 +23,7 @@ export async function fetchFixtures(): Promise<Fixture[]> {
   return res.json();
 }
 
-export async function fetchBootstrapStatic(): Promise<any> {
+export async function fetchBootstrapStatic(): Promise<BootstrapStatic> {
   const res = await fetch(`${API_BASE}/bootstrap-static`);
   if (!res.ok) throw new Error("Failed to fetch bootstrap data");
   return res.json();
