@@ -51,26 +51,6 @@ export interface Team {
     cost: number;
     status: string;
   };
-  history?: {
-    current?: Array<{
-      event: number;
-      points: number;
-      total_points: number;
-      rank: number;
-      rank_sort: number;
-      overall_rank: number;
-      bank: number;
-      value: number;
-      event_transfers: number;
-      event_transfers_cost: number;
-      points_on_bench: number;
-    }>;
-    past?: Array<{
-      season_name: string;
-      total_points: number;
-      rank: number;
-    }>;
-  };
   points_history: Array<{
     event: number;
     points: number;
@@ -119,24 +99,11 @@ export interface Chip {
 
 export interface Fixture {
   id: number;
-  event: number | null;
-  finished: boolean;
   team_h: number;
   team_a: number;
-  team_h_score?: number;
-  team_a_score?: number;
   team_h_difficulty: number;
   team_a_difficulty: number;
-  difficulty?: number;
-  kickoff_time: string;
-  minutes: number;
-  provisional_start_time: boolean;
-  started: boolean;
-  stats?: Array<{
-    identifier: string;
-    a: any[];
-    h: any[];
-  }>;
+  event: number;
 }
 
 export interface BootstrapTeam {

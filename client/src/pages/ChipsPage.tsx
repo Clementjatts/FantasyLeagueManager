@@ -15,29 +15,20 @@ import { cn } from "@/lib/utils";
 interface ChipStatus {
   name: string;
   label: string;
-  icon: typeof Sparkles | typeof Zap | typeof Trophy | typeof TrendingUp;
+  icon: typeof Sparkles;
   description: string;
   usedGameweek: number | null;
   isAvailable: boolean;
   effectivenessScore: number;
   optimalGameweeks: number[];
   impactDescription: string;
-  potentialPoints: number;
-  seasonPhase: string;
-  doubleGameweeks: number[];
-  blankGameweeks: number[];
-  recommendedStrategy: string;
-  riskLevel: 'low' | 'medium' | 'high';
-  alternativeGameweeks: number[];
-}
-
-interface ChipDetails extends Partial<ChipStatus> {
-  label: string;
-  icon: typeof Sparkles | typeof Zap | typeof Trophy | typeof TrendingUp;
-  description: string;
-  impactDescription: string;
-  recommendedStrategy: string;
-  riskLevel: 'low' | 'medium' | 'high';
+  potentialPoints?: number;
+  seasonPhase?: string;
+  doubleGameweeks?: number[];
+  blankGameweeks?: number[];
+  recommendedStrategy?: string;
+  riskLevel?: 'low' | 'medium' | 'high';
+  alternativeGameweeks?: number[];
 }
 
 interface TimelineEvent {
@@ -49,285 +40,123 @@ interface TimelineEvent {
 
 // Helper function to identify double gameweeks
 function findDoubleGameweeks(fixtures: Fixture[]): number[] {
-  const gameweekFixtures = new Map<number, number>();
-  
-  fixtures.forEach(fixture => {
-    if (fixture.event !== null) {
-      const count = gameweekFixtures.get(fixture.event) || 0;
-      gameweekFixtures.set(fixture.event, count + 1);
-    }
-  });
+  const gameweekFixtures = fixtures.reduce((acc, fixture) => {
+    acc[fixture.event] = (acc[fixture.event] || 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
 
-  return Array.from(gameweekFixtures.entries())
+  return Object.entries(gameweekFixtures)
     .filter(([_, count]) => count > 10) // More than 10 fixtures indicates a double gameweek
-    .map(([gw]) => gw);
+    .map(([gw]) => parseInt(gw));
 }
 
 // Helper function to identify blank gameweeks
 function findBlankGameweeks(fixtures: Fixture[]): number[] {
-  const gameweekFixtures = new Map<number, number>();
-  
-  fixtures.forEach(fixture => {
-    if (fixture.event !== null) {
-      const count = gameweekFixtures.get(fixture.event) || 0;
-      gameweekFixtures.set(fixture.event, count + 1);
-    }
-  });
+  const gameweekFixtures = fixtures.reduce((acc, fixture) => {
+    acc[fixture.event] = (acc[fixture.event] || 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
 
-  return Array.from(gameweekFixtures.entries())
+  return Object.entries(gameweekFixtures)
     .filter(([_, count]) => count < 10) // Less than 10 fixtures indicates a blank gameweek
-    .map(([gw]) => gw);
+    .map(([gw]) => parseInt(gw));
 }
 
-// Helper function to calculate chip effectiveness based on fixture difficulty and team form
+// Helper function to calculate chip effectiveness
 function calculateChipEffectiveness(
   chip: string,
   currentGW: number,
   doubleGWs: number[],
   blankGWs: number[],
-  fixtures: Fixture[],
-  bootstrapData: BootstrapData
+  fixtures: Fixture[]
 ): number {
-  try {
   let score = 50; // Base score
-  
-  const upcomingFixtures = fixtures.filter(f => f.event && f.event >= currentGW).slice(0, 5);
-  const averageDifficulty = upcomingFixtures.reduce((acc, f) => {
-    // Use home or away difficulty based on the fixture
-    const difficulty = f.team_h_difficulty || f.team_a_difficulty || 2;
-    return acc + difficulty;
-  }, 0) / upcomingFixtures.length;
-  
-  // Get current form data from bootstrap
-  const teams = bootstrapData.teams || [];
-  const avgTeamForm = teams.reduce((acc: number, team: any) => acc + (parseFloat(team.form) || 0), 0) / teams.length;
 
-  // Adjust score based on chip type, fixtures, and team form
+  // Adjust score based on chip type and upcoming fixtures
   switch (chip) {
     case 'freehit':
-      // Higher effectiveness during blank gameweeks or high difficulty periods
+      // Higher effectiveness during blank gameweeks
       if (blankGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 30;
-      if (averageDifficulty > 3) score += 20; // Bonus for difficult fixture periods
       break;
-      
     case '3xc':
-      // Higher effectiveness during double gameweeks and when top teams are in form
-      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 35;
-      // Add bonus if there are teams in good form
-      const topTeamForm = Math.max(...teams.map((t: any) => parseFloat(t.form) || 0));
-      if (topTeamForm > avgTeamForm + 1) score += 20;
+      // Higher effectiveness during double gameweeks
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 40;
       break;
-      
     case 'bboost':
-      // Higher effectiveness during double gameweeks with favorable fixtures
-      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) {
-        score += 25;
-        if (averageDifficulty < 3) score += 15; // Bonus for easier fixtures
-      }
+      // Higher effectiveness during double gameweeks with good fixtures
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 35;
       break;
-      
     case 'wildcard':
-      // Higher effectiveness before fixture swings or multiple upcoming doubles/blanks
-      const upcomingDGW = doubleGWs.filter(gw => gw > currentGW && gw <= currentGW + 5).length;
-      const upcomingBGW = blankGWs.filter(gw => gw > currentGW && gw <= currentGW + 5).length;
-      
-      score += upcomingDGW * 10; // Bonus for each upcoming DGW
-      score += upcomingBGW * 8;  // Bonus for each upcoming BGW
-      
-      // Additional bonus for significant fixture difficulty changes
-      const fixtureDifficultySwing = Math.abs(
-        Math.max(...upcomingFixtures.map(f => f.difficulty || 2)) -
-        Math.min(...upcomingFixtures.map(f => f.difficulty || 2))
-      );
-      if (fixtureDifficultySwing >= 2) score += 15;
+      // Higher effectiveness before a series of good fixtures or doubles
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 4)) score += 25;
+      if (blankGWs.some(gw => Math.abs(gw - currentGW) <= 4)) score += 20;
       break;
   }
 
   return Math.min(score, 100);
 }
 
-interface BootstrapData {
-  teams: Array<{
-    id: number;
-    name: string;
-    short_name: string;
-    form: string;
-    strength: number;
-    strength_overall_home: number;
-    strength_overall_away: number;
-    strength_attack_home: number;
-    strength_attack_away: number;
-    strength_defence_home: number;
-    strength_defence_away: number;
-  }>;
-  events: Array<{
-    id: number;
-    name: string;
-    deadline_time: string;
-    average_entry_score: number;
-    finished: boolean;
-    data_checked: boolean;
-    highest_scoring_entry: number;
-    deadline_time_epoch: number;
-    deadline_time_game_offset: number;
-    highest_score: number;
-    is_previous: boolean;
-    is_current: boolean;
-    is_next: boolean;
-  }>;
-}
-
 function processChipData(
   team: Team,
   fixtures: Fixture[],
-  bootstrapData: BootstrapData
+  bootstrapData: any
 ): ChipStatus[] {
-  try {
-    const { chips = [], current_event } = team;
-    const doubleGameweeks = findDoubleGameweeks(fixtures);
-    const blankGameweeks = findBlankGameweeks(fixtures);
-    
-    // Calculate average points per gameweek from historical data with proper type checking
-    const avgPointsPerGW = team.history && team.history.current 
-      ? team.history.current.reduce((acc, gw) => acc + (gw.points || 0), 0) / team.history.current.length
-      : 50; // Default to 50 points if no history available
+  const { chips, current_event } = team;
+  const doubleGameweeks = findDoubleGameweeks(fixtures);
+  const blankGameweeks = findBlankGameweeks(fixtures);
 
-    return Object.entries(CHIP_DETAILS).map(([chipName, details]) => {
-      const chip = chips.find(c => c.name === chipName);
-      const isUsed = chip?.event != null;
-      const usedGameweek = isUsed ? chip.event : null;
+  return Object.entries(CHIP_DETAILS).map(([chipName, details]) => {
+    const chip = chips.find(c => c.name === chipName);
+    const isUsed = chip?.event != null;
+    const usedGameweek = isUsed ? chip.event : null;
 
-      const effectivenessScore = calculateChipEffectiveness(
-        chipName,
-        current_event,
-        doubleGameweeks,
-        blankGameweeks,
-        fixtures,
-        bootstrapData
-      );
+    const effectivenessScore = calculateChipEffectiveness(
+      chipName,
+      current_event,
+      doubleGameweeks,
+      blankGameweeks,
+      fixtures
+    );
 
-      // Calculate potential points based on historical performance and chip type
-      const potentialPoints = Math.round(
-        avgPointsPerGW * (
-          chipName === '3xc' ? 2 :
-          chipName === 'bboost' ? 1.5 :
-          chipName === 'freehit' ? 1.3 :
-          chipName === 'wildcard' ? 1.4 : 1
-        )
-      );
+    // Calculate optimal gameweeks based on fixtures and chip type
+    const optimalGameweeks = (() => {
+      switch (chipName) {
+        case 'freehit':
+          return blankGameweeks.filter(gw => gw > current_event);
+        case '3xc':
+        case 'bboost':
+          return doubleGameweeks.filter(gw => gw > current_event);
+        case 'wildcard':
+          return [...doubleGameweeks, ...blankGameweeks]
+            .filter(gw => gw > current_event)
+            .slice(0, 3);
+        default:
+          return [];
+      }
+    })();
 
-      // Calculate optimal gameweeks with improved logic
-      const optimalGameweeks = (() => {
-        const futureFixtures = fixtures.filter(f => f.event && f.event > current_event);
-        const upcomingDifficulties = new Map<number, number>();
-        
-        futureFixtures.forEach(f => {
-          if (f.event) {
-            upcomingDifficulties.set(
-              f.event,
-              (upcomingDifficulties.get(f.event) || 0) + (f.difficulty || 2)
-            );
-          }
-        });
-
-        switch (chipName) {
-          case 'freehit':
-            // Prioritize blank gameweeks and weeks with high difficulty
-            return [...blankGameweeks, 
-              ...Array.from(upcomingDifficulties.entries())
-                .filter(([_, diff]) => diff > 30)
-                .map(([gw]) => gw)
-            ].filter(gw => gw > current_event).slice(0, 3);
-            
-          case '3xc':
-            // Prioritize double gameweeks with favorable fixtures
-            return doubleGameweeks
-              .filter(gw => gw > current_event)
-              .filter(gw => (upcomingDifficulties.get(gw) || 30) < 28)
-              .slice(0, 2);
-            
-          case 'bboost':
-            // Prioritize double gameweeks with moderate difficulty
-            return doubleGameweeks
-              .filter(gw => gw > current_event)
-              .filter(gw => {
-                const diff = upcomingDifficulties.get(gw) || 30;
-                return diff >= 24 && diff <= 32;
-              })
-              .slice(0, 2);
-            
-          case 'wildcard':
-            // Consider both doubles/blanks and fixture difficulty swings
-            const difficultySwings = Array.from(upcomingDifficulties.entries())
-              .map(([gw]) => gw)
-              .filter(gw => {
-                const currentDiff = upcomingDifficulties.get(gw) || 30;
-                const nextDiff = upcomingDifficulties.get(gw + 1) || 30;
-                return Math.abs(currentDiff - nextDiff) > 8;
-              });
-              
-            return Array.from(new Set([
-              ...doubleGameweeks,
-              ...blankGameweeks,
-              ...difficultySwings
-            ]))
-              .filter(gw => gw > current_event)
-              .slice(0, 3);
-            
-          default:
-            return [];
-        }
-      })();
-
-      // Determine season phase based on current gameweek
-      const seasonPhase = current_event <= 12 ? 'Early Season' :
-                         current_event <= 24 ? 'Mid Season' :
-                         current_event <= 32 ? 'Late Season' : 'Final Run-in';
-
-      return {
-        name: chipName,
-        label: details.label || "",
-        icon: details.icon || Sparkles,
-        description: details.description || "",
-        usedGameweek,
-        isAvailable: !isUsed,
-        effectivenessScore,
-        optimalGameweeks,
-        impactDescription: details.impactDescription || "",
-        potentialPoints,
-        seasonPhase,
-        doubleGameweeks,
-        blankGameweeks,
-        recommendedStrategy: details.recommendedStrategy,
-        riskLevel: details.riskLevel,
-        alternativeGameweeks: optimalGameweeks.slice(1)
-      };
-    });
-  } catch (error) {
-    console.error('Error processing chip data:', error);
-    // Return safe fallback data
-    return Object.entries(CHIP_DETAILS).map(([chipName, details]) => ({
+    return {
       name: chipName,
       label: details.label || "",
       icon: details.icon || Sparkles,
       description: details.description || "",
-      usedGameweek: null,
-      isAvailable: true,
-      effectivenessScore: 50,
-      optimalGameweeks: [],
+      usedGameweek,
+      isAvailable: !isUsed,
+      effectivenessScore,
+      optimalGameweeks,
       impactDescription: details.impactDescription || "",
-      potentialPoints: 0,
-      seasonPhase: 'Unknown',
-      doubleGameweeks: [],
-      blankGameweeks: [],
-      recommendedStrategy: 'Unable to calculate strategy at this time',
-      riskLevel: 'medium' as const,
-      alternativeGameweeks: []
-    }));
-  }
+      potentialPoints: details.potentialPoints,
+      seasonPhase: details.seasonPhase,
+      doubleGameweeks,
+      blankGameweeks,
+      recommendedStrategy: details.recommendedStrategy,
+      riskLevel: details.riskLevel,
+      alternativeGameweeks: details.alternativeGameweeks
+    };
+  });
 }
 
-const CHIP_DETAILS: Record<string, ChipDetails> = {
+const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
   wildcard: {
     label: "Wildcard",
     icon: Sparkles,
@@ -360,7 +189,7 @@ const CHIP_DETAILS: Record<string, ChipDetails> = {
     recommendedStrategy: "Use when bench players have double gameweeks",
     riskLevel: "medium"
   }
-} as const;
+};
 
 function ChipsPage() {
   const [selectedChip, setSelectedChip] = useState<string | null>(null);
@@ -368,37 +197,23 @@ function ChipsPage() {
   const [showHistorical, setShowHistorical] = useState(false);
 
   // Fetch required data
-  const { data: bootstrapData, isLoading: isLoadingBootstrap } = useQuery<BootstrapData>({
+  const { data: bootstrapData, isLoading: isLoadingBootstrap } = useQuery({
     queryKey: ["bootstrap-static"],
     queryFn: fetchBootstrapStatic
   });
 
-  const { data: fixtures, isLoading: isLoadingFixtures } = useQuery<Fixture[]>({
+  const { data: fixtures, isLoading: isLoadingFixtures } = useQuery({
     queryKey: ["fixtures"],
     queryFn: fetchFixtures
   });
 
-  const { data: team, isLoading: isLoadingTeam } = useQuery<Team>({
+  const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ["myTeam"],
     queryFn: () => fetchMyTeam(1) // Replace with actual manager ID
   });
 
   const isLoading = isLoadingBootstrap || isLoadingFixtures || isLoadingTeam;
-  const hasError = !bootstrapData || !fixtures || !team;
-
-  // Add error boundary for API data
-  if (hasError && !isLoading) {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Unable to load FPL data. Please check your connection and try again.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const error = !bootstrapData || !fixtures || !team;
 
   if (isLoading) {
     return (
@@ -422,15 +237,24 @@ function ChipsPage() {
     );
   }
 
-  // Error boundary already handled above with hasError check
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load chip data. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
-  const chips = team && fixtures && bootstrapData 
-    ? processChipData(team, fixtures, bootstrapData)
-    : [];
-  const currentGameweek = bootstrapData?.events.find((event: { is_current: boolean; id: number }) => event.is_current)?.id || 1;
+  const chips = processChipData(team, fixtures, bootstrapData);
+  const currentGameweek = bootstrapData.events.find((event: any) => event.is_current)?.id || 1;
 
-  // Generate timeline events based on fixtures and chips with proper type checking
-  const timelineEvents: TimelineEvent[] = fixtures ? [
+  // Generate timeline events based on fixtures and chips
+  const timelineEvents: TimelineEvent[] = [
     ...findDoubleGameweeks(fixtures).map(gw => ({
       gameweek: gw,
       type: 'double' as const,
@@ -443,26 +267,19 @@ function ChipsPage() {
       description: `Blank Gameweek ${gw} - Reduced fixtures`,
       importance: gw > currentGameweek ? 'high' as const : 'low' as const
     }))
-  ].sort((a, b) => a.gameweek - b.gameweek) : [];
+  ].sort((a, b) => a.gameweek - b.gameweek);
 
-  // Add chip recommendations to timeline with proper error handling and type checking
-  if (Array.isArray(chips) && chips.length > 0) {
-    const validChips = chips.filter(
-      (chip): chip is ChipStatus => 
-        chip.isAvailable && 
-        Array.isArray(chip.optimalGameweeks) && 
-        chip.optimalGameweeks.length > 0
-    );
-
-    validChips.forEach(chip => {
+  // Add chip recommendations to timeline
+  chips.forEach(chip => {
+    if (chip.isAvailable && chip.optimalGameweeks.length > 0) {
       timelineEvents.push({
         gameweek: chip.optimalGameweeks[0],
-        type: 'chip_recommendation' as const,
+        type: 'chip_recommendation',
         description: `Consider using ${chip.label} (Potential: +${chip.potentialPoints || '?'} pts)`,
-        importance: 'medium' as const
+        importance: 'medium'
       });
-    });
-  }
+    }
+  });
 
   return (
     <div className="container mx-auto p-6 space-y-8">
@@ -669,12 +486,7 @@ function ChipsPage() {
   );
 }
 
-function ChipCard({ chip }: { chip: ChipStatus }): JSX.Element {
-  const Icon = chip.icon || Sparkles;
-  const riskColor = chip.riskLevel === 'high' ? "text-destructive" :
-                   chip.riskLevel === 'medium' ? "text-yellow-500" :
-                   "text-green-500";
-  
+function ChipCard({ chip }: { chip: ChipStatus }) {
   return (
     <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
       <motion.div
