@@ -16,6 +16,11 @@ export function registerRoutes(app: Express): Server {
   // Set port from environment or use 5000 as fallback
   const port = process.env.PORT || 5000;
   
+  // Health check endpoint
+  app.get("/api/health", (_req, res) => {
+    res.json({ status: "ok" });
+  });
+  
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
     const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
@@ -110,11 +115,11 @@ export function registerRoutes(app: Express): Server {
       const chips = historyData.chips || [];
       
       // Process and validate chip data
-      const processedChips = chips.map(c => ({
+      const processedChips = (chips || []).map((c: any) => ({
         name: c.name,
         time: c.time,
-        event: typeof c.event === 'number' ? c.event : null
-      }));
+        event: c.event && typeof c.event === 'number' ? c.event : null
+      })).filter((c: any) => c.name && ['wildcard', 'freehit', 'bboost', '3xc'].includes(c.name));
 
       console.log('Processed FPL API data:', {
         chips: processedChips,
