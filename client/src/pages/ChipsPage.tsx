@@ -68,28 +68,63 @@ function calculateChipEffectiveness(
   currentGW: number,
   doubleGWs: number[],
   blankGWs: number[],
-  fixtures: Fixture[]
+  fixtures: Fixture[],
+  bootstrapData: any
 ): number {
   let score = 50; // Base score
+
+  const upcomingFixtures = fixtures.filter(f => f.event > currentGW).slice(0, 5);
+  const avgDifficulty = upcomingFixtures.reduce((acc, f) => 
+    acc + (f.team_h_difficulty + f.team_a_difficulty) / 2, 0) / upcomingFixtures.length;
+
+  const nextEvent = bootstrapData.events.find((e: any) => e.id === currentGW + 1);
+  const isDeadlineClose = nextEvent && 
+    new Date(nextEvent.deadline_time).getTime() - Date.now() < 86400000; // 24 hours
 
   // Adjust score based on chip type and upcoming fixtures
   switch (chip) {
     case 'freehit':
-      // Higher effectiveness during blank gameweeks
+      // Higher effectiveness during blank gameweeks or tough fixture runs
       if (blankGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 30;
+      if (avgDifficulty > 3.5) score += 20; // Harder fixtures ahead
+      if (isDeadlineClose && blankGWs.includes(currentGW + 1)) score += 15;
       break;
+
     case '3xc':
-      // Higher effectiveness during double gameweeks
-      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 40;
+      // Higher effectiveness during double gameweeks with favorable fixtures
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) {
+        score += 40;
+        // Check fixture difficulty for double gameweeks
+        const doubleGWFixtures = fixtures.filter(f => 
+          doubleGWs.includes(f.event) && f.event > currentGW
+        );
+        const hasEasyFixtures = doubleGWFixtures.some(f => 
+          (f.team_h_difficulty + f.team_a_difficulty) / 2 <= 2.5
+        );
+        if (hasEasyFixtures) score += 15;
+      }
+      if (isDeadlineClose && doubleGWs.includes(currentGW + 1)) score += 20;
       break;
+
     case 'bboost':
-      // Higher effectiveness during double gameweeks with good fixtures
-      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 35;
+      // Higher effectiveness during double gameweeks with good overall team fixtures
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) {
+        score += 35;
+        if (avgDifficulty < 3) score += 15; // Easier fixtures for whole team
+      }
+      if (isDeadlineClose && doubleGWs.includes(currentGW + 1)) score += 15;
       break;
+
     case 'wildcard':
-      // Higher effectiveness before a series of good fixtures or doubles
-      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 4)) score += 25;
-      if (blankGWs.some(gw => Math.abs(gw - currentGW) <= 4)) score += 20;
+      // Higher effectiveness before fixture swings or multiple important gameweeks
+      const nextFewGWs = Array.from({length: 4}, (_, i) => currentGW + i + 1);
+      const hasImportantGWs = nextFewGWs.some(gw => 
+        doubleGWs.includes(gw) || blankGWs.includes(gw)
+      );
+      
+      if (hasImportantGWs) score += 25;
+      if (Math.abs(avgDifficulty - 3) > 0.5) score += 20; // Significant fixture swing
+      if (isDeadlineClose && hasImportantGWs) score += 10;
       break;
   }
 
@@ -104,6 +139,17 @@ function processChipData(
   const { chips, current_event } = team;
   const doubleGameweeks = findDoubleGameweeks(fixtures);
   const blankGameweeks = findBlankGameweeks(fixtures);
+  
+  // Calculate average points for double gameweeks
+  const avgDoubleGWPoints = bootstrapData.events
+    .filter((event: any) => doubleGameweeks.includes(event.id))
+    .reduce((acc: number, event: any) => acc + (event.average_entry_score || 50), 0) / 
+    Math.max(doubleGameweeks.length, 1);
+
+  // Get current phase of the season
+  const currentPhase = bootstrapData.phases.find((phase: any) => 
+    phase.start_event <= current_event && phase.stop_event >= current_event
+  )?.name || 'Regular Season';
 
   return Object.entries(CHIP_DETAILS).map(([chipName, details]) => {
     const chip = chips.find(c => c.name === chipName);
@@ -118,21 +164,78 @@ function processChipData(
       fixtures
     );
 
-    // Calculate optimal gameweeks based on fixtures and chip type
-    const optimalGameweeks = (() => {
+    // Calculate potential points based on historical data and chip type
+    const potentialPoints = isUsed ? 0 : (() => {
       switch (chipName) {
         case 'freehit':
-          return blankGameweeks.filter(gw => gw > current_event);
+          return Math.round(avgDoubleGWPoints * 1.2);
         case '3xc':
+          return Math.round(avgDoubleGWPoints * 0.4);
         case 'bboost':
-          return doubleGameweeks.filter(gw => gw > current_event);
+          return Math.round(avgDoubleGWPoints * 0.8);
         case 'wildcard':
-          return [...doubleGameweeks, ...blankGameweeks]
+          return Math.round(avgDoubleGWPoints * 1.5);
+        default:
+          return 0;
+      }
+    })();
+
+    // Calculate optimal gameweeks with dynamic strategy
+    const optimalGameweeks = (() => {
+      const futureGWs = Array.from(
+        { length: bootstrapData.events.length }, 
+        (_, i) => i + 1
+      ).filter(gw => gw > current_event);
+
+      switch (chipName) {
+        case 'freehit':
+          return blankGameweeks
             .filter(gw => gw > current_event)
+            .sort((a, b) => {
+              const aFixtures = fixtures.filter(f => f.event === a).length;
+              const bFixtures = fixtures.filter(f => f.event === b).length;
+              return aFixtures - bFixtures;
+            });
+        case '3xc':
+          return doubleGameweeks
+            .filter(gw => gw > current_event)
+            .sort((a, b) => {
+              const aScore = bootstrapData.events.find((e: any) => e.id === a)?.average_entry_score || 0;
+              const bScore = bootstrapData.events.find((e: any) => e.id === b)?.average_entry_score || 0;
+              return bScore - aScore;
+            });
+        case 'bboost':
+          return doubleGameweeks
+            .filter(gw => gw > current_event)
+            .sort((a, b) => {
+              const aFixtures = fixtures.filter(f => f.event === a).length;
+              const bFixtures = fixtures.filter(f => f.event === b).length;
+              return bFixtures - aFixtures;
+            });
+        case 'wildcard':
+          return futureGWs
+            .filter(gw => {
+              const nextFewGWs = futureGWs.filter(g => g >= gw && g <= gw + 4);
+              const hasDoubleOrBlank = nextFewGWs.some(g => 
+                doubleGameweeks.includes(g) || blankGameweeks.includes(g)
+              );
+              return hasDoubleOrBlank;
+            })
             .slice(0, 3);
         default:
           return [];
       }
+    })();
+
+    const recommendedStrategy = (() => {
+      const nextGW = bootstrapData.events.find((e: any) => e.id === current_event + 1);
+      const isDeadlineClose = nextGW && new Date(nextGW.deadline_time).getTime() - Date.now() < 86400000; // 24 hours
+
+      if (isDeadlineClose && optimalGameweeks.includes(current_event + 1)) {
+        return `Consider using ${details.label} next gameweek for optimal impact`;
+      }
+      
+      return details.recommendedStrategy || `Best used during ${currentPhase} phase`;
     })();
 
     return {
@@ -145,13 +248,13 @@ function processChipData(
       effectivenessScore,
       optimalGameweeks,
       impactDescription: details.impactDescription || "",
-      potentialPoints: details.potentialPoints,
-      seasonPhase: details.seasonPhase,
+      potentialPoints,
+      seasonPhase: currentPhase,
       doubleGameweeks,
       blankGameweeks,
-      recommendedStrategy: details.recommendedStrategy,
+      recommendedStrategy,
       riskLevel: details.riskLevel,
-      alternativeGameweeks: details.alternativeGameweeks
+      alternativeGameweeks: optimalGameweeks.slice(3)
     };
   });
 }
@@ -197,20 +300,47 @@ function ChipsPage() {
   const [showHistorical, setShowHistorical] = useState(false);
 
   // Fetch required data
-  const { data: bootstrapData, isLoading: isLoadingBootstrap } = useQuery({
+  const { 
+    data: bootstrapData, 
+    isLoading: isLoadingBootstrap,
+    error: bootstrapError,
+    refetch: refetchBootstrap
+  } = useQuery({
     queryKey: ["bootstrap-static"],
-    queryFn: fetchBootstrapStatic
+    queryFn: fetchBootstrapStatic,
+    retry: 3,
+    staleTime: 300000, // 5 minutes
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
-  const { data: fixtures, isLoading: isLoadingFixtures } = useQuery({
+  const {
+    data: fixtures,
+    isLoading: isLoadingFixtures,
+    error: fixturesError,
+    refetch: refetchFixtures
+  } = useQuery({
     queryKey: ["fixtures"],
-    queryFn: fetchFixtures
+    queryFn: fetchFixtures,
+    retry: 3,
+    staleTime: 300000,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
-  const { data: team, isLoading: isLoadingTeam } = useQuery({
+  const {
+    data: team,
+    isLoading: isLoadingTeam,
+    error: teamError,
+    refetch: refetchTeam
+  } = useQuery({
     queryKey: ["myTeam"],
-    queryFn: () => fetchMyTeam(1) // Replace with actual manager ID
+    queryFn: () => fetchMyTeam(1), // Replace with actual manager ID
+    retry: 3,
+    staleTime: 60000, // 1 minute
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
+
+  // Handle API errors
+  const apiError = bootstrapError || fixturesError || teamError;
 
   const isLoading = isLoadingBootstrap || isLoadingFixtures || isLoadingTeam;
   const error = !bootstrapData || !fixtures || !team;
@@ -219,16 +349,67 @@ function ChipsPage() {
     return (
       <div className="container mx-auto p-6 space-y-8">
         <div className="space-y-4">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-96" />
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-10 w-32" /> {/* Back button */}
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-64" /> {/* Title */}
+              <Skeleton className="h-4 w-96" /> {/* Subtitle */}
+            </div>
+          </div>
+          <div className="flex gap-4">
+            <Skeleton className="h-10 w-32" /> {/* Timeline button */}
+            <Skeleton className="h-10 w-32" /> {/* Historical button */}
+          </div>
         </div>
+        
+        {/* Timeline skeleton */}
+        <Card className="p-6 mb-8">
+          <Skeleton className="h-6 w-48 mb-6" />
+          <div className="relative min-h-[200px]">
+            <div className="absolute left-0 top-[100px] w-full h-1 bg-muted" />
+            <div className="absolute left-0 top-[92px] w-full flex justify-between">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex flex-col items-center">
+                  <Skeleton className="w-2 h-2 rounded-full" />
+                  <Skeleton className="w-8 h-3 mt-2" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* Chip cards skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="p-6">
-              <div className="space-y-4">
-                <Skeleton className="h-8 w-1/3" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-2/3" />
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-10 w-10 rounded-lg" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-24" />
+                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="h-2 w-full rounded-full" />
+                    <div className="flex justify-between">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <div className="flex gap-2">
+                      {[1, 2, 3].map((j) => (
+                        <Skeleton key={j} className="h-6 w-16" />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card>
           ))}
@@ -237,13 +418,39 @@ function ChipsPage() {
     );
   }
 
-  if (error) {
+  if (apiError || !bootstrapData || !fixtures || !team) {
     return (
       <div className="container mx-auto p-6">
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load chip data. Please try again later.
+            <div className="space-y-4">
+              <p>Unable to load chip data. {apiError?.message}</p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Network connectivity issues</li>
+                <li>FPL API maintenance</li>
+                <li>Invalid team ID or authentication</li>
+              </ul>
+              <div className="flex gap-4 mt-4">
+                <Button
+                  onClick={() => {
+                    refetchBootstrap();
+                    refetchFixtures();
+                    refetchTeam();
+                  }}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Retry
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/team">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Team
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </AlertDescription>
         </Alert>
       </div>
@@ -464,22 +671,64 @@ function ChipsPage() {
         <div className="space-y-4">
           {chips
             .filter(chip => chip.isAvailable)
-            .map(chip => (
-              <Alert key={chip.name}>
-                <AlertDescription className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <chip.icon className="w-4 h-4" />
-                    <span>
-                      Consider using {chip.label} in GW
-                      {chip.optimalGameweeks[0]} for maximum impact
-                    </span>
-                  </div>
-                  <Badge variant="outline">
-                    +{chip.potentialPoints} pts potential
-                  </Badge>
-                </AlertDescription>
-              </Alert>
-            ))}
+            .sort((a, b) => b.effectivenessScore - a.effectivenessScore)
+            .map(chip => {
+              const nextEvent = bootstrapData.events.find((e: any) => e.id === current_event + 1);
+              const isDeadlineClose = nextEvent && 
+                new Date(nextEvent.deadline_time).getTime() - Date.now() < 86400000;
+              const isOptimalNextGW = chip.optimalGameweeks.includes(current_event + 1);
+              
+              return (
+                <Alert 
+                  key={chip.name}
+                  variant={isDeadlineClose && isOptimalNextGW ? "destructive" : "default"}
+                >
+                  <AlertDescription className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <chip.icon className="w-4 h-4" />
+                        <span className="font-medium">
+                          {isDeadlineClose && isOptimalNextGW 
+                            ? `Urgent: Consider using ${chip.label} before next deadline`
+                            : `Consider using ${chip.label} in GW${chip.optimalGameweeks[0]}`
+                          }
+                        </span>
+                      </div>
+                      <Badge 
+                        variant={chip.effectivenessScore > 75 ? "default" : "outline"}
+                        className={cn(
+                          "transition-all duration-300",
+                          chip.effectivenessScore > 75 && "animate-pulse"
+                        )}
+                      >
+                        {chip.effectivenessScore}% effective
+                      </Badge>
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <span className="font-medium">Impact: </span>
+                      {chip.recommendedStrategy}
+                      {chip.potentialPoints && (
+                        <Badge variant="outline" className="ml-2">
+                          +{chip.potentialPoints} pts potential
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {chip.alternativeGameweeks.length > 0 && (
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium">Alternative GWs: </span>
+                        {chip.alternativeGameweeks.map(gw => (
+                          <Badge key={gw} variant="outline" className="mr-1">
+                            GW{gw}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              );
+            })}
         </div>
       </Card>
     </div>
