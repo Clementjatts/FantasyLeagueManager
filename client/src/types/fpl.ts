@@ -51,13 +51,24 @@ export interface Team {
     cost: number;
     status: string;
   };
-  points_history: Array<{
+  points_history?: Array<{
     event: number;
     points: number;
     average: number;
-    highest: number;
+    highest?: number;
     chip?: string;
+    total_points?: number;
+    rank?: number;
+    bank?: number;
+    value?: number;
+    event_transfers?: number;
+    event_transfers_cost?: number;
+    points_on_bench?: number;
+    rank_sort?: number;
+    average_entry_score?: number;
   }>;
+  chips?: Chip[];
+  current_event?: number;
   summary_overall_points: number;
   summary_overall_rank: number;
   last_deadline_total_transfers: number;

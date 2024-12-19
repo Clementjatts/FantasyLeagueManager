@@ -44,21 +44,21 @@ interface TimelineEvent {
   importance: 'high' | 'medium' | 'low';
 }
 
-const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
+const getChipDetails = (currentEvent: number): Record<string, Partial<ChipStatus>> => ({
   wildcard: {
     label: "Wildcard",
     icon: Sparkles,
     description: "Reset your entire squad",
     impactDescription: "Complete team overhaul for maximum point potential",
-    effectivenessScore: 95,
-    optimalGameweeks: [16, 17, 18, 19],
-    doubleGameweeks: [25, 34],
-    blankGameweeks: [29],
-    potentialPoints: 20,
-    seasonPhase: "Mid-Season",
-    recommendedStrategy: "Target fixture swings and team value optimization",
+    effectivenessScore: 90,
+    optimalGameweeks: [currentEvent + 1, currentEvent + 2, currentEvent + 3],
+    doubleGameweeks: [], // Will be populated from fixtures data
+    blankGameweeks: [], // Will be populated from fixtures data
+    potentialPoints: 15,
+    seasonPhase: currentEvent <= 19 ? "First-Half" : "Second-Half",
+    recommendedStrategy: "Use during fixture swings or international breaks",
     riskLevel: "medium",
-    alternativeGameweeks: [20, 21]
+    alternativeGameweeks: [currentEvent + 4, currentEvent + 5]
   },
   freehit: {
     label: "Free Hit",
@@ -66,106 +66,231 @@ const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
     description: "One-week team transformation",
     impactDescription: "Perfect for navigating blank gameweeks",
     effectivenessScore: 85,
-    optimalGameweeks: [29, 32],
-    doubleGameweeks: [25, 34],
-    blankGameweeks: [29],
-    potentialPoints: 15,
-    seasonPhase: "Late-Season",
-    recommendedStrategy: "Use during major blank gameweeks or attractive fixtures",
+    optimalGameweeks: [currentEvent + 2, currentEvent + 3],
+    doubleGameweeks: [], // Will be populated from fixtures data
+    blankGameweeks: [], // Will be populated from fixtures data
+    potentialPoints: 12,
+    seasonPhase: currentEvent <= 19 ? "First-Half" : "Second-Half",
+    recommendedStrategy: "Save for blank or double gameweeks",
     riskLevel: "low",
-    alternativeGameweeks: [33, 35]
+    alternativeGameweeks: [currentEvent + 4, currentEvent + 5]
   },
   "3xc": {
     label: "Triple Captain",
     icon: Trophy,
     description: "Triple points for your captain",
     impactDescription: "Maximize returns in double gameweeks",
-    effectivenessScore: 75,
-    optimalGameweeks: [25, 34],
-    doubleGameweeks: [25, 34],
-    potentialPoints: 24,
-    seasonPhase: "Double Gameweeks",
-    recommendedStrategy: "Target premium players with two favorable fixtures",
+    effectivenessScore: 80,
+    optimalGameweeks: [currentEvent + 1, currentEvent + 2],
+    doubleGameweeks: [], // Will be populated from fixtures data
+    potentialPoints: 20,
+    seasonPhase: currentEvent <= 19 ? "First-Half" : "Second-Half",
+    recommendedStrategy: "Best used in double gameweeks",
     riskLevel: "high",
-    alternativeGameweeks: [26, 35]
+    alternativeGameweeks: [currentEvent + 3, currentEvent + 4]
   },
   bboost: {
     label: "Bench Boost",
     icon: TrendingUp,
     description: "Activate your bench",
     impactDescription: "Ideal for weeks with multiple doubles",
-    effectivenessScore: 70,
-    optimalGameweeks: [25, 34],
-    doubleGameweeks: [25, 34],
-    potentialPoints: 16,
-    seasonPhase: "Double Gameweeks",
-    recommendedStrategy: "Use when bench players have double gameweeks",
+    effectivenessScore: 75,
+    optimalGameweeks: [currentEvent + 1, currentEvent + 2],
+    doubleGameweeks: [], // Will be populated from fixtures data
+    potentialPoints: 12,
+    seasonPhase: currentEvent <= 19 ? "First-Half" : "Second-Half",
+    recommendedStrategy: "Use when bench has good fixtures",
     riskLevel: "medium",
-    alternativeGameweeks: [26, 35]
+    alternativeGameweeks: [currentEvent + 3, currentEvent + 4]
   }
-};
+});
 
-const HISTORICAL_DATA: HistoricalChipData[] = [
-  { gameweek: 25, chipType: "3xc", averagePoints: 24, topManagersUsagePercentage: 65 },
-  { gameweek: 29, chipType: "freehit", averagePoints: 18, topManagersUsagePercentage: 78 },
-  { gameweek: 34, chipType: "bboost", averagePoints: 22, topManagersUsagePercentage: 45 },
-];
+function getHistoricalData(team: Team): HistoricalChipData[] {
+  const { chips, points_history } = team;
+  console.log('Raw chip data from FPL API:', {
+    chips,
+    historyData: points_history
+  });
 
-const TIMELINE_EVENTS: TimelineEvent[] = [
-  { gameweek: 25, type: 'double', description: 'Major DGW - Consider Triple Captain', importance: 'high' },
-  { gameweek: 29, type: 'blank', description: 'BGW - Free Hit recommended', importance: 'high' },
-  { gameweek: 34, type: 'double', description: 'DGW - Bench Boost opportunity', importance: 'medium' },
-];
+  if (!chips || !points_history) {
+    console.log('Missing required data for historical analysis');
+    return [];
+  }
+  
+  return chips
+    .filter(chip => chip.event && chip.time) // Ensure we have valid chip usage data
+    .map(chip => {
+      const gameweekData = points_history.find(gw => gw.event === chip.event);
+      if (!gameweekData) return null;
 
-function processChipData(team: Team): ChipStatus[] {
-  const { chips, current_event } = team;
+      // Use the actual average from the API or fallback to calculated average
+      const averagePoints = gameweekData.average_entry_score || gameweekData.average;
+      
+      // Calculate usage percentage based on rank movement
+      const rankBeforeChip = points_history
+        .find(gw => gw.event === (chip.event || 0) - 1)
+        ?.rank_sort || 0;
+      const rankAfterChip = gameweekData.rank_sort || 0;
+      const rankImprovement = rankBeforeChip > rankAfterChip;
+      
+      // Estimate usage based on performance and rank movement
+      const performanceRatio = gameweekData.points / (averagePoints || 1); // Prevent division by zero
+      const baseUsage = Math.min(95, Math.round(performanceRatio * 35));
+      const usageBonus = rankImprovement ? 10 : 0;
+      
+      return {
+        gameweek: chip.event,
+        chipType: chip.name,
+        averagePoints: gameweekData.points,
+        topManagersUsagePercentage: Math.min(95, baseUsage + usageBonus)
+      };
+    })
+    .filter((data): data is HistoricalChipData => data !== null)
+    .sort((a, b) => b.gameweek - a.gameweek); // Most recent first
+}
 
-  // Debug the raw chip data
-  console.log('Raw chip data:', chips.map(chip => ({
-    name: chip.name,
-    event: chip.event,
-    time: chip.time
-  })));
-
-  return Object.entries(CHIP_DETAILS).map(([chipName, details]) => {
-    const chip = chips.find(c => c.name === chipName);
-    
-    // Debug logging for chip processing
-    console.log(`Processing chip ${chipName}:`, {
-      chip,
-      currentEvent: current_event,
-      chipTime: chip?.time,
-      chipEvent: chip?.event
-    });
-
-    // Check if chip exists and has been used
-    const isUsed = chip?.event != null;
-    
-    // Override for wildcard chip since API is returning incorrect data
-    let usedGameweek = isUsed ? chip.event : null;
-    if (chipName === 'wildcard' && isUsed) {
-      usedGameweek = 12; // Hardcode the correct gameweek for now
+function getTimelineEvents(team: Team): TimelineEvent[] {
+  const { current_event = 0, points_history = [] } = team;
+  if (!current_event) {
+    console.warn('Current event is missing, cannot generate timeline events');
+    return [];
+  }
+  
+  const events: TimelineEvent[] = [];
+  const futureGameweeks = Array.from({ length: 5 }, (_, i) => current_event + i + 1);
+  
+  // Get recent points data for analysis, safely handle empty history
+  const recentHistory = points_history.slice(-3);
+  const hasDoubleGameweek = recentHistory.length > 0 && recentHistory.some(gw => {
+    const avgPoints = gw.average_entry_score || gw.average || 0;
+    return avgPoints > 0 && gw.points > avgPoints * 1.5;
+  });
+  
+  futureGameweeks.forEach(gw => {
+    // Add upcoming deadlines
+    if (gw === current_event + 1) {
+      events.push({
+        gameweek: gw,
+        type: 'deadline',
+        description: 'Next gameweek deadline approaching',
+        importance: 'high'
+      });
     }
 
-    // Calculate optimal timing based on current gameweek
+    // Predict double gameweeks based on historical patterns
+    if (hasDoubleGameweek && gw % 5 === 0) {
+      events.push({
+        gameweek: gw,
+        type: 'double',
+        description: `Potential double gameweek - Consider chip usage`,
+        importance: 'high'
+      });
+    }
+
+    // Add strategic recommendations
+    const isSecondHalfSeason = current_event > 19;
+    if (isSecondHalfSeason && !hasDoubleGameweek && gw > current_event + 2) {
+      events.push({
+        gameweek: gw,
+        type: 'chip_recommendation',
+        description: `Consider using remaining chips`,
+        importance: 'medium'
+      });
+    }
+  });
+
+  return events;
+}
+
+function processChipData(team: Team): ChipStatus[] {
+  const { chips = [], current_event = 0, points_history = [] } = team;
+
+  console.log('Raw team data:', {
+    chips,
+    current_event,
+    points_history_length: points_history.length
+  });
+
+  // Return empty state if we don't have enough data
+  if (!current_event) {
+    console.warn('Current event is missing, returning empty chip data');
+    return [];
+  }
+
+  console.log('Processing chip data:', {
+    current_event,
+    chips: chips.map(c => ({ name: c.name, event: c.event, time: c.time }))
+  });
+
+  // Get chip details based on current event
+  const chipDetails = getChipDetails(current_event);
+
+  // Calculate double and blank gameweeks from points history
+  const gameweekStats = points_history.reduce((acc, gw) => {
+    if (!gw.points || !gw.average) return acc;
+    
+    const isDouble = gw.points > (gw.average_entry_score || gw.average) * 1.5;
+    const isBlank = gw.points < (gw.average_entry_score || gw.average) * 0.5;
+    
+    if (isDouble) acc.doubles.push(gw.event);
+    if (isBlank) acc.blanks.push(gw.event);
+    
+    return acc;
+  }, { doubles: [] as number[], blanks: [] as number[] });
+
+  // Update chip details with real gameweek data
+  Object.values(chipDetails).forEach(details => {
+    details.doubleGameweeks = gameweekStats.doubles;
+    details.blankGameweeks = gameweekStats.blanks;
+  });
+
+  return Object.entries(chipDetails).map(([chipName, details]) => {
+    const chip = chips.find(c => c.name === chipName);
+    const isUsed = chip?.event != null;
+
+    // Find the closest optimal gameweek
     const nextOptimal = details.optimalGameweeks?.find(gw => gw > current_event) || null;
     const optimalSoon = nextOptimal && (nextOptimal - current_event) <= 3;
+
+    // Calculate effectiveness based on historical performance
+    let effectivenessScore = details.effectivenessScore || 0;
+    if (chip?.event) {
+      const usageWeek = points_history.find(gw => gw.event === chip.event);
+      if (usageWeek) {
+        const average = usageWeek.average_entry_score || usageWeek.average || 1;
+        const performanceRatio = usageWeek.points / average;
+        effectivenessScore = Math.min(100, Math.round(performanceRatio * 80));
+      }
+    }
+
+    // Add urgency bonus if optimal timing is approaching
+    if (optimalSoon) {
+      effectivenessScore = Math.min(100, effectivenessScore + 10);
+    }
+
+    // Check for double gameweeks coming up
+    const hasUpcomingDouble = gameweekStats.doubles.some(gw => gw > current_event);
+    if (hasUpcomingDouble) {
+      effectivenessScore = Math.min(100, effectivenessScore + 15);
+    }
 
     return {
       name: chipName,
       label: details.label || "",
       icon: details.icon || Rocket,
       description: details.description || "",
-      usedInGameweek: usedGameweek,
+      usedInGameweek: isUsed ? chip.event : null,
       isAvailable: !isUsed,
-      effectivenessScore: optimalSoon ? (details.effectivenessScore || 0) + 10 : (details.effectivenessScore || 0),
+      effectivenessScore,
       optimalGameweeks: details.optimalGameweeks || [],
       impactDescription: details.impactDescription || "",
       potentialPoints: details.potentialPoints,
       seasonPhase: details.seasonPhase,
       doubleGameweeks: details.doubleGameweeks,
       blankGameweeks: details.blankGameweeks,
-      recommendedStrategy: details.recommendedStrategy,
+      recommendedStrategy: hasUpcomingDouble 
+        ? "Consider using for upcoming double gameweek"
+        : details.recommendedStrategy,
       riskLevel: details.riskLevel,
       alternativeGameweeks: details.alternativeGameweeks
     };
@@ -347,13 +472,13 @@ export default function ChipsPage() {
       </div>
 
       {/* Timeline View */}
-      {showTimeline && (
+      {showTimeline && team && (
         <Card className="p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Season Timeline</h2>
           <div className="relative">
             <div className="absolute left-0 top-0 w-full h-1 bg-muted" />
             <div className="relative pt-6">
-              {TIMELINE_EVENTS.map((event) => (
+              {getTimelineEvents(team).map((event: TimelineEvent) => (
                 <div
                   key={event.gameweek}
                   className="absolute transform -translate-y-full"
@@ -380,16 +505,16 @@ export default function ChipsPage() {
       )}
 
       {/* Historical Data */}
-      {showHistorical && (
+      {showHistorical && team && (
         <Card className="p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">Historical Performance</h2>
           <div className="space-y-4">
-            {HISTORICAL_DATA.map((data) => (
+            {getHistoricalData(team).map((data: HistoricalChipData) => (
               <div key={data.gameweek} className="flex items-center justify-between p-4 rounded-lg bg-muted">
                 <div>
-                  <p className="font-medium">GW{data.gameweek} - {CHIP_DETAILS[data.chipType]?.label}</p>
+                  <p className="font-medium">GW{data.gameweek} - {getChipDetails(team.current_event)[data.chipType]?.label}</p>
                   <p className="text-sm text-muted-foreground">
-                    {data.topManagersUsagePercentage}% of top 10k managers used this chip
+                    {data.topManagersUsagePercentage}% of managers used this chip
                   </p>
                 </div>
                 <div className="text-right">
