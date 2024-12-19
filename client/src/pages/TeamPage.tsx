@@ -67,8 +67,15 @@ export default function TeamPage() {
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Transfer Planning</h1>
         <Link href="/dream-team">
-              <Button variant="outline" className="ml-4">
+              <Button variant="outline" className="gap-2">
+                <Trophy className="w-4 h-4" />
                 Dream Team
+              </Button>
+            </Link>
+            <Link href="/chips">
+              <Button variant="outline" className="gap-2">
+                <Zap className="w-4 h-4" />
+                Chips Strategy
               </Button>
             </Link>
         <Card>

@@ -5,6 +5,7 @@ import TeamPage from "./pages/TeamPage";
 import PlayersPage from "./pages/PlayersPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import DreamTeamPage from "./pages/DreamTeamPage";
+import ChipsStrategyPage from "./pages/ChipsStrategyPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/players" component={PlayersPage} />
           <Route path="/statistics" component={StatisticsPage} />
           <Route path="/dream-team" component={DreamTeamPage} />
+          <Route path="/chips" component={ChipsStrategyPage} />
           <Route>404 Page Not Found</Route>
         </Switch>
       </main>
