@@ -3,22 +3,12 @@ import { Player, Team, Fixture } from "../types/fpl";
 const API_BASE = "/api/fpl";
 
 export async function fetchMyTeam(managerId: number): Promise<Team> {
-  try {
-    const res = await fetch(`${API_BASE}/my-team/${managerId}/`);
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.message || "Failed to fetch team");
-    }
-    const data = await res.json();
-    // Ensure chips property exists and is an array
-    if (!data.chips || !Array.isArray(data.chips)) {
-      data.chips = [];
-    }
-    return data;
-  } catch (error) {
-    console.error('Error fetching team data:', error);
-    throw error;
+  const res = await fetch(`${API_BASE}/my-team/${managerId}/`);
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || "Failed to fetch team");
   }
+  return res.json();
 }
 
 export async function fetchPlayers(): Promise<Player[]> {
