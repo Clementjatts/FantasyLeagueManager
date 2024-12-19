@@ -1,14 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Rocket, Zap, Trophy, ArrowLeft, Calendar, TrendingUp, AlertTriangle } from "lucide-react";
-import { fetchMyTeam } from "../lib/api";
-import { Team } from "../types/fpl";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Sparkles, Zap, Trophy, ArrowLeft, Calendar, TrendingUp, AlertTriangle } from "lucide-react";
+import { fetchMyTeam, fetchBootstrapStatic, fetchFixtures } from "../lib/api";
+import { Team, Fixture } from "../types/fpl";
 import { cn } from "@/lib/utils";
 
 interface ChipStatus {
@@ -16,7 +17,7 @@ interface ChipStatus {
   label: string;
   icon: typeof Sparkles;
   description: string;
-  usedInGameweek: number | null;
+  usedGameweek: number | null;
   isAvailable: boolean;
   effectivenessScore: number;
   optimalGameweeks: number[];
@@ -30,18 +31,129 @@ interface ChipStatus {
   alternativeGameweeks?: number[];
 }
 
-interface HistoricalChipData {
-  gameweek: number;
-  chipType: string;
-  averagePoints: number;
-  topManagersUsagePercentage: number;
-}
-
 interface TimelineEvent {
   gameweek: number;
   type: 'double' | 'blank' | 'deadline' | 'chip_recommendation';
   description: string;
   importance: 'high' | 'medium' | 'low';
+}
+
+// Helper function to identify double gameweeks
+function findDoubleGameweeks(fixtures: Fixture[]): number[] {
+  const gameweekFixtures = fixtures.reduce((acc, fixture) => {
+    acc[fixture.event] = (acc[fixture.event] || 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
+
+  return Object.entries(gameweekFixtures)
+    .filter(([_, count]) => count > 10) // More than 10 fixtures indicates a double gameweek
+    .map(([gw]) => parseInt(gw));
+}
+
+// Helper function to identify blank gameweeks
+function findBlankGameweeks(fixtures: Fixture[]): number[] {
+  const gameweekFixtures = fixtures.reduce((acc, fixture) => {
+    acc[fixture.event] = (acc[fixture.event] || 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
+
+  return Object.entries(gameweekFixtures)
+    .filter(([_, count]) => count < 10) // Less than 10 fixtures indicates a blank gameweek
+    .map(([gw]) => parseInt(gw));
+}
+
+// Helper function to calculate chip effectiveness
+function calculateChipEffectiveness(
+  chip: string,
+  currentGW: number,
+  doubleGWs: number[],
+  blankGWs: number[],
+  fixtures: Fixture[]
+): number {
+  let score = 50; // Base score
+
+  // Adjust score based on chip type and upcoming fixtures
+  switch (chip) {
+    case 'freehit':
+      // Higher effectiveness during blank gameweeks
+      if (blankGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 30;
+      break;
+    case '3xc':
+      // Higher effectiveness during double gameweeks
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 40;
+      break;
+    case 'bboost':
+      // Higher effectiveness during double gameweeks with good fixtures
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 3)) score += 35;
+      break;
+    case 'wildcard':
+      // Higher effectiveness before a series of good fixtures or doubles
+      if (doubleGWs.some(gw => Math.abs(gw - currentGW) <= 4)) score += 25;
+      if (blankGWs.some(gw => Math.abs(gw - currentGW) <= 4)) score += 20;
+      break;
+  }
+
+  return Math.min(score, 100);
+}
+
+function processChipData(
+  team: Team,
+  fixtures: Fixture[],
+  bootstrapData: any
+): ChipStatus[] {
+  const { chips, current_event } = team;
+  const doubleGameweeks = findDoubleGameweeks(fixtures);
+  const blankGameweeks = findBlankGameweeks(fixtures);
+
+  return Object.entries(CHIP_DETAILS).map(([chipName, details]) => {
+    const chip = chips.find(c => c.name === chipName);
+    const isUsed = chip?.event != null;
+    const usedGameweek = isUsed ? chip.event : null;
+
+    const effectivenessScore = calculateChipEffectiveness(
+      chipName,
+      current_event,
+      doubleGameweeks,
+      blankGameweeks,
+      fixtures
+    );
+
+    // Calculate optimal gameweeks based on fixtures and chip type
+    const optimalGameweeks = (() => {
+      switch (chipName) {
+        case 'freehit':
+          return blankGameweeks.filter(gw => gw > current_event);
+        case '3xc':
+        case 'bboost':
+          return doubleGameweeks.filter(gw => gw > current_event);
+        case 'wildcard':
+          return [...doubleGameweeks, ...blankGameweeks]
+            .filter(gw => gw > current_event)
+            .slice(0, 3);
+        default:
+          return [];
+      }
+    })();
+
+    return {
+      name: chipName,
+      label: details.label || "",
+      icon: details.icon || Sparkles,
+      description: details.description || "",
+      usedGameweek,
+      isAvailable: !isUsed,
+      effectivenessScore,
+      optimalGameweeks,
+      impactDescription: details.impactDescription || "",
+      potentialPoints: details.potentialPoints,
+      seasonPhase: details.seasonPhase,
+      doubleGameweeks,
+      blankGameweeks,
+      recommendedStrategy: details.recommendedStrategy,
+      riskLevel: details.riskLevel,
+      alternativeGameweeks: details.alternativeGameweeks
+    };
+  });
 }
 
 const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
@@ -50,126 +162,328 @@ const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
     icon: Sparkles,
     description: "Reset your entire squad",
     impactDescription: "Complete team overhaul for maximum point potential",
-    effectivenessScore: 95,
-    optimalGameweeks: [16, 17, 18, 19],
-    doubleGameweeks: [25, 34],
-    blankGameweeks: [29],
-    potentialPoints: 20,
-    seasonPhase: "Mid-Season",
     recommendedStrategy: "Target fixture swings and team value optimization",
-    riskLevel: "medium",
-    alternativeGameweeks: [20, 21]
+    riskLevel: "medium"
   },
   freehit: {
     label: "Free Hit",
     icon: Zap,
     description: "One-week team transformation",
     impactDescription: "Perfect for navigating blank gameweeks",
-    effectivenessScore: 85,
-    optimalGameweeks: [29, 32],
-    doubleGameweeks: [25, 34],
-    blankGameweeks: [29],
-    potentialPoints: 15,
-    seasonPhase: "Late-Season",
     recommendedStrategy: "Use during major blank gameweeks or attractive fixtures",
-    riskLevel: "low",
-    alternativeGameweeks: [33, 35]
+    riskLevel: "low"
   },
   "3xc": {
     label: "Triple Captain",
     icon: Trophy,
     description: "Triple points for your captain",
     impactDescription: "Maximize returns in double gameweeks",
-    effectivenessScore: 75,
-    optimalGameweeks: [25, 34],
-    doubleGameweeks: [25, 34],
-    potentialPoints: 24,
-    seasonPhase: "Double Gameweeks",
     recommendedStrategy: "Target premium players with two favorable fixtures",
-    riskLevel: "high",
-    alternativeGameweeks: [26, 35]
+    riskLevel: "high"
   },
   bboost: {
     label: "Bench Boost",
     icon: TrendingUp,
     description: "Activate your bench",
     impactDescription: "Ideal for weeks with multiple doubles",
-    effectivenessScore: 70,
-    optimalGameweeks: [25, 34],
-    doubleGameweeks: [25, 34],
-    potentialPoints: 16,
-    seasonPhase: "Double Gameweeks",
     recommendedStrategy: "Use when bench players have double gameweeks",
-    riskLevel: "medium",
-    alternativeGameweeks: [26, 35]
+    riskLevel: "medium"
   }
 };
 
-const HISTORICAL_DATA: HistoricalChipData[] = [
-  { gameweek: 25, chipType: "3xc", averagePoints: 24, topManagersUsagePercentage: 65 },
-  { gameweek: 29, chipType: "freehit", averagePoints: 18, topManagersUsagePercentage: 78 },
-  { gameweek: 34, chipType: "bboost", averagePoints: 22, topManagersUsagePercentage: 45 },
-];
+function ChipsPage() {
+  const [selectedChip, setSelectedChip] = useState<string | null>(null);
+  const [showTimeline, setShowTimeline] = useState(true);
+  const [showHistorical, setShowHistorical] = useState(false);
 
-const TIMELINE_EVENTS: TimelineEvent[] = [
-  { gameweek: 25, type: 'double', description: 'Major DGW - Consider Triple Captain', importance: 'high' },
-  { gameweek: 29, type: 'blank', description: 'BGW - Free Hit recommended', importance: 'high' },
-  { gameweek: 34, type: 'double', description: 'DGW - Bench Boost opportunity', importance: 'medium' },
-];
-
-function processChipData(team: Team): ChipStatus[] {
-  const { chips, current_event } = team;
-
-  // Debug the raw chip data
-  console.log('Raw chip data:', chips.map(chip => ({
-    name: chip.name,
-    event: chip.event,
-    time: chip.time
-  })));
-
-  return Object.entries(CHIP_DETAILS).map(([chipName, details]) => {
-    const chip = chips.find(c => c.name === chipName);
-    
-    // Debug logging for chip processing
-    console.log(`Processing chip ${chipName}:`, {
-      chip,
-      currentEvent: current_event,
-      chipTime: chip?.time,
-      chipEvent: chip?.event
-    });
-
-    // Check if chip exists and has been used
-    const isUsed = chip?.event != null;
-    
-    // Override for wildcard chip since API is returning incorrect data
-    let usedGameweek = isUsed ? chip.event : null;
-    if (chipName === 'wildcard' && isUsed) {
-      usedGameweek = 12; // Hardcode the correct gameweek for now
-    }
-
-    // Calculate optimal timing based on current gameweek
-    const nextOptimal = details.optimalGameweeks?.find(gw => gw > current_event) || null;
-    const optimalSoon = nextOptimal && (nextOptimal - current_event) <= 3;
-
-    return {
-      name: chipName,
-      label: details.label || "",
-      icon: details.icon || Rocket,
-      description: details.description || "",
-      usedInGameweek: usedGameweek,
-      isAvailable: !isUsed,
-      effectivenessScore: optimalSoon ? (details.effectivenessScore || 0) + 10 : (details.effectivenessScore || 0),
-      optimalGameweeks: details.optimalGameweeks || [],
-      impactDescription: details.impactDescription || "",
-      potentialPoints: details.potentialPoints,
-      seasonPhase: details.seasonPhase,
-      doubleGameweeks: details.doubleGameweeks,
-      blankGameweeks: details.blankGameweeks,
-      recommendedStrategy: details.recommendedStrategy,
-      riskLevel: details.riskLevel,
-      alternativeGameweeks: details.alternativeGameweeks
-    };
+  // Fetch required data
+  const { data: bootstrapData, isLoading: isLoadingBootstrap } = useQuery({
+    queryKey: ["bootstrap-static"],
+    queryFn: fetchBootstrapStatic
   });
+
+  const { data: fixtures, isLoading: isLoadingFixtures } = useQuery({
+    queryKey: ["fixtures"],
+    queryFn: fetchFixtures
+  });
+
+  const { data: team, isLoading: isLoadingTeam } = useQuery({
+    queryKey: ["myTeam"],
+    queryFn: () => fetchMyTeam(1) // Replace with actual manager ID
+  });
+
+  const isLoading = isLoadingBootstrap || isLoadingFixtures || isLoadingTeam;
+  const error = !bootstrapData || !fixtures || !team;
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6 space-y-8">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="p-6">
+              <div className="space-y-4">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-2/3" />
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load chip data. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const chips = processChipData(team, fixtures, bootstrapData);
+  const currentGameweek = bootstrapData.events.find((event: any) => event.is_current)?.id || 1;
+
+  // Generate timeline events based on fixtures and chips
+  const timelineEvents: TimelineEvent[] = [
+    ...findDoubleGameweeks(fixtures).map(gw => ({
+      gameweek: gw,
+      type: 'double' as const,
+      description: `Double Gameweek ${gw} - Multiple teams play twice`,
+      importance: gw > currentGameweek ? 'high' as const : 'low' as const
+    })),
+    ...findBlankGameweeks(fixtures).map(gw => ({
+      gameweek: gw,
+      type: 'blank' as const,
+      description: `Blank Gameweek ${gw} - Reduced fixtures`,
+      importance: gw > currentGameweek ? 'high' as const : 'low' as const
+    }))
+  ].sort((a, b) => a.gameweek - b.gameweek);
+
+  // Add chip recommendations to timeline
+  chips.forEach(chip => {
+    if (chip.isAvailable && chip.optimalGameweeks.length > 0) {
+      timelineEvents.push({
+        gameweek: chip.optimalGameweeks[0],
+        type: 'chip_recommendation',
+        description: `Consider using ${chip.label} (Potential: +${chip.potentialPoints || '?'} pts)`,
+        importance: 'medium'
+      });
+    }
+  });
+
+  return (
+    <div className="container mx-auto p-6 space-y-8">
+      {/* Header with Back Button and Toggles */}
+      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-6">
+        <div className="space-y-4">
+          <Link href="/team">
+            <Button
+              variant="outline"
+              className="mb-4 group transition-all duration-200 hover:border-primary"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+              Back to Team
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Chip Strategy</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Current Gameweek: {currentGameweek} | 
+              Available Chips: {chips.filter(c => c.isAvailable).length}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <Button
+            variant={showTimeline ? "default" : "outline"}
+            onClick={() => setShowTimeline(!showTimeline)}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Timeline
+          </Button>
+          <Button
+            variant={showHistorical ? "default" : "outline"}
+            onClick={() => setShowHistorical(!showHistorical)}
+          >
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Historical Data
+          </Button>
+        </div>
+      </div>
+
+      {/* Selected Chip Details */}
+      {selectedChip && (
+        <Alert className="mb-6">
+          <AlertDescription>
+            {chips.find(c => c.name === selectedChip)?.recommendedStrategy}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Timeline View */}
+      {showTimeline && (
+        <Card className="p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Season Timeline</h2>
+          <div className="relative min-h-[200px]">
+            {/* Timeline line */}
+            <div className="absolute left-0 top-[100px] w-full h-1 bg-muted" />
+            
+            {/* Gameweek markers */}
+            <div className="absolute left-0 top-[92px] w-full flex justify-between">
+              {[1, 10, 19, 28, 38].map((gw) => (
+                <div key={gw} className="flex flex-col items-center">
+                  <div className="w-2 h-2 rounded-full bg-muted-foreground" />
+                  <span className="text-xs text-muted-foreground mt-2">GW{gw}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Timeline events */}
+            <div className="relative">
+              {timelineEvents.map((event, index) => {
+                // Calculate position and offset
+                const position = (event.gameweek / 38) * 100;
+                const isTop = index % 2 === 0;
+                const topOffset = isTop ? '0' : '120px';
+                
+                return (
+                  <div
+                    key={event.gameweek}
+                    className="absolute w-64 transition-all duration-200 hover:z-10"
+                    style={{
+                      left: `calc(${position}% - 128px)`, // Center the card (half of width)
+                      top: topOffset
+                    }}
+                  >
+                    <div className={cn(
+                      "p-4 rounded-lg shadow-lg border",
+                      "bg-card",
+                      "transition-all duration-200 hover:scale-105",
+                      isTop ? "mb-4" : "mt-4"
+                    )}>
+                      {/* Connecting line */}
+                      <div 
+                        className={cn(
+                          "absolute left-1/2 w-px bg-border",
+                          isTop ? "top-full h-[20px]" : "bottom-full h-[20px]"
+                        )}
+                      />
+                      
+                      {/* Event marker */}
+                      <div 
+                        className={cn(
+                          "absolute left-1/2 w-3 h-3 rounded-full -translate-x-1/2",
+                          isTop ? "bottom-[-28px]" : "top-[-28px]",
+                          event.importance === 'high' ? "bg-destructive" :
+                          event.importance === 'medium' ? "bg-yellow-500" :
+                          "bg-primary"
+                        )}
+                      />
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline">GW{event.gameweek}</Badge>
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              event.type === 'double' ? "border-yellow-500 text-yellow-500" :
+                              event.type === 'blank' ? "border-destructive text-destructive" :
+                              "border-primary text-primary"
+                            )}
+                          >
+                            {event.type === 'double' ? 'Double GW' :
+                             event.type === 'blank' ? 'Blank GW' :
+                             event.type === 'deadline' ? 'Deadline' : 'Recommendation'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{event.description}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="mt-12 flex items-center justify-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-destructive" />
+              <span className="text-sm text-muted-foreground">High Priority</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-yellow-500" />
+              <span className="text-sm text-muted-foreground">Medium Priority</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary" />
+              <span className="text-sm text-muted-foreground">Low Priority</span>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Historical Data */}
+      {showHistorical && (
+        <Card className="p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Historical Performance</h2>
+          <div className="space-y-4">
+            {/* Historical data will be fetched and displayed here */}
+          </div>
+        </Card>
+      )}
+
+      {/* Chip Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {chips.map((chip) => (
+          <motion.div
+            key={chip.name}
+            onClick={() => setSelectedChip(chip.name)}
+            className="cursor-pointer"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <ChipCard chip={chip} />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Dynamic Recommendations */}
+      <Card className="p-6 mt-8">
+        <h2 className="text-xl font-semibold mb-4">Personalized Recommendations</h2>
+        <div className="space-y-4">
+          {chips
+            .filter(chip => chip.isAvailable)
+            .map(chip => (
+              <Alert key={chip.name}>
+                <AlertDescription className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <chip.icon className="w-4 h-4" />
+                    <span>
+                      Consider using {chip.label} in GW
+                      {chip.optimalGameweeks[0]} for maximum impact
+                    </span>
+                  </div>
+                  <Badge variant="outline">
+                    +{chip.potentialPoints} pts potential
+                  </Badge>
+                </AlertDescription>
+              </Alert>
+            ))}
+        </div>
+      </Card>
+    </div>
+  );
 }
 
 function ChipCard({ chip }: { chip: ChipStatus }) {
@@ -200,7 +514,7 @@ function ChipCard({ chip }: { chip: ChipStatus }) {
             variant={chip.isAvailable ? "default" : "secondary"}
             className="ml-2"
           >
-            {chip.isAvailable ? "Available" : `Used GW${chip.usedInGameweek}`}
+            {chip.isAvailable ? "Available" : `Used GW${chip.usedGameweek}`}
           </Badge>
         </div>
 
@@ -274,173 +588,4 @@ function ChipCard({ chip }: { chip: ChipStatus }) {
   );
 }
 
-import { useState } from 'react';
-
-export default function ChipsPage() {
-  const { data: teamId } = useQuery({
-    queryKey: ["teamId"],
-    queryFn: () => localStorage.getItem("teamId") || "1"
-  });
-
-  const { data: team, isLoading, error } = useQuery({
-    queryKey: ["/api/fpl/my-team", teamId],
-    queryFn: async () => {
-      const data = await fetchMyTeam(Number(teamId));
-      return data;
-    },
-    enabled: !!teamId
-  });
-
-  const [selectedChip, setSelectedChip] = useState<string | null>(null);
-  const [showTimeline, setShowTimeline] = useState(true);
-  const [showHistorical, setShowHistorical] = useState(false);
-
-  if (isLoading) return (
-    <div className="space-y-6">
-      {[...Array(4)].map((_, i) => (
-        <Card key={i} className="p-6">
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-1/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-
-  if (error || !team) return (
-    <Alert variant="destructive">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription>
-        Failed to load chip data. Please try again later.
-      </AlertDescription>
-    </Alert>
-  );
-
-  const chips = processChipData(team);
-
-  return (
-    <div className="container mx-auto p-6 space-y-8">
-      {/* Header with Toggles */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Chip Strategy</h1>
-          <p className="text-muted-foreground mt-1">Plan your chip usage for maximum impact</p>
-        </div>
-        <div className="flex gap-4">
-          <Button
-            variant={showTimeline ? "default" : "outline"}
-            onClick={() => setShowTimeline(!showTimeline)}
-          >
-            <Calendar className="w-4 h-4 mr-2" />
-            Timeline
-          </Button>
-          <Button
-            variant={showHistorical ? "default" : "outline"}
-            onClick={() => setShowHistorical(!showHistorical)}
-          >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Historical Data
-          </Button>
-        </div>
-      </div>
-
-      {/* Timeline View */}
-      {showTimeline && (
-        <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Season Timeline</h2>
-          <div className="relative">
-            <div className="absolute left-0 top-0 w-full h-1 bg-muted" />
-            <div className="relative pt-6">
-              {TIMELINE_EVENTS.map((event) => (
-                <div
-                  key={event.gameweek}
-                  className="absolute transform -translate-y-full"
-                  style={{ left: `${(event.gameweek / 38) * 100}%` }}
-                >
-                  <div className={cn(
-                    "p-3 rounded-lg shadow-lg bg-card border text-sm w-48",
-                    "transform -translate-x-1/2"
-                  )}>
-                    <div className={cn(
-                      "w-2 h-2 rounded-full absolute -bottom-5 left-1/2 transform -translate-x-1/2",
-                      event.importance === 'high' ? "bg-destructive" :
-                      event.importance === 'medium' ? "bg-yellow-500" :
-                      "bg-primary"
-                    )} />
-                    <p className="font-medium">GW{event.gameweek}</p>
-                    <p className="text-muted-foreground">{event.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Historical Data */}
-      {showHistorical && (
-        <Card className="p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Historical Performance</h2>
-          <div className="space-y-4">
-            {HISTORICAL_DATA.map((data) => (
-              <div key={data.gameweek} className="flex items-center justify-between p-4 rounded-lg bg-muted">
-                <div>
-                  <p className="font-medium">GW{data.gameweek} - {CHIP_DETAILS[data.chipType]?.label}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {data.topManagersUsagePercentage}% of top 10k managers used this chip
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-primary">+{data.averagePoints} pts</p>
-                  <p className="text-sm text-muted-foreground">Average return</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Chip Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {chips.map((chip) => (
-          <motion.div
-            key={chip.name}
-            onClick={() => setSelectedChip(chip.name)}
-            className="cursor-pointer"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <ChipCard chip={chip} />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Dynamic Recommendations */}
-      <Card className="p-6 mt-8">
-        <h2 className="text-xl font-semibold mb-4">Personalized Recommendations</h2>
-        <div className="space-y-4">
-          {chips
-            .filter(chip => chip.isAvailable)
-            .map(chip => (
-              <Alert key={chip.name}>
-                <AlertDescription className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <chip.icon className="w-4 h-4" />
-                    <span>
-                      Consider using {chip.label} in GW
-                      {chip.optimalGameweeks[0]} for maximum impact
-                    </span>
-                  </div>
-                  <Badge variant="outline">
-                    +{chip.potentialPoints} pts potential
-                  </Badge>
-                </AlertDescription>
-              </Alert>
-            ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
+export default ChipsPage;
