@@ -14,12 +14,6 @@ import { fetchPlayers } from "../lib/api";
 import { Player } from "../types/fpl";
 import { Shield, Crosshair, Star } from "lucide-react";
 
-interface PositionStat {
-  label: string;
-  value: string | number;
-  icon?: typeof Shield;
-}
-
 interface PositionConfig {
   id: number;
   name: string;

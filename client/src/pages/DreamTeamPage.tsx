@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DreamPitch } from "../components/pitch/DreamPitch";
+import { DreamTeamLegend } from "../components/DreamTeamLegend";
 import { fetchPlayers, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { type Player } from "../types/fpl";
 
@@ -119,87 +120,94 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
 }
 
 export default function DreamTeamPage() {
-  const { data: players, isLoading: isLoadingPlayers } = useQuery({
-    queryKey: ["/api/fpl/players"],
+  const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
+    queryKey: ['players'],
     queryFn: fetchPlayers
   });
 
-  const { data: fixtures, isLoading: isLoadingFixtures } = useQuery({
-    queryKey: ["/api/fpl/fixtures"],
+  const { data: fixtures, isLoading: fixturesLoading } = useQuery({
+    queryKey: ['fixtures'],
     queryFn: fetchFixtures
   });
 
-  const { data: bootstrapData, isLoading: isLoadingBootstrap } = useQuery({
-    queryKey: ["/api/fpl/bootstrap-static"],
+  const { data: bootstrap, isLoading: bootstrapLoading } = useQuery({
+    queryKey: ['bootstrap'],
     queryFn: fetchBootstrapStatic
   });
 
-  const isLoading = isLoadingPlayers || isLoadingFixtures || isLoadingBootstrap;
+  const isLoading = playersLoading || fixturesLoading || bootstrapLoading;
+  const error = playersError;
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-7xl py-6 px-4 min-h-screen">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-96" />
+      <div className="container py-8 space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link href="/team">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Link>
+            </Button>
+          </div>
         </div>
+        <Card>
+          <CardContent className="pt-6">
+            <Skeleton className="h-32" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  if (!players || !fixtures || !bootstrapData) {
+  if (error || !players || !fixtures || !bootstrap) {
     return (
-      <Alert variant="destructive">
-        <AlertDescription>Failed to load data</AlertDescription>
-      </Alert>
+      <div className="container py-8 space-y-8">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Failed to load dream team data. Please try again later.
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
-  const optimalTeam = calculateOptimalTeam(players, fixtures, bootstrapData.teams);
+  const optimalTeam = calculateOptimalTeam(players, fixtures, bootstrap.teams);
 
   return (
-    <div className="container mx-auto max-w-7xl py-6 px-4 min-h-screen space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/team">
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+    <div className="container py-8 space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" asChild>
+            <Link href="/team">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Link>
           </Button>
-        </Link>
-        <h1 className="text-3xl font-bold">Dream Team</h1>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Dream Team
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              AI-optimized team selection based on form, fixtures, and performance
+            </p>
+          </div>
+        </div>
       </div>
 
-      <Card className="bg-accent/50">
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-lg">Recommended Formation: {optimalTeam.formation}</h3>
-              <p className="text-sm text-muted-foreground">
-                This formation maximizes expected points based on player form and fixture difficulty.
-                Total expected points: {optimalTeam.totalPoints.toFixed(1)}
-              </p>
-            </div>
+      <DreamTeamLegend
+        formation={optimalTeam.formation}
+        totalPoints={optimalTeam.totalPoints}
+        className="mb-8"
+      />
 
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>Selection factors:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Recent form (35% weight)</li>
-                <li>Season performance (25% weight)</li>
-                <li>Upcoming fixtures (20% weight)</li>
-                <li>Playing time reliability (10% weight)</li>
-                <li>Bonus point potential (10% weight)</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <DreamPitch 
+      <DreamPitch
         players={optimalTeam.firstTeam}
         substitutes={optimalTeam.substitutes}
         captainId={optimalTeam.captainId}
         viceCaptainId={optimalTeam.viceCaptainId}
         fixtures={fixtures}
-        teams={bootstrapData.teams}
+        teams={bootstrap.teams}
         showOptimalReasons={true}
       />
     </div>

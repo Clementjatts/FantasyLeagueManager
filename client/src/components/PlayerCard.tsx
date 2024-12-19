@@ -2,7 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "../types/fpl";
 import { cn } from "@/lib/utils";
-import { TrendingUp, Star, ChevronUp } from "lucide-react";
+import { TrendingUp, ChevronUp, Sparkles } from "lucide-react";
+import { predictPlayerPoints } from "@/lib/fpl-utils";
 
 interface PlayerCardProps {
   player: Player;
@@ -25,6 +26,13 @@ const positionMap: Record<number, string> = {
   4: "FWD"
 };
 
+const positionColors: Record<number, string> = {
+  1: "from-yellow-500/20 to-yellow-600/20",
+  2: "from-blue-500/20 to-blue-600/20",
+  3: "from-green-500/20 to-green-600/20",
+  4: "from-red-500/20 to-red-600/20"
+};
+
 export function PlayerCard({ 
   player, 
   isCaptain, 
@@ -43,6 +51,12 @@ export function PlayerCard({
   const formValue = parseFloat(player.form || "0");
   const formColor = formValue >= 6 ? "text-green-500" : formValue >= 4 ? "text-yellow-500" : "text-red-500";
 
+  // Filter fixtures and calculate predicted points
+  const playerFixtures = fixtures?.filter(f => 
+    f.team_h === player.team || f.team_a === player.team
+  ) || [];
+  const predictedPts = playerFixtures.length > 0 ? predictPlayerPoints(player, playerFixtures) : null;
+
   const renderInfo = () => {
     switch (displayContext) {
       case 'live':
@@ -52,7 +66,7 @@ export function PlayerCard({
             <Badge variant="outline" className="relative bg-background/40 backdrop-blur-md border-none px-3 py-1.5 font-medium">
               <span className="text-primary">{player.event_points || 0}</span>
               <span className="text-xs ml-0.5">pts</span>
-              {showLiveStats && (
+              {showLiveStats && player.minutes > 0 && (
                 <span className="ml-1.5 text-xs text-muted-foreground">({player.minutes}′)</span>
               )}
             </Badge>
@@ -92,72 +106,69 @@ export function PlayerCard({
   };
 
   return (
-    <Card 
-      className={cn(
-        "relative cursor-pointer group/card",
-        "w-[160px] h-[120px]",
-        "p-4",
-        "bg-gradient-to-br from-background/95 via-background/98 to-muted/80",
-        "hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.03] transition-all duration-300",
-        "border border-border/20",
-        "overflow-hidden rounded-xl",
-        isCaptain && "ring-2 ring-primary/80 ring-offset-2 ring-offset-background",
-        isViceCaptain && "ring-2 ring-primary/40 ring-offset-2 ring-offset-background",
-        className
-      )}
-      onClick={onClick}
-    >
-      {/* Futuristic accent elements */}
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent opacity-80" />
-      <div className="absolute top-0 left-0 w-[1px] h-12 bg-gradient-to-b from-primary/60 to-transparent opacity-80" />
-      <div className="absolute top-0 right-0 w-[1px] h-8 bg-gradient-to-b from-primary/40 to-transparent opacity-60" />
-      
-      {/* Glowing corner accent */}
-      <div className="absolute top-0 left-0 w-8 h-8 bg-gradient-to-br from-primary/20 via-primary/5 to-transparent rounded-br-3xl opacity-60" />
-      
-      {/* Hover effect background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/0 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-      
-      <div className="relative h-full flex flex-col justify-between">
-        <div className="space-y-3">
-          {/* Player Name and Role */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0 space-y-1">
-              <div className="font-medium text-sm leading-tight truncate tracking-wide text-foreground/90">
-                {player.web_name}
-                {isCaptain && (
-                  <span className="ml-1.5 text-primary inline-flex items-center">
-                    <Star className="w-4 h-4 fill-primary" />
-                  </span>
-                )}
-                {isViceCaptain && (
-                  <span className="ml-1.5 text-primary/70 inline-flex items-center">
-                    <Star className="w-3.5 h-3.5" />
-                  </span>
-                )}
-              </div>
+    <div className="relative">
+      <Card
+        onClick={onClick}
+        className={cn(
+          "relative overflow-hidden border-0",
+          "bg-gradient-to-br from-background/95 to-background/50",
+          "hover:from-background/90 hover:to-background/40",
+          "backdrop-blur-sm shadow-xl",
+          "transition-all duration-200",
+          className
+        )}
+      >
+        {/* Position indicator */}
+        <div className={cn(
+          "absolute top-0 left-0 right-0 h-1.5",
+          "bg-gradient-to-r",
+          positionColors[player.element_type]
+        )} />
+
+        <div className="p-3 space-y-2">
+          {/* Player name and team */}
+          <div className="text-center space-y-1">
+            <div className="font-semibold leading-none flex items-center justify-center gap-1.5">
+              {player.web_name}
+              {isCaptain && (
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500/20 to-amber-600/20 blur-md" />
+                  <div className="relative inline-flex items-center justify-center w-4 h-4 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow-lg ring-1 ring-amber-500/50">
+                    <span className="text-[9px] font-bold text-white tracking-tight">C</span>
+                  </div>
+                </div>
+              )}
+              {isViceCaptain && (
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-blue-600/20 blur-md" />
+                  <div className="relative inline-flex items-center justify-center w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg ring-1 ring-blue-500/50">
+                    <span className="text-[8px] font-bold text-white tracking-tight">VC</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">{teamAbbr} · {positionMap[player.element_type]}</div>
+          </div>
+
+          {/* Stats */}
+          <div className="flex justify-center">
+            {renderInfo()}
+          </div>
+        </div>
+      </Card>
+
+      {/* Predicted points below card */}
+      {predictedPts && (
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 z-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/30 to-primary/20 rounded-full blur-sm" />
+            <div className="relative px-2 py-0.5 bg-background/95 backdrop-blur-sm rounded-full border border-primary/20 shadow-lg">
+              <span className="text-sm font-semibold text-primary">{predictedPts}</span>
+              <span className="text-xs font-medium text-primary ml-0.5">PTS</span>
             </div>
           </div>
-
-          {/* Team and Position with modern styling */}
-          <div className="flex items-center gap-2">
-            <Badge 
-              variant="secondary" 
-              className="h-5 px-2 font-medium text-xs bg-primary/10 hover:bg-primary/15 transition-colors border-none rounded-md"
-            >
-              {positionMap[player.element_type]}
-            </Badge>
-            <span className="text-xs font-medium text-muted-foreground/80 tracking-wide">
-              {teamAbbr}
-            </span>
-          </div>
         </div>
-
-        {/* Info Badge with enhanced styling */}
-        <div className="flex justify-end -mb-1">
-          {renderInfo()}
-        </div>
-      </div>
-    </Card>
+      )}
+    </div>
   );
 }

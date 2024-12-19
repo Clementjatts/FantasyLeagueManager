@@ -1,14 +1,18 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Crown } from "lucide-react";
 import { type Player } from "../types/fpl";
-import { fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge"; // Import Badge component
 
 interface CaptainSuggestionsProps {
   allPlayers: Player[];
+  fixtures: any[];
+  teams: any;
   onSelectCaptain: (player: Player) => void;
   currentCaptainId?: number;
   currentViceCaptainId?: number;
@@ -19,31 +23,23 @@ interface TeamData {
   short_name: string;
 }
 
-export function CaptainSuggestions({ 
-  allPlayers, 
+const CaptainSuggestions: React.FC<CaptainSuggestionsProps> = ({
+  allPlayers,
+  fixtures,
+  teams,
   onSelectCaptain,
   currentCaptainId,
   currentViceCaptainId
-}: CaptainSuggestionsProps) {
-  const { data: fixtures } = useQuery({
-    queryKey: ["/api/fpl/fixtures"],
-    queryFn: fetchFixtures
-  });
-
-  const { data: bootstrapData } = useQuery({
-    queryKey: ["/api/fpl/bootstrap-static"],
-    queryFn: fetchBootstrapStatic
-  });
-
+}) => {
   // Calculate player scores based on form and upcoming fixture difficulty
   const viableCaptains = useMemo(() => {
-    if (!fixtures || !bootstrapData?.teams) {
-      console.log("Missing data:", { fixtures: !!fixtures, bootstrapData: !!bootstrapData });
+    if (!fixtures || !teams) {
+      console.log("Missing data:", { fixtures: !!fixtures, teams: !!teams });
       return [];
     }
 
     // Create team mapping
-    const teamMap = bootstrapData.teams.reduce((acc: Record<number, string>, team: TeamData) => {
+    const teamMap = teams.reduce((acc: Record<number, string>, team: TeamData) => {
       acc[team.id] = team.short_name;
       return acc;
     }, {});
@@ -98,109 +94,143 @@ export function CaptainSuggestions({
       .filter((p): p is NonNullable<typeof p> => p !== null)
       .sort((a, b) => b.captainScore - a.captainScore)
       .slice(0, 5);
-  }, [allPlayers, fixtures, bootstrapData]);
-
-  const isLoading = !fixtures || !bootstrapData;
+  }, [allPlayers, fixtures, teams]);
 
   console.log("Viable captains:", viableCaptains.length);
 
   return (
-    <Card className="bg-gradient-to-br from-background to-muted/5">
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <Crown className="w-5 h-5 text-primary" />
-          <div>
-            <CardTitle>Captain Picks</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              {isLoading ? "Loading suggestions..." : "Top form players for your armband"}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-2">
-          {isLoading ? (
-            // Loading skeleton
-            Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-24 rounded-lg bg-muted animate-pulse"
-              />
-            ))
-          ) : viableCaptains.map(player => (
-            <div
-              key={player.id}
-              onClick={() => onSelectCaptain(player)}
-              className={cn(
-                "p-3 rounded-lg cursor-pointer",
-                "bg-gradient-to-br from-card to-muted/10",
-                "border border-border/30",
-                "transition-all duration-200",
-                "hover:shadow-md hover:border-primary/20",
-                (player.id === currentCaptainId || player.id === currentViceCaptainId) && 
-                "ring-1 ring-primary/50"
-              )}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-semibold text-sm">{player.web_name}</span>
-                    {player.id === currentCaptainId && (
-                      <Badge variant="default" className="bg-primary/90 h-[18px] min-w-[18px] flex items-center justify-center text-[11px] font-bold px-0">
-                        C
-                      </Badge>
-                    )}
-                    {player.id === currentViceCaptainId && (
-                      <Badge variant="outline" className="border-primary/50 text-primary h-[18px] min-w-[22px] flex items-center justify-center text-[11px] font-bold px-0">
-                        VC
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "h-[18px] px-1.5 flex items-center text-[11px] font-semibold",
-                    parseFloat(player.form) > 5 && "bg-green-500/10 text-green-500",
-                    parseFloat(player.form) < 3 && "bg-red-500/10 text-red-500"
-                  )}
-                >
-                  Form {player.form}
-                </Badge>
+    <div className="bg-card rounded-xl p-4 shadow-lg border border-border h-full">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
+          Captain Picks
+        </h3>
+        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">
+          Top {viableCaptains.length}
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        {viableCaptains.map((player, index) => (
+          <div
+            key={index}
+            onClick={() => onSelectCaptain(player)}
+            className="bg-muted/50 rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors cursor-pointer"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-primary font-medium">{player.web_name}</span>
+                {player.id === currentCaptainId && (
+                  <Badge variant="default" className="bg-primary/20 text-primary text-xs">C</Badge>
+                )}
+                {player.id === currentViceCaptainId && (
+                  <Badge variant="default" className="bg-primary/20 text-primary text-xs">VC</Badge>
+                )}
+                <span className="text-muted-foreground text-sm">
+                  ({player.total_points} pts)
+                </span>
               </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 flex items-center justify-between px-3 py-1.5 rounded-md bg-muted/40">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Next:</span>
-                    <span className="text-sm font-semibold">
-                      {player.isHome ? 'vs' : '@'} {player.opponentName}
-                    </span>
-                  </div>
-                  <Badge 
-                    variant="secondary" 
-                    className={cn(
-                      "text-[11px]",
-                      player.difficulty <= 2 && "bg-green-500/10 text-green-500",
-                      player.difficulty >= 4 && "bg-red-500/10 text-red-500"
-                    )}
-                  >
-                    FDR {player.difficulty}
-                  </Badge>
-                </div>
-                <div className="flex flex-col items-center px-2 py-1 rounded-md bg-muted/40">
-                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">PPG</span>
-                  <span className="text-sm tabular-nums font-semibold">{player.points_per_game}</span>
-                </div>
-                <div className="flex flex-col items-center px-2 py-1 rounded-md bg-muted/40">
-                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">Selected</span>
-                  <span className="text-sm tabular-nums font-semibold">{player.selected_by_percent}%</span>
-                </div>
+              <div className="px-2 py-1 rounded-md bg-primary/10 text-primary text-sm">
+                x2
               </div>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="bg-background/50 rounded-md p-2 text-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">Form</p>
+                        <p className="text-foreground font-semibold">{player.form}</p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Average points over the last 4 gameweeks</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="bg-background/50 rounded-md p-2 text-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">PPG</p>
+                        <p className="text-foreground font-semibold">{player.points_per_game}</p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Average points per game this season</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="bg-background/50 rounded-md p-2 text-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <p className="text-muted-foreground text-xs mb-1">Selected</p>
+                        <p className="text-foreground font-semibold">{player.selected_by_percent}%</p>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Percentage of teams that have selected this player</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between text-xs">
+              <div className="flex items-center space-x-1">
+                <span className="text-muted-foreground">Next:</span>
+                <div className="flex space-x-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span
+                          className={cn(
+                            "px-1.5 py-0.5 rounded",
+                            player.difficulty <= 2 ? "bg-green-500/20 text-green-400" :
+                            player.difficulty === 3 ? "bg-primary/20 text-primary" :
+                            "bg-destructive/20 text-destructive"
+                          )}
+                        >
+                          {player.opponentName}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Fixture difficulty: {
+                          player.difficulty <= 2 ? 'Easy' :
+                          player.difficulty === 3 ? 'Moderate' :
+                          'Difficult'
+                        }</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-muted-foreground">
+                      {player.minutes > 630 ? '🟢' : 
+                       player.minutes > 450 ? '🟡' : '🔴'} 
+                      {Math.round((player.minutes / 90) / 8 * 100)}% starts
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Percentage of matches started in the last 8 gameweeks</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
+
+export default CaptainSuggestions;

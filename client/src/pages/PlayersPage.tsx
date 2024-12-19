@@ -5,18 +5,15 @@ import { fetchPlayers, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
 import { TransferFilters, type FilterOptions } from "@/components/TransferFilters";
 import { PriceChangeTracker } from "../components/PriceChangeTracker";
 import { PlayerComparison } from "../components/PlayerComparison";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { BarChartHorizontal, Scale } from "lucide-react";
-import { type Player } from "../types/fpl";
-import { Badge } from "@/components/ui/badge";
+import { Scale } from "lucide-react";
+import { type Player, type BootstrapTeam } from "../types/fpl";
 
 export default function PlayersPage() {
   const [search, setSearch] = useState("");
-  const { toast } = useToast();
   const [isComparisonMode, setIsComparisonMode] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [comparisonPlayer, setComparisonPlayer] = useState<Player | null>(null);
@@ -43,16 +40,9 @@ export default function PlayersPage() {
     queryFn: fetchBootstrapStatic
   });
 
-
   // Filter players based on search and filters
   const filteredPlayers = useMemo(() => {
     if (!players || !bootstrapData?.teams) return [];
-    
-    // Get list of valid team IDs that have players
-    const activeTeamIds = new Set(players.map(player => player.team));
-    
-    // Filter teams to only include those that have players
-    const validTeams = bootstrapData.teams.filter(team => activeTeamIds.has(team.id));
     
     return players.filter(player => {
       const matchesSearch = player.web_name.toLowerCase().includes(search.toLowerCase());
@@ -61,11 +51,6 @@ export default function PlayersPage() {
       return matchesSearch && matchesTeam && matchesPosition;
     });
   }, [players, bootstrapData?.teams, search, filters]);
-
-  //These variables are not used anymore
-  //const teamValue = (team?.transfers?.value || 0) / 10;
-  //const bankValue = (team?.transfers?.bank || 0) / 10;
-  //const freeTransfers = team?.transfers?.limit || 0;
 
   if (isLoadingPlayers) {
     return <div className="space-y-4">
@@ -110,8 +95,8 @@ export default function PlayersPage() {
               <TransferFilters
                 teams={bootstrapData?.teams ? 
                   bootstrapData.teams
-                    .filter(team => players?.some(p => p.team === team.id))
-                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .filter((team: BootstrapTeam) => players?.some(p => p.team === team.id))
+                    .sort((a: BootstrapTeam, b: BootstrapTeam) => a.name.localeCompare(b.name))
                   : []}
                 onFilterChange={setFilters}
               />

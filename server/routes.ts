@@ -4,6 +4,12 @@ import { db } from "../db";
 import { teams } from "../db/schema";
 import { eq } from "drizzle-orm";
 
+interface GameweekHistory {
+  event: string;
+  points: string;
+  average_entry_score: string;
+}
+
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
@@ -78,7 +84,7 @@ export function registerRoutes(app: Express): Server {
       }
 
       // Ensure all gameweeks history is available for points graph
-      const pointsHistory = currentGw.map(gw => {
+      const pointsHistory = currentGw.map((gw: GameweekHistory) => {
         const points = parseInt(gw.points) || 0;
         const average = parseInt(gw.average_entry_score) || 0;
         return {
@@ -101,9 +107,15 @@ export function registerRoutes(app: Express): Server {
       const lastGwAveragePoints = lastGw.average_entry_score || Math.round(lastGwPoints * 0.85);
 
       // Structure the response data
+      const chips = historyData.chips || [];
+      console.log('Raw chip data from FPL API:', {
+        chips,
+        historyData
+      });
+
       const combinedData = {
         picks,
-        chips: historyData.chips || [],
+        chips,
         transfers: {
           limit: lastGw?.event_transfers_cost ? 1 : 2,
           made: lastGw?.event_transfers || 0,

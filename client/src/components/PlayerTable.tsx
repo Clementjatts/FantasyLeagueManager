@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { type Player } from "../types/fpl";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { predictPlayerPoints } from "@/lib/fpl-utils";
 
 interface PlayerTableProps {
   players: Player[];
@@ -24,7 +24,7 @@ interface PlayerTableProps {
 }
 
 interface SortConfig {
-  key: keyof Player | 'position';
+  key: keyof Player | 'position' | 'predicted_points';
   direction: 'asc' | 'desc';
 }
 
@@ -44,7 +44,7 @@ export function PlayerTable({
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 10;
 
-  const handleSort = (key: keyof Player | 'position') => {
+  const handleSort = (key: keyof Player | 'position' | 'predicted_points') => {
     setSortConfig(current => ({
       key,
       direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
@@ -52,9 +52,12 @@ export function PlayerTable({
   };
 
   const sortedPlayers = React.useMemo(() => {
-    return [...players].sort((a, b) => {
-      let aValue = a[sortConfig.key as keyof Player];
-      let bValue = b[sortConfig.key as keyof Player];
+    return [...players].map(player => ({
+      ...player,
+      predicted_points: fixtures ? predictPlayerPoints(player, fixtures) : 0
+    })).sort((a, b) => {
+      let aValue = a[sortConfig.key as keyof (Player & { predicted_points: number })];
+      let bValue = b[sortConfig.key as keyof (Player & { predicted_points: number })];
       
       // Handle special cases for numeric strings
       if (typeof aValue === 'string' && !isNaN(Number(aValue))) {
@@ -69,7 +72,7 @@ export function PlayerTable({
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [players, sortConfig]);
+  }, [players, sortConfig, fixtures]);
 
   const getPositionName = (element_type: number) => {
     switch (element_type) {
@@ -86,7 +89,7 @@ export function PlayerTable({
     sortKey 
   }: { 
     children: React.ReactNode;
-    sortKey: keyof Player | 'position';
+    sortKey: keyof Player | 'position' | 'predicted_points';
   }) => (
     <div 
       className="flex items-center gap-1 cursor-pointer"
@@ -110,7 +113,7 @@ export function PlayerTable({
           <TableHeader>
             <TableRow className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent hover:from-primary/10">
               <TableHead className="sticky left-0 bg-background w-[250px]">
-                <SortableHeader sortKey="web_name">Player Info</SortableHeader>
+                <SortableHeader sortKey="web_name">Player</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
                 <SortableHeader sortKey="element_type">Pos</SortableHeader>
@@ -120,6 +123,9 @@ export function PlayerTable({
               </TableHead>
               <TableHead className="text-center">
                 <SortableHeader sortKey="form">Form</SortableHeader>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortableHeader sortKey="predicted_points">xP</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
                 <SortableHeader sortKey="total_points">Points</SortableHeader>
@@ -168,6 +174,12 @@ export function PlayerTable({
               </TableHead>
               <TableHead className="text-center">
                 <SortableHeader sortKey="selected_by_percent">Sel%</SortableHeader>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortableHeader sortKey="transfers_in_event">TI</SortableHeader>
+              </TableHead>
+              <TableHead className="text-center">
+                <SortableHeader sortKey="transfers_out_event">TO</SortableHeader>
               </TableHead>
               <TableHead className="text-center sticky right-0 bg-background">NF</TableHead>
             </TableRow>
@@ -222,6 +234,11 @@ export function PlayerTable({
                 </TableCell>
                 <TableCell className="text-center font-medium">{player.form}</TableCell>
                 <TableCell className="text-center">
+                  <span className="font-medium text-primary">
+                    {fixtures ? predictPlayerPoints(player, fixtures).toFixed(1) : '-'}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
                   <span className="font-semibold text-primary">{player.total_points}</span>
                 </TableCell>
                 <TableCell className="text-center font-medium">{player.points_per_game}</TableCell>
@@ -260,40 +277,63 @@ export function PlayerTable({
                     {parseFloat(player.selected_by_percent).toFixed(1)}%
                   </span>
                 </TableCell>
+                <TableCell className="text-center">
+                  {player.transfers_in_event ? (
+                    <span className="text-green-600 font-medium">
+                      +{player.transfers_in_event.toLocaleString()}
+                    </span>
+                  ) : '-'}
+                </TableCell>
+                <TableCell className="text-center">
+                  {player.transfers_out_event ? (
+                    <span className="text-red-600 font-medium">
+                      -{player.transfers_out_event.toLocaleString()}
+                    </span>
+                  ) : '-'}
+                </TableCell>
                 <TableCell className="text-center sticky right-0 bg-background min-w-[200px]">
                   {(() => {
                     const nextFixtures = fixtures
                       .filter(f => 
-                        (f.team_h === player.team || f.team_a === player.team) && !f.finished
+                        (f.team_h === player.team || f.team_a === player.team) && 
+                        !f.finished && 
+                        f.event // Only include fixtures with valid event (gameweek)
                       )
-                      .slice(0, 3)
+                      .sort((a, b) => (a.event || 0) - (b.event || 0)) // Sort by gameweek
+                      .slice(0, 5) // Show next 5 fixtures
                       .map(fixture => {
                         const isHome = fixture.team_h === player.team;
                         const oppositionId = isHome ? fixture.team_a : fixture.team_h;
                         const opposition = teams.find(t => t.id === oppositionId);
+                        const difficulty = isHome ? fixture.team_h_difficulty : fixture.team_a_difficulty;
                         
                         return {
                           opposition: opposition?.short_name || `Team ${oppositionId}`,
-                          difficulty: isHome ? fixture.team_h_difficulty : fixture.team_a_difficulty,
-                          isHome
+                          difficulty,
+                          isHome,
+                          event: fixture.event
                         };
                       });
 
                     if (!nextFixtures.length) return "-";
                     
                     return (
-                      <div className="flex items-center justify-center gap-3">
+                      <div className="flex items-center justify-center gap-2">
                         {nextFixtures.map((fixture, idx) => (
                           <span 
-                            key={idx} 
+                            key={`${player.id}-${fixture.event}-${idx}`}
                             className={cn(
-                              "px-2 py-1 rounded-md transition-all duration-200",
-                              fixture.difficulty <= 2 && "bg-green-500/10 text-green-700",
-                              fixture.difficulty === 3 && "bg-yellow-500/10 text-yellow-700",
-                              fixture.difficulty >= 4 && "bg-red-500/10 text-red-700"
+                              "px-2 py-1 rounded-md text-xs font-medium",
+                              "transition-colors duration-200",
+                              fixture.difficulty === 5 && "bg-red-500/20 text-red-700",
+                              fixture.difficulty === 4 && "bg-orange-500/20 text-orange-700",
+                              fixture.difficulty === 3 && "bg-yellow-500/20 text-yellow-700",
+                              fixture.difficulty === 2 && "bg-green-500/20 text-green-700",
+                              fixture.difficulty === 1 && "bg-emerald-500/20 text-emerald-700",
                             )}
+                            title={`${fixture.isHome ? 'vs' : '@'} ${fixture.opposition} (GW${fixture.event})`}
                           >
-                            {fixture.opposition} ({fixture.isHome ? 'H' : 'A'})
+                            {fixture.isHome ? fixture.opposition : `${fixture.opposition}(A)`}
                           </span>
                         ))}
                       </div>
@@ -347,6 +387,9 @@ export function PlayerTable({
             { abbr: "PM", full: "Penalties Missed" },
             { abbr: "YC", full: "Yellow Cards" },
             { abbr: "RC", full: "Red Cards" },
+            { abbr: "TI", full: "Transfers In" },
+            { abbr: "TO", full: "Transfers Out" },
+            { abbr: "xP", full: "Expected Points" },
           ].map(({ abbr, full }) => (
             <div 
               key={abbr}

@@ -91,16 +91,30 @@ export interface Pick {
 
 export interface Chip {
   name: string;
-  status: string;
-  events: number[];
+  time: string;
+  event: number;
+  status?: string;  // Keep for backwards compatibility
+  events?: number[];  // Keep for backwards compatibility
 }
 
 export interface Fixture {
   id: number;
   team_h: number;
   team_a: number;
-  difficulty: number;
+  team_h_difficulty: number;
+  team_a_difficulty: number;
   event: number;
 }
 
-
+export interface BootstrapTeam {
+  id: number;
+  name: string;
+  short_name: string;
+  strength: number;
+  strength_overall_home: number;
+  strength_overall_away: number;
+  strength_attack_home: number;
+  strength_attack_away: number;
+  strength_defence_home: number;
+  strength_defence_away: number;
+}
