@@ -15,20 +15,29 @@ import { cn } from "@/lib/utils";
 interface ChipStatus {
   name: string;
   label: string;
-  icon: typeof Sparkles;
+  icon: typeof Sparkles | typeof Zap | typeof Trophy | typeof TrendingUp;
   description: string;
   usedGameweek: number | null;
   isAvailable: boolean;
   effectivenessScore: number;
   optimalGameweeks: number[];
   impactDescription: string;
-  potentialPoints?: number;
-  seasonPhase?: string;
-  doubleGameweeks?: number[];
-  blankGameweeks?: number[];
-  recommendedStrategy?: string;
-  riskLevel?: 'low' | 'medium' | 'high';
-  alternativeGameweeks?: number[];
+  potentialPoints: number;
+  seasonPhase: string;
+  doubleGameweeks: number[];
+  blankGameweeks: number[];
+  recommendedStrategy: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  alternativeGameweeks: number[];
+}
+
+interface ChipDetails extends Partial<ChipStatus> {
+  label: string;
+  icon: typeof Sparkles | typeof Zap | typeof Trophy | typeof TrendingUp;
+  description: string;
+  impactDescription: string;
+  recommendedStrategy: string;
+  riskLevel: 'low' | 'medium' | 'high';
 }
 
 interface TimelineEvent {
@@ -77,8 +86,9 @@ function calculateChipEffectiveness(
   doubleGWs: number[],
   blankGWs: number[],
   fixtures: Fixture[],
-  bootstrapData: any
+  bootstrapData: BootstrapData
 ): number {
+  try {
   let score = 50; // Base score
   
   const upcomingFixtures = fixtures.filter(f => f.event && f.event >= currentGW).slice(0, 5);
@@ -138,13 +148,32 @@ function calculateChipEffectiveness(
 
 interface BootstrapData {
   teams: Array<{
+    id: number;
+    name: string;
+    short_name: string;
     form: string;
-    [key: string]: any;
+    strength: number;
+    strength_overall_home: number;
+    strength_overall_away: number;
+    strength_attack_home: number;
+    strength_attack_away: number;
+    strength_defence_home: number;
+    strength_defence_away: number;
   }>;
   events: Array<{
     id: number;
+    name: string;
+    deadline_time: string;
+    average_entry_score: number;
+    finished: boolean;
+    data_checked: boolean;
+    highest_scoring_entry: number;
+    deadline_time_epoch: number;
+    deadline_time_game_offset: number;
+    highest_score: number;
+    is_previous: boolean;
     is_current: boolean;
-    [key: string]: any;
+    is_next: boolean;
   }>;
 }
 
@@ -298,7 +327,7 @@ function processChipData(
   }
 }
 
-const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
+const CHIP_DETAILS: Record<string, ChipDetails> = {
   wildcard: {
     label: "Wildcard",
     icon: Sparkles,
@@ -331,7 +360,7 @@ const CHIP_DETAILS: Record<string, Partial<ChipStatus>> = {
     recommendedStrategy: "Use when bench players have double gameweeks",
     riskLevel: "medium"
   }
-};
+} as const;
 
 function ChipsPage() {
   const [selectedChip, setSelectedChip] = useState<string | null>(null);
@@ -416,17 +445,22 @@ function ChipsPage() {
     }))
   ].sort((a, b) => a.gameweek - b.gameweek) : [];
 
-  // Add chip recommendations to timeline with error handling
-  if (chips && chips.length > 0) {
-    chips.forEach(chip => {
-      if (chip.isAvailable && chip.optimalGameweeks && chip.optimalGameweeks.length > 0) {
-        timelineEvents.push({
-          gameweek: chip.optimalGameweeks[0],
-          type: 'chip_recommendation',
-          description: `Consider using ${chip.label} (Potential: +${chip.potentialPoints || '?'} pts)`,
-          importance: 'medium'
-        });
-      }
+  // Add chip recommendations to timeline with proper error handling and type checking
+  if (Array.isArray(chips) && chips.length > 0) {
+    const validChips = chips.filter(
+      (chip): chip is ChipStatus => 
+        chip.isAvailable && 
+        Array.isArray(chip.optimalGameweeks) && 
+        chip.optimalGameweeks.length > 0
+    );
+
+    validChips.forEach(chip => {
+      timelineEvents.push({
+        gameweek: chip.optimalGameweeks[0],
+        type: 'chip_recommendation' as const,
+        description: `Consider using ${chip.label} (Potential: +${chip.potentialPoints || '?'} pts)`,
+        importance: 'medium' as const
+      });
     });
   }
 
@@ -635,7 +669,12 @@ function ChipsPage() {
   );
 }
 
-function ChipCard({ chip }: { chip: ChipStatus }) {
+function ChipCard({ chip }: { chip: ChipStatus }): JSX.Element {
+  const Icon = chip.icon || Sparkles;
+  const riskColor = chip.riskLevel === 'high' ? "text-destructive" :
+                   chip.riskLevel === 'medium' ? "text-yellow-500" :
+                   "text-green-500";
+  
   return (
     <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
       <motion.div
