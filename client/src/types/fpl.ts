@@ -57,6 +57,9 @@ export interface Team {
     average: number;
     highest: number;
     chip?: string;
+    points_on_bench?: number;
+    event_transfers?: number;
+    event_transfers_cost?: number;
   }>;
   summary_overall_points: number;
   summary_overall_rank: number;
@@ -78,6 +81,8 @@ export interface Team {
     event_transfers: number;
     event_transfers_cost: number;
     average_entry_score: number;
+    form?: number;
+    value_form?: number;
   };
 }
 
@@ -87,6 +92,7 @@ export interface Pick {
   is_captain: boolean;
   is_vice_captain: boolean;
   multiplier: number;
+  event_points?: number;
 }
 
 export interface Chip {
