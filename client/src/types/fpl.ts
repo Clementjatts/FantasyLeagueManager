@@ -42,7 +42,6 @@ export interface Player {
 
 export interface Team {
   picks: Pick[];
-  chips: Chip[];
   transfers: {
     limit: number;
     made: number;
@@ -67,14 +66,13 @@ export interface Team {
     rank_sort?: number;
     average_entry_score?: number;
   }>;
-  chips?: Chip[];
-  current_event?: number;
+  chips: Chip[];
+  current_event: number;
   summary_overall_points: number;
   summary_overall_rank: number;
   last_deadline_total_transfers: number;
   last_deadline_bank: number;
   last_deadline_value: number;
-  current_event: number;
   last_deadline_event: number;
   stats: {
     event_points: number;
@@ -103,9 +101,24 @@ export interface Pick {
 export interface Chip {
   name: string;
   time: string;
+  event: number | null;
+  status?: string;
+  events?: number[];
+}
+
+export interface GameweekHistory {
   event: number;
-  status?: string;  // Keep for backwards compatibility
-  events?: number[];  // Keep for backwards compatibility
+  points: number;
+  average_entry_score?: number;
+  average?: number;
+  total_points?: number;
+  rank?: number;
+  rank_sort?: number;
+  event_transfers?: number;
+  event_transfers_cost?: number;
+  points_on_bench?: number;
+  value?: number;
+  bank?: number;
 }
 
 export interface Fixture {
