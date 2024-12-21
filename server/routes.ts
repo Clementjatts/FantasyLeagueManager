@@ -315,5 +315,161 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/fpl/top-managers-team", async (req, res) => {
+    try {
+      console.log("Fetching bootstrap static data...");
+      const bootstrapResponse = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/", {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      });
+
+      if (!bootstrapResponse.ok) {
+        console.error("Failed to fetch bootstrap data:", await bootstrapResponse.text());
+        return res.status(500).json({ message: "Failed to fetch FPL data" });
+      }
+
+      const bootstrapData = await bootstrapResponse.json();
+      console.log("Successfully fetched bootstrap data");
+      
+      // Instead of fetching top managers, we'll use the most selected players directly from bootstrap data
+      const playersByPosition = bootstrapData.elements.reduce((acc: any, player: any) => {
+        if (!acc[player.element_type]) {
+          acc[player.element_type] = [];
+        }
+        acc[player.element_type].push({
+          ...player,
+          selection_percentage: parseFloat(player.selected_by_percent)
+        });
+        return acc;
+      }, {});
+
+      // Select the most popular players for each position
+      const gkps = playersByPosition[1].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 2);
+      const defs = playersByPosition[2].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 5);
+      const mids = playersByPosition[3].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 5);
+      const fwds = playersByPosition[4].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 3);
+
+      // Create team structure with selection percentages
+      const teamData = {
+        picks: [
+          // Starting XI
+          ...gkps.slice(0, 1).map((player: any) => ({
+            element: player.id,
+            position: 1,
+            selling_price: player.now_cost,
+            multiplier: 1,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          })),
+          ...defs.slice(0, 4).map((player: any, index: number) => ({
+            element: player.id,
+            position: index + 2,
+            selling_price: player.now_cost,
+            multiplier: 1,
+            purchase_price: player.now_cost,
+            is_captain: index === 0,
+            is_vice_captain: index === 1,
+            selection_percentage: player.selection_percentage
+          })),
+          ...mids.slice(0, 4).map((player: any, index: number) => ({
+            element: player.id,
+            position: index + 6,
+            selling_price: player.now_cost,
+            multiplier: 1,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          })),
+          ...fwds.slice(0, 2).map((player: any, index: number) => ({
+            element: player.id,
+            position: index + 10,
+            selling_price: player.now_cost,
+            multiplier: 1,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          })),
+          // Substitutes
+          ...gkps.slice(1).map((player: any) => ({
+            element: player.id,
+            position: 12,
+            selling_price: player.now_cost,
+            multiplier: 0,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          })),
+          ...defs.slice(4).map((player: any) => ({
+            element: player.id,
+            position: 13,
+            selling_price: player.now_cost,
+            multiplier: 0,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          })),
+          ...mids.slice(4).map((player: any) => ({
+            element: player.id,
+            position: 14,
+            selling_price: player.now_cost,
+            multiplier: 0,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          })),
+          ...fwds.slice(2).map((player: any) => ({
+            element: player.id,
+            position: 15,
+            selling_price: player.now_cost,
+            multiplier: 0,
+            purchase_price: player.now_cost,
+            is_captain: false,
+            is_vice_captain: false,
+            selection_percentage: player.selection_percentage
+          }))
+        ],
+        transfers: {
+          limit: 0,
+          made: 0,
+          bank: 0,
+          value: 0,
+          extra: 0,
+          cost: 0
+        },
+        chips: [],
+        stats: {
+          value: 1000,
+          bank: 0,
+          team_value: 1000,
+          total_value: 1000
+        }
+      };
+
+      console.log("Sending team data:", JSON.stringify(teamData, null, 2));
+      
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(teamData);
+    } catch (error) {
+      console.error("Server error:", error);
+      return res.status(500).json({ 
+        message: "Failed to fetch top managers team",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  httpServer.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
+  });
+
   return httpServer;
 }

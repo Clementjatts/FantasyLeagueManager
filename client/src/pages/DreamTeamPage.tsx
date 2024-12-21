@@ -140,29 +140,37 @@ export default function DreamTeamPage() {
 
   if (isLoading) {
     return (
-      <div className="container py-8 space-y-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/team">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+      <div className="p-6">
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <Link 
+                href="/team" 
+                className="p-2 rounded-lg hover:bg-primary/10 transition-colors duration-200"
+              >
+                <ArrowLeft className="w-5 h-5" />
               </Link>
-            </Button>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+                Dream Team
+              </h1>
+            </div>
+            <p className="text-lg text-muted-foreground">
+              AI-powered optimal team selection based on form, fixtures, and performance
+            </p>
           </div>
+          <Card>
+            <CardContent className="pt-6">
+              <Skeleton className="h-32" />
+            </CardContent>
+          </Card>
         </div>
-        <Card>
-          <CardContent className="pt-6">
-            <Skeleton className="h-32" />
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   if (error || !players || !fixtures || !bootstrap) {
     return (
-      <div className="container py-8 space-y-8">
+      <div className="p-6">
         <Alert variant="destructive">
           <AlertDescription>
             Failed to load dream team data. Please try again later.
@@ -175,41 +183,45 @@ export default function DreamTeamPage() {
   const optimalTeam = calculateOptimalTeam(players, fixtures, bootstrap.teams);
 
   return (
-    <div className="container py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild>
-            <Link href="/team">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+    <div className="p-6">
+      <div className="space-y-8">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Link 
+              href="/team" 
+              className="p-2 rounded-lg hover:bg-primary/10 transition-colors duration-200"
+            >
+              <ArrowLeft className="w-5 h-5" />
             </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
               Dream Team
             </h1>
-            <p className="text-sm text-muted-foreground">
-              AI-optimized team selection based on form, fixtures, and performance
-            </p>
           </div>
+          <p className="text-lg text-muted-foreground">
+            AI-powered optimal team selection based on form, fixtures, and performance
+          </p>
+        </div>
+
+        <div className="grid gap-6">
+          <Card>
+            <CardContent className="pt-6">
+              <DreamPitch 
+                players={optimalTeam.firstTeam}
+                substitutes={optimalTeam.substitutes}
+                captainId={optimalTeam.captainId}
+                viceCaptainId={optimalTeam.viceCaptainId}
+                fixtures={fixtures}
+                teams={bootstrap.teams}
+              />
+            </CardContent>
+          </Card>
+
+          <DreamTeamLegend 
+            formation={optimalTeam.formation}
+            totalPoints={optimalTeam.totalPoints}
+          />
         </div>
       </div>
-
-      <DreamTeamLegend
-        formation={optimalTeam.formation}
-        totalPoints={optimalTeam.totalPoints}
-        className="mb-8"
-      />
-
-      <DreamPitch
-        players={optimalTeam.firstTeam}
-        substitutes={optimalTeam.substitutes}
-        captainId={optimalTeam.captainId}
-        viceCaptainId={optimalTeam.viceCaptainId}
-        fixtures={fixtures}
-        teams={bootstrap.teams}
-        showOptimalReasons={true}
-      />
     </div>
   );
 }

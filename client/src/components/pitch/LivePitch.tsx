@@ -56,12 +56,12 @@ export function LivePitch({
         <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
         
         {/* Content Grid */}
-        <div className="relative grid grid-cols-2 md:grid-cols-4 divide-x divide-white/5">
+        <div className="relative grid grid-cols-2 md:grid-cols-4 divide-x divide-white/10 bg-black/75 backdrop-blur-xl rounded-lg border border-white/10 shadow-2xl">
           {/* Total Points */}
-          <div className="p-4 group relative overflow-hidden">
+          <div className="p-4 group relative overflow-hidden hover:bg-white/5 transition-colors">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative space-y-2">
-              <div className="flex items-center gap-2 text-white/60">
+              <div className="flex items-center gap-2 text-white/80">
                 <Trophy className="w-4 h-4" />
                 <span className="text-sm font-medium">Total Points</span>
               </div>
@@ -81,10 +81,10 @@ export function LivePitch({
           </div>
 
           {/* Average Points */}
-          <div className="p-4 group relative overflow-hidden">
+          <div className="p-4 group relative overflow-hidden hover:bg-white/5 transition-colors">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative space-y-2">
-              <div className="flex items-center gap-2 text-white/60">
+              <div className="flex items-center gap-2 text-white/80">
                 <Activity className="w-4 h-4" />
                 <span className="text-sm font-medium">Average</span>
               </div>
@@ -102,10 +102,10 @@ export function LivePitch({
           </div>
 
           {/* Players Status */}
-          <div className="p-4 group relative overflow-hidden">
+          <div className="p-4 group relative overflow-hidden hover:bg-white/5 transition-colors">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative space-y-2">
-              <div className="flex items-center gap-2 text-white/60">
+              <div className="flex items-center gap-2 text-white/80">
                 <Users className="w-4 h-4" />
                 <span className="text-sm font-medium">Players Status</span>
               </div>
@@ -135,11 +135,11 @@ export function LivePitch({
           </div>
 
           {/* Top Performer */}
-          <div className="p-4 group relative overflow-hidden">
+          <div className="p-4 group relative overflow-hidden hover:bg-white/5 transition-colors">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative space-y-2">
-              <div className="flex items-center gap-2 text-white/60">
-                <Zap className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-white/80">
+                <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">Top Performer</span>
               </div>
               <div className="space-y-1">

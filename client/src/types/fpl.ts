@@ -93,6 +93,7 @@ export interface Pick {
   is_vice_captain: boolean;
   multiplier: number;
   event_points?: number;
+  selection_percentage?: number;
 }
 
 export interface Chip {
@@ -185,4 +186,24 @@ export interface ElementType {
 export interface ChipPlay {
   chip_name: string;
   num_played: number;
+  max_played?: number;
+  average_entry_score?: number;
+  highest_score?: number;
+  most_transferred_in?: number;
+  most_transferred_out?: number;
+}
+
+export type ChipName = 'wildcard' | 'freehit' | 'bboost' | '3xc';
+
+export type ChipRecommendations = {
+  [K in ChipName]: string[];
+};
+
+export interface ChipStrategy {
+  name: string;
+  description: string;
+  icon: JSX.Element;
+  bestTiming: string[];
+  considerations: string[];
+  chipName: ChipName;
 }

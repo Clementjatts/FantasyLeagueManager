@@ -148,7 +148,7 @@ export function TransferSuggestions({
             fixtures: newPlayerFixtures,
             xG,
             xA,
-            priceChange: newPlayer.cost_change_event || 0,
+            priceChange: (newPlayer.now_cost - currentPlayer.now_cost) || 0,
             rotationRisk,
             ownership: parseFloat(newPlayer.selected_by_percent || '0'),
             transferScore
@@ -204,8 +204,14 @@ export function TransferSuggestions({
               <div className="flex items-center space-x-2">
                 <span className="text-muted-foreground text-sm">OUT</span>
                 <span className="text-destructive">{suggestion.outPlayer.web_name}</span>
+                <span className="text-xs text-muted-foreground">
+                  (£{(suggestion.outPlayer.now_cost / 10).toFixed(1)}m)
+                </span>
               </div>
               <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">
+                  (£{(suggestion.inPlayer.now_cost / 10).toFixed(1)}m)
+                </span>
                 <span className="text-primary">{suggestion.inPlayer.web_name}</span>
                 <span className="text-muted-foreground text-sm">IN</span>
               </div>

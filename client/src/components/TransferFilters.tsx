@@ -1,11 +1,5 @@
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { 
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -14,11 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 
-export interface FilterOptions {
+export type FilterOptions = {
   team: string;
   position: string;
+  quickFilter?: 'TOP_SCORERS' | 'IN_FORM' | 'BEST_VALUE';
 }
 
 interface Team {

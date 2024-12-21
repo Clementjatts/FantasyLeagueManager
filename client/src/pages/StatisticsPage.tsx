@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { fetchPlayers } from "../lib/api";
+import { fetchPlayers, fetchBootstrapStatic } from "../lib/api";
 import { Player } from "../types/fpl";
 import { Shield, Crosshair, Star } from "lucide-react";
 
@@ -85,11 +85,14 @@ function getStatValue(player: Player, stat: string): string {
   }
 }
 
-function StatCard({ label, value }: { label: string; value: string | number }) {
+function StatCard({ label, value, tooltip }: { label: string; value: string | number; tooltip?: string }) {
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm">
       <p className="text-sm text-muted-foreground">{label}</p>
       <p className="text-2xl font-bold mt-1">{value}</p>
+      {tooltip && (
+        <div className="text-xs text-muted-foreground mt-1">{tooltip}</div>
+      )}
     </div>
   );
 }
@@ -154,102 +157,323 @@ export default function StatisticsPage() {
     queryFn: fetchPlayers,
   });
 
+  const { data: bootstrapData } = useQuery({
+    queryKey: ["/api/fpl/bootstrap-static"],
+    queryFn: fetchBootstrapStatic,
+  });
+
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-48" />
-        <div className="grid gap-6 md:grid-cols-3">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-[200px]" />
-          ))}
+      <div className="p-6">
+        <div className="grid gap-6">
+          <Skeleton className="h-[400px]" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Skeleton className="h-[200px]" />
+            <Skeleton className="h-[200px]" />
+            <Skeleton className="h-[200px]" />
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!players?.length) {
+  if (!players?.length || !bootstrapData) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <CardTitle className="mb-2">No Data Available</CardTitle>
-          <CardDescription>
-            Unable to load player statistics. Please try again later.
-          </CardDescription>
-        </CardContent>
-      </Card>
+      <div className="p-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <CardTitle className="mb-2">No Data Available</CardTitle>
+            <CardDescription>
+              Unable to load player statistics. Please try again later.
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
+  // Calculate league-wide statistics
+  const totalPlayers = players.length;
+  const averagePoints = Math.round(
+    players.reduce((acc, p) => acc + (p.total_points || 0), 0) / totalPlayers
+  );
+  const topScorer = [...players].sort((a, b) => (b.total_points || 0) - (a.total_points || 0))[0];
+  const mostSelected = [...players].sort((a, b) => 
+    (parseFloat(b.selected_by_percent || "0") - parseFloat(a.selected_by_percent || "0"))
+  )[0];
+  
+  // Calculate position-based statistics
+  const playersByPosition = players.reduce((acc, player) => {
+    const position = player.element_type;
+    if (!acc[position]) acc[position] = [];
+    acc[position].push(player);
+    return acc;
+  }, {} as Record<number, Player[]>);
+
+  const positionStats = Object.entries(playersByPosition).map(([position, players]) => {
+    const avgPoints = Math.round(
+      players.reduce((acc, p) => acc + (p.total_points || 0), 0) / players.length
+    );
+    const topPlayer = [...players].sort((a, b) => (b.total_points || 0) - (a.total_points || 0))[0];
+    return {
+      position: parseInt(position),
+      avgPoints,
+      topPlayer,
+      count: players.length,
+    };
+  });
+
+  // Calculate form trends
+  const formTrends = players
+    .map(player => ({
+      ...player,
+      formNum: parseFloat(player.form || "0"),
+    }))
+    .sort((a, b) => b.formNum - a.formNum)
+    .slice(0, 5);
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Statistics & Analysis</h1>
-        <Badge variant="outline" className="text-lg">
-          Position Analysis
-        </Badge>
-      </div>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+                Statistics & Analysis
+              </h1>
+              <Badge variant="outline" className="text-lg">
+                League Overview
+              </Badge>
+            </div>
+            <p className="text-lg text-muted-foreground">
+              Comprehensive statistics and performance analysis
+            </p>
+          </div>
+        </div>
 
-      <Tabs defaultValue="position-1" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          {positionConfigs.map(config => (
-            <TabsTrigger key={config.id} value={`position-${config.id}`}>
+        {/* League Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Players</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalPlayers}</div>
+              <p className="text-xs text-muted-foreground">Active in the game</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Average Points</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{averagePoints}</div>
+              <p className="text-xs text-muted-foreground">Per player</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Top Scorer</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{topScorer.web_name}</div>
               <div className="flex items-center gap-2">
-                <config.icon className="w-4 h-4" />
-                <span className="hidden md:inline">{config.name}</span>
+                <span className="text-xs text-muted-foreground">Points:</span>
+                <span className="text-sm font-medium">{topScorer.total_points}</span>
               </div>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+            </CardContent>
+          </Card>
 
-        {positionConfigs.map(config => {
-          const positionPlayers = players.filter(p => p.element_type === config.id)
-            .sort((a, b) => (b.total_points || 0) - (a.total_points || 0));
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 hover:shadow-lg transition-all">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Most Selected</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{mostSelected.web_name}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Selected by:</span>
+                <span className="text-sm font-medium">{mostSelected.selected_by_percent}%</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-          const topScorer = positionPlayers[0];
-          const avgPoints = Math.round(
-            positionPlayers.reduce((acc, p) => acc + (p.total_points || 0), 0) / 
-            positionPlayers.length
-          );
+        {/* Position Analysis */}
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
+          <CardHeader>
+            <CardTitle>Position Analysis</CardTitle>
+            <CardDescription>Performance breakdown by position</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {positionStats.map((stats) => {
+                const config = positionConfigs.find(c => c.id === stats.position);
+                if (!config) return null; // Skip rendering if no config found
+                return (
+                  <Card key={stats.position} className="bg-white/50">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-2">
+                        <config.icon className="w-4 h-4" />
+                        <CardTitle className="text-sm font-medium">{config.name}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <div>
+                        <div className="text-sm text-muted-foreground">Average Points</div>
+                        <div className="text-lg font-bold">{stats.avgPoints}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-muted-foreground">Top Performer</div>
+                        <div className="text-lg font-bold">{stats.topPlayer.web_name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {stats.topPlayer.total_points} points
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
 
-          return (
-            <TabsContent key={config.id} value={`position-${config.id}`}>
-              <Card className="mb-6 bg-primary/5">
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <config.icon className="w-6 h-6" />
-                    <div>
-                      <CardTitle>{config.name}</CardTitle>
-                      <CardDescription>{config.description}</CardDescription>
+        {/* Form Trends */}
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
+          <CardHeader>
+            <CardTitle>Form Trends</CardTitle>
+            <CardDescription>Players in the best current form</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {formTrends.map((player, index) => (
+                <div key={player.id} className="flex items-center gap-4">
+                  <div className="text-2xl font-bold text-muted-foreground">
+                    #{index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-lg font-semibold">{player.web_name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {positionConfigs.find(c => c.id === player.element_type)?.name}
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <StatCard 
-                      label="Average Points" 
-                      value={avgPoints} 
-                    />
-                    <StatCard 
-                      label="Top Performer" 
-                      value={`${topScorer?.web_name || 'N/A'} (${topScorer?.total_points || 0}pts)`} 
-                    />
-                    <StatCard 
-                      label="Players" 
-                      value={positionPlayers.length} 
-                    />
+                  <div className="text-right">
+                    <div className="text-lg font-bold">{player.form}</div>
+                    <div className="text-sm text-muted-foreground">Form rating</div>
                   </div>
-                </CardContent>
-              </Card>
+                  <Progress 
+                    value={parseFloat(player.form) * 10} 
+                    className="w-24"
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {positionPlayers.slice(0, 6).map(player => (
-                  <PlayerStatCard key={player.id} player={player} />
-                ))}
-              </div>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+        {/* Position-based Tabs */}
+        <Tabs defaultValue="position-1" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            {positionConfigs.map(config => (
+              <TabsTrigger key={config.id} value={`position-${config.id}`}>
+                <div className="flex items-center gap-2">
+                  <config.icon className="w-4 h-4" />
+                  <span className="hidden md:inline">{config.name}</span>
+                </div>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          {positionConfigs.map(config => {
+            const positionPlayers = players
+              .filter(p => p.element_type === config.id)
+              .sort((a, b) => (b.total_points || 0) - (a.total_points || 0));
+
+            const topScorer = positionPlayers[0];
+            const avgPoints = Math.round(
+              positionPlayers.reduce((acc, p) => acc + (p.total_points || 0), 0) / 
+              positionPlayers.length
+            );
+
+            // Calculate form trends
+            const formTrend = positionPlayers.map(p => ({
+              name: p.web_name,
+              form: parseFloat(p.form || "0"),
+              points: p.total_points || 0,
+              price: p.now_cost / 10,
+              selected: parseFloat(p.selected_by_percent || "0")
+            })).sort((a, b) => b.form - a.form).slice(0, 5);
+
+            return (
+              <TabsContent key={config.id} value={`position-${config.id}`}>
+                <Card className="mb-6 bg-primary/5">
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <config.icon className="w-6 h-6" />
+                      <div>
+                        <CardTitle>{config.name}</CardTitle>
+                        <CardDescription>{config.description}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <StatCard 
+                        label="Average Points" 
+                        value={avgPoints}
+                        tooltip="Average points scored by players in this position" 
+                      />
+                      <StatCard 
+                        label="Top Performer" 
+                        value={`${topScorer?.web_name || 'N/A'} (${topScorer?.total_points || 0}pts)`}
+                        tooltip="Player with the highest total points in this position" 
+                      />
+                      <StatCard 
+                        label="Players" 
+                        value={positionPlayers.length}
+                        tooltip="Total number of players in this position" 
+                      />
+                    </div>
+
+                    {/* Form Trends */}
+                    <div className="mt-6">
+                      <h3 className="text-lg font-semibold mb-4">Top 5 In-Form Players</h3>
+                      <div className="space-y-3">
+                        {formTrend.map(player => (
+                          <div key={player.name} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="font-medium">{player.name}</div>
+                              <Badge variant="secondary">{player.points} pts</Badge>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <div className="text-sm text-muted-foreground">
+                                Form: {player.form}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                £{player.price}m
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {player.selected}%
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {positionPlayers.slice(0, 6).map(player => (
+                    <PlayerStatCard key={player.id} player={player} />
+                  ))}
+                </div>
+              </TabsContent>
+            );
+          })}
+        </Tabs>
+      </div>
     </div>
   );
 }

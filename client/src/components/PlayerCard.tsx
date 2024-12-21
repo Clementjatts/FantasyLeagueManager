@@ -17,6 +17,7 @@ interface PlayerCardProps {
   showTransferInfo?: boolean;
   showLiveStats?: boolean;
   showOptimalStats?: boolean;
+  children?: React.ReactNode;
 }
 
 const positionMap: Record<number, string> = {
@@ -44,7 +45,8 @@ export function PlayerCard({
   displayContext = 'live',
   showLiveStats = false,
   showTransferInfo = false,
-  showOptimalStats = false
+  showOptimalStats = false,
+  children
 }: PlayerCardProps) {
   const teamInfo = teams?.find(t => t.id === player.team) || { short_name: '' };
   const teamAbbr = teamInfo.short_name;
@@ -125,10 +127,10 @@ export function PlayerCard({
           positionColors[player.element_type]
         )} />
 
-        <div className="p-3 space-y-2">
+        <div className="pt-4 pb-2 px-3 space-y-2">
           {/* Player name and team */}
-          <div className="text-center space-y-1">
-            <div className="font-semibold leading-none flex items-center justify-center gap-1.5">
+          <div className="text-center space-y-1.5">
+            <div className="font-semibold leading-tight flex items-center justify-center gap-1.5 min-h-[1.5rem]">
               {player.web_name}
               {isCaptain && (
                 <div className="relative">
@@ -169,6 +171,7 @@ export function PlayerCard({
           </div>
         </div>
       )}
+      {children}
     </div>
   );
 }
