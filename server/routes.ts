@@ -13,9 +13,6 @@ interface GameweekHistory {
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
-  // Set port from environment or use 3000 as fallback
-  const port = process.env.PORT || 3000;
-  
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
     const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
@@ -150,7 +147,6 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ 
         message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
       });
-      console.log(`Server listening on port ${port}`);
     }
   });
 
@@ -278,6 +274,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
   
+
   app.get("/api/fpl/next-deadline", async (req, res) => {
     try {
       // Fetch all fixtures
@@ -465,10 +462,6 @@ export function registerRoutes(app: Express): Server {
         error: error instanceof Error ? error.message : String(error)
       });
     }
-  });
-
-  httpServer.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
   });
 
   return httpServer;
