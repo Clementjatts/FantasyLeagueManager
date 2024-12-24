@@ -126,7 +126,7 @@ export default function TeamPage() {
       ...players.find(p => p.id === pick.element)!,
       position: pick.position,
     }));
-  
+
   const substitutes = team.picks
     .filter(pick => pick.position > 11)
     .map(pick => ({
@@ -187,9 +187,9 @@ export default function TeamPage() {
           players={players}
           fixtures={fixtures}
           teams={bootstrapData?.teams || []}
-          freeTransfers={team.transfers?.limit || 0}
-          teamValue={(team.stats?.value || 0) / 10}
-          bankBalance={(team.stats?.bank || 0) / 10}
+          freeTransfers={team?.transfers?.limit ?? 0}
+          teamValue={(team?.last_deadline_value || 0) / 10}
+          bankBalance={(team?.last_deadline_bank || 0) / 10}
         />
 
         <div>
