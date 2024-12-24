@@ -270,9 +270,9 @@ export default function TransfersPage() {
                         };
                       })
                     : []}
-                  freeTransfers={team?.transfers?.limit ?? 0}
-                  teamValue={(team?.last_deadline_value || 0) / 10}
-                  bankBalance={(team?.last_deadline_bank || 0) / 10}
+                  freeTransfers={freeTransfers}
+                  teamValue={teamValue}
+                  bankBalance={bankValue}
                 />
               </div>
             </div>

@@ -12,142 +12,140 @@ interface GameweekHistory {
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
+  // Set port from environment or use 3000 as fallback
+  const port = process.env.PORT || 3000;
+  
+  // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
-    try {
-      const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch bootstrap data" });
-    }
+    const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
+    const data = await response.json();
+    res.json(data);
   });
 
-  app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
-    const { managerId } = req.params;
-    try {
-      const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`, {
+app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
+  const { managerId } = req.params;
+  try {
+    // First, fetch the manager/entry data
+    const entryResponse = await fetch(`https://fantasy.premierleague.com/api/entry/${managerId}/`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        'Accept': 'application/json, text/plain, */*'
+      }
+    });
+
+    if (!entryResponse.ok) {
+      console.error(`Entry response error: ${entryResponse.status} - ${await entryResponse.text()}`);
+      return res.status(404).json({ message: "Team not found. Please check your team ID." });
+    }
+
+    const entryData = await entryResponse.json();
+    console.log("Entry data:", entryData);
+
+    // Fetch history data which includes current gameweek stats
+    const historyResponse = await fetch(
+      `https://fantasy.premierleague.com/api/entry/${managerId}/history/`,
+      {
         headers: {
           'User-Agent': 'Mozilla/5.0',
           'Accept': 'application/json, text/plain, */*'
         }
-      });
-
-      if (!entryResponse.ok) {
-        return res.status(404).json({ message: "Team not found. Please check your team ID." });
       }
+    );
 
-      const entryData = await entryResponse.json();
-      const historyResponse = await fetch(
-        `https://fantasy.premierleague.com/api/entry/${managerId}/history/`,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json, text/plain, */*'
-          }
-        }
-      );
-
-      if (!historyResponse.ok) {
-        return res.status(500).json({ message: "Unable to fetch history data" });
-      }
-
-      const historyData = await historyResponse.json();
-      const currentGw = historyData.current || [];
-      const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : null;
-      const currentEvent = entryData.current_event || 1;
-      const lastCompletedEvent = lastGw?.event || (currentEvent > 1 ? currentEvent - 1 : 1);
-
-      const picksResponse = await fetch(
-        `https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`,
-        {
-          headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json, text/plain, */*'
-          }
-        }
-      );
-
-      let picks = [];
-      if (picksResponse.ok) {
-        const picksData = await picksResponse.json();
-        picks = picksData.picks || [];
-      }
-
-      // Initialize transfer values with sensible defaults
-      let freeTransfers = 1;
-      let transfersMade = 0;
-      let transfersCost = 0;
-
-      // Use entry data if available
-      if (entryData.transfers && typeof entryData.transfers === 'object') {
-        freeTransfers = typeof entryData.transfers.limit === 'number' ? entryData.transfers.limit : 1;
-        transfersMade = typeof entryData.transfers.made === 'number' ? entryData.transfers.made : 0;
-        transfersCost = typeof entryData.transfers.cost === 'number' ? entryData.transfers.cost : 0;
-      }
-      // Fallback to last gameweek data
-      else if (lastGw) {
-        transfersMade = lastGw.event_transfers || 0;
-        transfersCost = lastGw.event_transfers_cost || 0;
-
-        if (transfersMade === 0 && transfersCost === 0) {
-          const previousLimit = lastGw.transfers_limit || 1;
-          freeTransfers = Math.min(2, previousLimit + 1);
-        }
-      }
-
-      // Ensure non-negative values
-      freeTransfers = Math.max(0, freeTransfers);
-      transfersMade = Math.max(0, transfersMade);
-      transfersCost = Math.max(0, transfersCost);
-
-      const combinedData = {
-        picks,
-        chips: historyData.chips || [],
-        transfers: {
-          limit: freeTransfers,
-          made: transfersMade,
-          bank: entryData.last_deadline_bank || lastGw?.bank || 0,
-          value: entryData.last_deadline_value || lastGw?.value || 0,
-          cost: transfersCost
-        },
-        points_history: currentGw.map((gw: GameweekHistory) => ({
-          event: parseInt(gw.event) || 0,
-          points: parseInt(gw.points) || 0,
-          average: parseInt(gw.average_entry_score) || 0
-        })),
-        stats: {
-          event_points: lastGw?.points || 0,
-          event_average: lastGw?.average_entry_score || 0,
-          event_rank: lastGw?.rank || 0,
-          points_on_bench: lastGw?.points_on_bench || 0,
-          overall_points: lastGw?.total_points || entryData.summary_overall_points || 0,
-          overall_rank: lastGw?.overall_rank || entryData.summary_overall_rank || 0,
-          rank_sort: (currentGw.length > 1 ? currentGw[currentGw.length - 2].overall_rank : lastGw?.overall_rank) || 0,
-          total_points: lastGw?.total_points || entryData.summary_overall_points || 0,
-          value: entryData.last_deadline_value || lastGw?.value || 0,
-          bank: entryData.last_deadline_bank || lastGw?.bank || 0,
-        },
-        current_event: currentEvent,
-        last_deadline_event: lastCompletedEvent,
-        summary_overall_points: lastGw?.total_points || entryData.summary_overall_points || 0,
-        summary_overall_rank: lastGw?.overall_rank || entryData.summary_overall_rank || 0,
-        last_deadline_bank: entryData.last_deadline_bank || lastGw?.bank || 0,
-        last_deadline_value: entryData.last_deadline_value || lastGw?.value || 0
-      };
-
-      res.json(combinedData);
-    } catch (error) {
-      console.error("Error fetching team data:", error);
-      res.status(500).json({ 
-        message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
-      });
+    if (!historyResponse.ok) {
+      console.error(`History response error: ${historyResponse.status}`);
+      return res.status(500).json({ message: "Unable to fetch history data" });
     }
-  });
+
+    const historyData = await historyResponse.json();
+    const currentGw = historyData.current || [];
+    const lastGw = currentGw.length > 0 ? currentGw[currentGw.length - 1] : null;
+
+    // Get the current and last event from data
+    const currentEvent = entryData.current_event || 1;
+    const lastCompletedEvent = lastGw?.event || (currentEvent > 1 ? currentEvent - 1 : 1);
+
+    // Fetch picks for the current gameweek
+    const picksResponse = await fetch(
+      `https://fantasy.premierleague.com/api/entry/${managerId}/event/${lastCompletedEvent}/picks/`,
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      }
+    );
+
+    // Get picks from response
+    let picks = [];
+    if (picksResponse.ok) {
+      const picksData = await picksResponse.json();
+      picks = picksData.picks || [];
+    }
+
+    // Calculate free transfers
+    let freeTransfers = 1; // Default is 1 free transfer
+    if (entryData.transfers) {
+      // If we have transfer data from the entry, use it
+      freeTransfers = entryData.transfers.limit;
+    } else if (lastGw) {
+      // Otherwise calculate based on last gameweek
+      const transfersMade = lastGw.event_transfers || 0;
+      const transfersCost = lastGw.event_transfers_cost || 0;
+
+      // If no transfers were made last week, add one to the previous limit
+      if (transfersMade === 0 && transfersCost === 0) {
+        // Cap at 2 free transfers
+        freeTransfers = Math.min(2, (lastGw.transfers_limit || 1) + 1);
+      }
+    }
+
+    // Structure the response data
+    const combinedData = {
+      picks,
+      chips: historyData.chips || [],
+      transfers: {
+        limit: freeTransfers,
+        made: lastGw?.event_transfers || 0,
+        bank: entryData.last_deadline_bank || lastGw?.bank || 0,
+        value: entryData.last_deadline_value || lastGw?.value || 0,
+        cost: lastGw?.event_transfers_cost || 0
+      },
+      points_history: currentGw.map((gw: GameweekHistory) => ({
+        event: parseInt(gw.event) || 0,
+        points: parseInt(gw.points) || 0,
+        average: parseInt(gw.average_entry_score) || 0
+      })),
+      stats: {
+        event_points: lastGw?.points || 0,
+        event_average: lastGw?.average_entry_score || 0,
+        event_rank: lastGw?.rank || 0,
+        points_on_bench: lastGw?.points_on_bench || 0,
+        overall_points: lastGw?.total_points || entryData.summary_overall_points || 0,
+        overall_rank: lastGw?.overall_rank || entryData.summary_overall_rank || 0,
+        rank_sort: (currentGw.length > 1 ? currentGw[currentGw.length - 2].overall_rank : lastGw?.overall_rank) || 0,
+        total_points: lastGw?.total_points || entryData.summary_overall_points || 0,
+        value: entryData.last_deadline_value || lastGw?.value || 0,
+        bank: entryData.last_deadline_bank || lastGw?.bank || 0,
+      },
+      current_event: currentEvent,
+      last_deadline_event: lastCompletedEvent,
+      summary_overall_points: lastGw?.total_points || entryData.summary_overall_points || 0,
+      summary_overall_rank: lastGw?.overall_rank || entryData.summary_overall_rank || 0,
+      last_deadline_bank: entryData.last_deadline_bank || lastGw?.bank || 0,
+      last_deadline_value: entryData.last_deadline_value || lastGw?.value || 0
+    };
+
+    console.log("Sending response with transfers:", combinedData.transfers);
+    res.json(combinedData);
+  } catch (error) {
+    console.error("Error fetching team data:", error);
+    res.status(500).json({ 
+      message: "Failed to fetch team data. Please ensure your team ID is correct and try again." 
+    });
+  }
+});
 
   app.get("/api/fpl/players", async (req, res) => {
     try {
@@ -312,6 +310,7 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/fpl/top-managers-team", async (req, res) => {
     try {
+      console.log("Fetching bootstrap static data...");
       const bootstrapResponse = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/", {
         headers: {
           'User-Agent': 'Mozilla/5.0',
@@ -320,11 +319,14 @@ export function registerRoutes(app: Express): Server {
       });
       
       if (!bootstrapResponse.ok) {
+        console.error("Failed to fetch bootstrap data:", await bootstrapResponse.text());
         return res.status(500).json({ message: "Failed to fetch FPL data" });
       }
       
       const bootstrapData = await bootstrapResponse.json();
+      console.log("Successfully fetched bootstrap data");
       
+      // Instead of fetching top managers, we'll use the most selected players directly from bootstrap data
       const playersByPosition = bootstrapData.elements.reduce((acc: any, player: any) => {
         if (!acc[player.element_type]) {
           acc[player.element_type] = [];
@@ -336,13 +338,16 @@ export function registerRoutes(app: Express): Server {
         return acc;
       }, {});
       
+      // Select the most popular players for each position
       const gkps = playersByPosition[1].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 2);
       const defs = playersByPosition[2].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 5);
       const mids = playersByPosition[3].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 5);
       const fwds = playersByPosition[4].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 3);
       
+      // Create team structure with selection percentages
       const teamData = {
         picks: [
+          // Starting XI
           ...gkps.slice(0, 1).map((player: any) => ({
             element: player.id,
             position: 1,
@@ -383,6 +388,7 @@ export function registerRoutes(app: Express): Server {
             is_vice_captain: false,
             selection_percentage: player.selection_percentage
           })),
+          // Substitutes
           ...gkps.slice(1).map((player: any) => ({
             element: player.id,
             position: 12,
@@ -441,6 +447,8 @@ export function registerRoutes(app: Express): Server {
         }
       };
       
+      console.log("Sending team data:", JSON.stringify(teamData, null, 2));
+      
       res.setHeader('Content-Type', 'application/json');
       return res.json(teamData);
     } catch (error) {
@@ -452,7 +460,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  httpServer.listen(port, '0.0.0.0', () => {
+  httpServer.listen(port, () => {
     console.log(`Server listening on port ${port}`);
   });
 

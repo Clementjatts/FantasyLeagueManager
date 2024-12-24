@@ -263,7 +263,7 @@ export default function DashboardPage() {
                 <div className="p-2 rounded-lg bg-primary/5">
                   <div className="text-sm text-muted-foreground">Free Transfers</div>
                   <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
-                    {team?.transfers?.limit ?? 0}
+                    {team?.transfers?.limit || 0}
                   </div>
                 </div>
               </CardContent>
