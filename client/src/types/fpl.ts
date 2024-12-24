@@ -38,6 +38,10 @@ export interface Player {
   event_points?: number;
   is_optimal?: boolean;
   optimal_reason?: string;
+  chance_of_playing_next_round: number | null;
+  chance_of_playing_this_round: number | null;
+  news: string;
+  news_added: string | null;
 }
 
 export interface Team {
@@ -49,13 +53,16 @@ export interface Team {
     bank: number;
     value: number;
     cost: number;
-    status: string;
+    status?: string;
+    transfers_limit?: number;
+    event_transfers?: number;
+    event_transfers_cost?: number;
   };
   points_history: Array<{
     event: number;
     points: number;
     average: number;
-    highest: number;
+    highest?: number;
     chip?: string;
     points_on_bench?: number;
     event_transfers?: number;

@@ -20,23 +20,45 @@ interface OptimalTeam {
   totalPoints: number;
 }
 
+function isPlayerAvailable(player: Player): boolean {
+  // Consider a player unavailable if:
+  // 1. They have 0% chance of playing next round
+  // 2. They have no chance specified but are flagged with status
+  // 3. They are suspended or unavailable
+  const nextRoundChance = player.chance_of_playing_next_round;
+  const thisRoundChance = player.chance_of_playing_this_round;
+
+  if (nextRoundChance === 0 || thisRoundChance === 0) return false;
+  if (player.status === 'u' || player.status === 'i' || player.status === 's') return false;
+  if (player.news && player.news.toLowerCase().includes('suspended')) return false;
+
+  return true;
+}
+
 function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[]): OptimalTeam {
+  // Filter out injured and unavailable players first
+  const availablePlayers = allPlayers.filter(isPlayerAvailable);
+
   // Calculate player scores based on multiple factors for better points prediction
-  const playerScores = allPlayers.map(player => {
+  const playerScores = availablePlayers.map(player => {
     const form = parseFloat(player.form || '0') * 1.5;
     const ppg = parseFloat(player.points_per_game || '0');
     const fixtures_score = calculateFixtureScore(player.team, fixtures);
     const minutes_factor = Math.min(player.minutes / 900, 1);
     const bonus_factor = (player.bonus / Math.max(player.minutes / 90, 1)) * 2;
-    
+
+    // Add availability factor - reduce score if there's any doubt about playing
+    const availabilityFactor = player.chance_of_playing_next_round === null ? 
+      1 : player.chance_of_playing_next_round / 100;
+
     const expected_points = (
       (form * 0.35) +
       (ppg * 0.25) +
       (fixtures_score * 0.20) +
       (minutes_factor * 0.10) +
       (bonus_factor * 0.10)
-    ) * 6;
-    
+    ) * 6 * availabilityFactor;
+
     return {
       ...player,
       score: expected_points,
@@ -88,6 +110,11 @@ function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[
     midfielders[bestFormation.mid],
     forwards[bestFormation.fwd]
   ].filter(Boolean).map((p, i) => ({ ...p, position: i + 12 }));
+
+  // Set optimal reasons for first team players
+  firstTeam.forEach(player => {
+    player.optimal_reason = `Selected for high form (${player.form}) and fixtures score`;
+  });
 
   const sortedByScore = [...firstTeam].sort((a, b) => b.score - a.score);
   const captainId = sortedByScore[0].id;

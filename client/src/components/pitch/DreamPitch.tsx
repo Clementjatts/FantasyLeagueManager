@@ -2,7 +2,7 @@ import { Player } from "../../types/fpl";
 import { PlayerCard } from "../PlayerCard";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUpIcon, StarIcon } from "lucide-react";
+import { TrendingUpIcon, StarIcon, AlertCircle } from "lucide-react";
 import { BasePitch } from "./BasePitch";
 
 interface DreamPitchProps {
@@ -29,21 +29,46 @@ const getFormGlowColor = (form: string) => {
   return "bg-red-500/30";
 };
 
+const getAvailabilityStatus = (player: Player) => {
+  const nextRoundChance = player.chance_of_playing_next_round;
+  if (nextRoundChance === 0) return "Out";
+  if (nextRoundChance && nextRoundChance < 100) return `${nextRoundChance}%`;
+  if (player.status === 'u' || player.status === 'i' || player.status === 's') return "Out";
+  if (player.news && player.news.toLowerCase().includes('suspended')) return "Suspended";
+  return null;
+};
+
 const getPlayerIndicators = (player: Player, showOptimal: boolean) => {
   const form = player.form;
-  
+  const availabilityStatus = getAvailabilityStatus(player);
+
   return (
     <div className="absolute -top-1 right-2 z-10 flex gap-1">
+      {/* Availability Status */}
+      {availabilityStatus && (
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full blur-sm bg-red-500/30" />
+          <Badge 
+            className="relative px-2 py-0.5 font-medium border-none shadow-lg bg-gradient-to-br from-red-500/90 to-red-600/90 backdrop-blur-sm text-white"
+          >
+            <span className="flex items-center gap-0.5">
+              <AlertCircle className="w-3 h-3" />
+              <span className="text-xs font-bold">
+                {availabilityStatus}
+              </span>
+            </span>
+          </Badge>
+        </div>
+      )}
+
       {/* Form Rating */}
       {form && parseFloat(form) > 0 && (
         <div className="relative">
-          {/* Glow effect */}
           <div className={cn(
             "absolute inset-0 rounded-full blur-sm",
             getFormGlowColor(form)
           )} />
-          
-          {/* Badge */}
+
           <Badge 
             className={cn(
               "relative px-2 py-0.5 font-medium border-none shadow-lg",
@@ -60,14 +85,12 @@ const getPlayerIndicators = (player: Player, showOptimal: boolean) => {
           </Badge>
         </div>
       )}
-      
+
       {/* Optimal Player Indicator */}
       {showOptimal && player.is_optimal && (
         <div className="relative">
-          {/* Glow effect */}
           <div className="absolute inset-0 rounded-full blur-sm bg-primary/30" />
-          
-          {/* Badge */}
+
           <Badge 
             className={cn(
               "relative px-2 py-0.5 font-medium border-none shadow-lg",
