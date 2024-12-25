@@ -1,302 +1,385 @@
-import { useMemo } from "react";
-import { cn } from "@/lib/utils";
+import React from "react";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeftRight,
+  TrendingUp,
+  TrendingDown,
+  Target,
+  Wallet,  
+  Zap,
+  PiggyBank,
+  ShieldAlert,
+  AlertTriangle,
+  Star,
+  ThumbsUp,
+  ArrowUpRight,
+  Trophy,
+  Sparkles,
+  Coins,
+} from "lucide-react";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { getNextFixtures } from "@/lib/fpl-utils";
 
-interface TransferSuggestionProps {
-  currentPlayers: any[];
-  allPlayers: any[];
+interface Fixture {
+  opponent: string;
+  difficulty: number;
+  isHome: boolean;
+}
+
+interface Player {
+  id: number;
+  web_name: string;
+  element_type: number;
+  team: number;
+  now_cost: number;
+  form: string;
+  minutes: number;
+  chance_of_playing_next_round: number | null;
+  total_points: number;
+}
+
+interface TransferSuggestionsProps {
+  currentPlayers: Player[];
+  allPlayers: Player[];
   fixtures: any[];
   teams: any[];
-  onTransferClick: (inPlayer: any, outPlayer: any) => void;
+  budget: number;
+  freeTransfers: number;
+  onTransfer: (playerId: number) => void;
 }
 
-interface TransferSuggestion {
-  inPlayer: any;
-  outPlayer: any;
-  pointsPotential: number;
-  difficulty: number;
-  fixtures: any[];
-  xG: number;
-  xA: number;
-  priceChange: number;
-  rotationRisk: number;
-  ownership: number;
-  transferScore: number;
-}
-
-export function TransferSuggestions({ 
-  currentPlayers, 
+export function TransferSuggestions({
+  currentPlayers,
   allPlayers,
   fixtures,
   teams,
-  onTransferClick 
-}: TransferSuggestionProps) {
-  const suggestions = useMemo(() => {
-    if (!fixtures || !teams) return [];
+  budget,
+  freeTransfers,
+  onTransfer,
+}: TransferSuggestionsProps): JSX.Element {
+  type EnhancedPlayer = Omit<Player, 'form'> & {
+    priority: number;
+    reason: string;
+    fixtures: Fixture[];
+    form: number;
+    price: number;
+  };
 
-    console.log("Current Players:", currentPlayers);
-    console.log("All Players:", allPlayers);
+  type PlayerReplacement = Omit<Player, 'form'> & {
+    form: number;
+    price: number;
+    priceDiff: number;
+    valueScore: number;
+    fixtures: Fixture[];
+    avgDifficulty: number;
+  };
 
-    const teamMap = teams.reduce((acc: Record<number, string>, team: any) => {
-      acc[team.id] = team.short_name;
-      return acc;
-    }, {});
+  const suggestions = React.useMemo<Array<{
+    current: EnhancedPlayer;
+    replacements: PlayerReplacement[];
+  }>>(() => {
+    const outPlayers = currentPlayers
+      .map(player => {
+        const form = parseFloat(player.form || '0');
+        const nextFixtures = getNextFixtures(player.team, fixtures)
+          .map(fixture => ({
+            opponent: teams.find(t => 
+              t.id === (fixture.team_h === player.team ? fixture.team_a : fixture.team_h)
+            )?.short_name || '',
+            difficulty: fixture.team_h === player.team ? fixture.team_h_difficulty : fixture.team_a_difficulty,
+            isHome: fixture.team_h === player.team
+          }));
 
-    // Get next 8 gameweeks for better long-term analysis
-    const currentGameweek = Math.min(...fixtures.map(f => f.event || 38));
-    const nextGameweeks = Array.from(
-      { length: 8 },
-      (_, i) => currentGameweek + i
-    );
+        const avgDifficulty = nextFixtures.reduce((acc, f) => acc + f.difficulty, 0) / nextFixtures.length;
+        const price = player.now_cost / 10;
+        const minutes = player.minutes || 0;
+        const injured = player.chance_of_playing_next_round === 0;
 
-    const getPlayerFixtures = (player: any) => {
-      return nextGameweeks.map(gw => {
-        const fixture = fixtures.find(f => 
-          f.event === gw && 
-          (f.team_h === player.team || f.team_a === player.team)
-        );
-        
-        if (!fixture) return null;
+        const priority = injured ? 3 : 
+                        (form < 3 && avgDifficulty > 3.5) ? 2 :
+                        (minutes < 450 && price > 5.5) ? 2 :
+                        form < 4 ? 1 : 0;
 
-        const isHome = fixture.team_h === player.team;
-        const opponent = isHome ? fixture.team_a : fixture.team_h;
-        const opponentTeam = teams.find(t => t.id === opponent);
-        
+        const reason = injured ? "Injured" :
+                      (form < 3 && avgDifficulty > 3.5) ? "Poor form & tough fixtures" :
+                      (minutes < 450 && price > 5.5) ? "Limited minutes" :
+                      form < 4 ? "Underperforming" : "";
+
         return {
-          opponent: teamMap[opponent],
-          difficulty: fixture.difficulty || 3,
-          isHome,
-          event: gw,
-          opponentStrength: isHome ? 
-            opponentTeam?.strength_attack_away || 3 : 
-            opponentTeam?.strength_attack_home || 3
-        };
-      }).filter(f => f !== null);
-    };
+          ...player,
+          priority,
+          reason,
+          fixtures: nextFixtures,
+          form,
+          price,
+        } as EnhancedPlayer;
+      })
+      .filter(p => p.priority > 0)
+      .sort((a, b) => b.priority - a.priority);
 
-    const startingXI = currentPlayers.filter(player => player.position <= 11);
-    console.log("Starting XI:", startingXI);
+    return outPlayers.map(player => {
+      const replacements = allPlayers
+        .filter(p => 
+          p.element_type === player.element_type &&
+          p.now_cost <= (budget + player.now_cost) &&
+          !currentPlayers.some(cp => cp.id === p.id) &&
+          p.chance_of_playing_next_round !== 0
+        )
+        .map(p => {
+          const form = parseFloat(p.form || '0');
+          const nextFixtures = getNextFixtures(p.team, fixtures)
+            .map(fixture => ({
+              opponent: teams.find(t => 
+                t.id === (fixture.team_h === p.team ? fixture.team_a : fixture.team_h)
+              )?.short_name || '',
+              difficulty: fixture.team_h === p.team ? fixture.team_h_difficulty : fixture.team_a_difficulty,
+              isHome: fixture.team_h === p.team
+            }));
 
-    // Evaluate each starting player
-    const playerEvaluations = startingXI.map(player => {
-      const predictedPoints = player.points_per_game ? parseFloat(player.points_per_game) * 4 : 0;
-      return { player, predictedPoints };
-    }).sort((a, b) => a.predictedPoints - b.predictedPoints);
+          const avgDifficulty = nextFixtures.reduce((acc, f) => acc + f.difficulty, 0) / nextFixtures.length;
+          const price = p.now_cost / 10;
+          const priceDiff = price - player.price;
+          const fixtureMultiplier = (5 - avgDifficulty) / 2.5; // Convert difficulty (1-5) to multiplier (1.6-0.4)
+          const valueScore = (form * fixtureMultiplier) / price;
 
-    console.log("Player Evaluations:", playerEvaluations);
+          return {
+            ...p,
+            form,
+            price,
+            priceDiff,
+            valueScore,
+            fixtures: nextFixtures,
+            avgDifficulty,
+          } as PlayerReplacement;
+        })
+        .sort((a, b) => b.valueScore - a.valueScore)
+        .slice(0, 3);
 
-    // Find replacements for the bottom 4 performers
-    const weakPerformers = playerEvaluations.slice(0, 4);
-    console.log("Weak Performers:", weakPerformers);
-
-    const suggestedTransfers: TransferSuggestion[] = [];
-
-    weakPerformers.forEach(({ player: currentPlayer, predictedPoints: currentPoints }) => {
-      const potentialReplacements = allPlayers.filter(p => 
-        p.element_type === currentPlayer.element_type &&
-        p.id !== currentPlayer.id &&
-        !currentPlayers.some(cp => cp.id === p.id) &&
-        p.status !== "i" && // Filter out injured players
-        p.minutes > 180 && // Played at least 2 games
-        p.now_cost <= currentPlayer.now_cost + 20 // Within budget (+2.0m)
-      );
-
-      potentialReplacements.forEach(newPlayer => {
-        const newPlayerFixtures = getPlayerFixtures(newPlayer);
-        const form = parseFloat(newPlayer.form || '0');
-        const minutesPlayed = newPlayer.minutes || 0;
-        const gamesPlayed = minutesPlayed / 90;
-        
-        // Calculate predicted points using multiple factors
-        const pointsPerGame = parseFloat(newPlayer.points_per_game || '0');
-        const formFactor = form > 5 ? 1.2 : form > 3 ? 1.1 : 1;
-        const minutesFactor = gamesPlayed > 7 ? 1.2 : gamesPlayed > 4 ? 1.1 : 1;
-        
-        const newPlayerPrediction = pointsPerGame * 4 * formFactor * minutesFactor;
-        const pointsDifference = newPlayerPrediction - currentPoints;
-
-        // Calculate fixture difficulty
-        const fixtureDifficulty = newPlayerFixtures.reduce((acc, f) => acc + f.difficulty, 0) / newPlayerFixtures.length;
-        const fixtureBonus = fixtureDifficulty < 2.5 ? 1.2 : fixtureDifficulty < 3 ? 1.1 : 1;
-
-        // Require meaningful improvement
-        if (pointsDifference > 2) {
-          const rotationRisk = Math.max(0, 100 - (minutesPlayed / 8)); // Based on last 8 games
-          const xG = form * (newPlayer.element_type === 4 ? 0.45 : 
-                           newPlayer.element_type === 3 ? 0.3 : 0.1);
-          const xA = form * (newPlayer.element_type === 3 ? 0.35 :
-                           newPlayer.element_type === 4 ? 0.25 : 0.15);
-
-          const transferScore = (
-            (pointsDifference * 5) +
-            (xG * 10) +
-            (xA * 8) +
-            ((100 - rotationRisk) * 0.2) +
-            ((5 - fixtureDifficulty) * 5)
-          ) * fixtureBonus;
-
-          suggestedTransfers.push({
-            inPlayer: newPlayer,
-            outPlayer: currentPlayer,
-            pointsPotential: Math.round(pointsDifference),
-            difficulty: fixtureDifficulty,
-            fixtures: newPlayerFixtures,
-            xG,
-            xA,
-            priceChange: (newPlayer.now_cost - currentPlayer.now_cost) || 0,
-            rotationRisk,
-            ownership: parseFloat(newPlayer.selected_by_percent || '0'),
-            transferScore
-          });
-        }
-      });
+      return {
+        current: player,
+        replacements,
+      };
     });
-
-    console.log("Suggested Transfers:", suggestedTransfers);
-
-    return suggestedTransfers
-      .sort((a, b) => b.transferScore - a.transferScore)
-      .slice(0, 5);
-  }, [currentPlayers, allPlayers, fixtures, teams]);
-
-  if (!suggestions.length) {
-    return (
-      <div className="bg-card rounded-xl p-4 shadow-lg border border-border h-full">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
-            Recommended Transfers
-          </h3>
-          <span className="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">
-            No suggestions
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          No beneficial transfers found at this time. Your team looks well-positioned for upcoming fixtures.
-        </p>
-      </div>
-    );
-  }
+  }, [currentPlayers, allPlayers, fixtures, teams, budget]);
 
   return (
-    <div className="bg-card rounded-xl p-4 shadow-lg border border-border h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
-          Recommended Transfers
-        </h3>
-        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">
-          Top {suggestions.length}
-        </span>
-      </div>
+    <div className="space-y-6">
+      {/* Players to Keep Section */}
+      <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Star className="h-5 w-5 text-yellow-500" />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger className="hover:cursor-help">
+                  Players to Keep
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[300px] p-4">
+                  <div className="space-y-2">
+                    <p className="font-semibold">Players are kept based on:</p>
+                    <ul className="list-disc pl-4 space-y-1 text-sm">
+                      <li>Good form (&ge;4.5) and regular starter (&gt;600 mins)</li>
+                      <li>Consistent performance (&gt;80 points, &gt;60 mins/game)</li>
+                      <li>Excellent form (&ge;6) with decent playing time</li>
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {currentPlayers
+              .filter(player => {
+                const playerForm = parseFloat(player.form || '0');
+                const minutesPerGame = player.minutes / 38; // Assuming 38 game season
+                // Enhanced criteria for keeping players
+                return (
+                  (playerForm >= 4.5 && player.minutes > 600) || // Good form and regular starter
+                  (player.total_points > 80 && minutesPerGame > 60) || // Consistent performers
+                  (playerForm >= 6 && player.minutes > 270) // In excellent form with decent minutes
+                );
+              })
+              .sort((a, b) => parseFloat(b.form || '0') - parseFloat(a.form || '0'))
+              .map(player => {
+                const playerFixtures = fixtures
+                  .filter(f => f.team_h === player.team || f.team_a === player.team)
+                  .slice(0, 3);
+                const form = parseFloat(player.form || '0');
+                const avgDifficulty = playerFixtures.reduce((acc, f) => 
+                  acc + (f.team_h === player.team ? f.team_h_difficulty : f.team_a_difficulty), 0
+                ) / playerFixtures.length;
+                const minutesPerGame = player.minutes / 38;
 
-      <div className="space-y-3">
-        {suggestions.map((suggestion, index) => (
-          <div
-            key={index}
-            className="bg-muted/50 rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors cursor-pointer"
-            onClick={() => onTransferClick(suggestion.inPlayer, suggestion.outPlayer)}
-          >
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-muted-foreground text-sm">OUT</span>
-                <span className="text-destructive">{suggestion.outPlayer.web_name}</span>
-                <span className="text-xs text-muted-foreground">
-                  (£{(suggestion.outPlayer.now_cost / 10).toFixed(1)}m)
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs text-muted-foreground">
-                  (£{(suggestion.inPlayer.now_cost / 10).toFixed(1)}m)
-                </span>
-                <span className="text-primary">{suggestion.inPlayer.web_name}</span>
-                <span className="text-muted-foreground text-sm">IN</span>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2 text-sm">
-              <div className="bg-background/50 rounded-md p-2 text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">Points</p>
-                        <p className="text-primary font-semibold">+{suggestion.pointsPotential}</p>
+                return (
+                  <div key={player.id} className="relative p-4 rounded-lg border bg-white hover:shadow-md transition-shadow">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="font-semibold">{player.web_name}</div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Badge variant={form >= 6 ? "default" : "secondary"} className="ml-2">
+                              {form.toFixed(1)}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>Form rating</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Zap className="h-4 w-4 mr-1" />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span>{minutesPerGame.toFixed(0)} mins/game</span>
+                            </TooltipTrigger>
+                            <TooltipContent>Average minutes per game</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Predicted additional points over next 4 gameweeks</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="bg-background/50 rounded-md p-2 text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">Form</p>
-                        <p className="text-foreground font-semibold">{suggestion.inPlayer.form}</p>
+
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Trophy className="h-4 w-4 mr-1" />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span>{player.total_points} pts</span>
+                            </TooltipTrigger>
+                            <TooltipContent>Total points this season</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Average points over the last 4 gameweeks</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="bg-background/50 rounded-md p-2 text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Target className="h-4 w-4 mr-1" />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <span>FDR: {avgDifficulty.toFixed(1)}</span>
+                            </TooltipTrigger>
+                            <TooltipContent>Fixture Difficulty Rating (next 3 games)</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    </div>
+
+                    {form >= 6 && (
+                      <div className="absolute -top-2 -right-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Sparkles className="h-5 w-5 text-yellow-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>In excellent form!</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Transfer Suggestions Section */}
+      <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ArrowUpRight className="h-5 w-5 text-purple-500" />
+            Recommended Transfers
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {suggestions.map(({ current, replacements }) => (
+              replacements.slice(0, 3).map((replacement) => (
+                <div key={replacement.id} className="group relative">
+                  <div className="flex flex-col p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-all border border-purple-100">
+                    <div className="flex items-center gap-3 mb-3">
+                      <ArrowLeftRight className="h-4 w-4 text-purple-500" />
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Price</p>
-                        <p className={cn(
-                          "font-semibold",
-                          suggestion.priceChange >= 0 ? "text-primary" : "text-destructive"
-                        )}>
-                          {suggestion.priceChange >= 0 ? '+' : ''}{(suggestion.priceChange / 10).toFixed(1)}
+                        <p className="font-medium">{replacement.web_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Replace: {current.web_name}
                         </p>
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Price difference between players</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-
-            <div className="mt-2 flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-1">
-                <span className="text-muted-foreground">Fixtures:</span>
-                <div className="flex space-x-1">
-                  {suggestion.fixtures.slice(0, 3).map((fixture, idx) => (
-                    <span
-                      key={idx}
-                      className={cn(
-                        "px-1.5 py-0.5 rounded",
-                        fixture.difficulty <= 2 ? "bg-green-500/20 text-green-400" :
-                        fixture.difficulty === 3 ? "bg-primary/20 text-primary" :
-                        "bg-destructive/20 text-destructive"
-                      )}
-                    >
-                      {fixture.opponent}
-                    </span>
-                  ))}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {replacement.form > current.form && (
+                          <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                            <TrendingUp className="h-3 w-3 mr-1" />
+                            Better Form
+                          </Badge>
+                        )}
+                        {replacement.valueScore > 7 && (
+                          <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                            <PiggyBank className="h-3 w-3 mr-1" />
+                            Value Pick
+                          </Badge>
+                        )}
+                        <Badge variant="secondary" className={cn(
+                          "border",
+                          replacement.priceDiff > 0 
+                            ? "bg-red-50 text-red-700 border-red-200"
+                            : "bg-green-50 text-green-700 border-green-200"
+                        )}>
+                          <Coins className="h-3 w-3 mr-1" />
+                          £{Math.abs(replacement.priceDiff).toFixed(1)}m {replacement.priceDiff > 0 ? "more" : "less"}
+                        </Badge>
+                      </div>
+                      
+                      <div className="text-xs text-muted-foreground">
+                        <p className="font-medium mb-1">Next Fixtures:</p>
+                        <div className="flex gap-1">
+                          {replacement.fixtures.map((fixture, idx) => (
+                            <Badge 
+                              key={idx}
+                              variant={fixture.difficulty <= 2 ? "success" : fixture.difficulty >= 4 ? "destructive" : "secondary"}
+                              className="h-5"
+                            >
+                              {fixture.opponent}
+                              {fixture.isHome ? " (H)" : " (A)"}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 flex items-center justify-between">
+                      <Progress value={replacement.valueScore * 10} className="flex-1 mr-3" />
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => onTransfer(replacement.id)}
+                        className="hover:bg-purple-50"
+                      >
+                        Transfer
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <span className="text-muted-foreground">
-                {suggestion.rotationRisk < 25 ? '🟢' : suggestion.rotationRisk < 50 ? '🟡' : '🔴'} 
-                {Math.round(100 - suggestion.rotationRisk)}% starts
-              </span>
-            </div>
+              ))
+            ))}
           </div>
-        ))}
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -3,19 +3,16 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { TransferPitch } from "../components/pitch/TransferPitch";
 import { TransferSuggestions } from "../components/TransferSuggestions";
-import { TransferStrategy } from "../components/TransferStrategy";
 import CaptainSuggestions from "../components/CaptainSuggestions";
 import { PlayerStats } from "../components/PlayerStats";
 import { fetchMyTeam, fetchPlayers, updateCaptains, fetchBootstrapStatic, fetchFixtures } from "../lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { type Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
-import AlternativeTransfers from '../components/AlternativeTransfers';
-import { AlertCircle, Trophy, Zap, Users } from "lucide-react";
+import { Trophy, Zap, Users, ArrowLeftRight, Wallet, MinusCircle, History, Undo2 } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -143,6 +140,13 @@ export default function TeamPage() {
     });
   };
 
+  const handleTransfer = (inPlayer: Player, outPlayer: Player) => {
+    toast({
+      title: "Transfer Initiated",
+      description: `${outPlayer.web_name} ➜ ${inPlayer.web_name}`,
+    });
+  };
+
   return (
     <div className="p-6">
       <div className="space-y-8">
@@ -182,109 +186,150 @@ export default function TeamPage() {
           </div>
         </div>
 
-        <TransferStrategy
-          team={team}
-          players={players}
-          fixtures={fixtures}
-          teams={bootstrapData?.teams || []}
-          freeTransfers={team.transfers?.limit || 0}
-          teamValue={(team.stats?.value || 0) / 10}
-          bankBalance={(team.stats?.bank || 0) / 10}
-        />
+        {/* Transfer Strategy Section */}
+        <div className="flex items-center justify-between p-4 mb-6 rounded-lg bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-200">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <ArrowLeftRight className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Free Transfers</p>
+                <p className="text-2xl font-bold text-blue-600">{team.transfers?.limit || 0}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <Wallet className="h-5 w-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Transfer Budget</p>
+                <p className="text-2xl font-bold text-green-600">£{((team?.stats?.bank || 0) / 10).toFixed(1)}m</p>
+              </div>
+            </div>
+            {team.transfers?.cost > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-red-500/10">
+                  <MinusCircle className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Transfer Cost</p>
+                  <p className="text-2xl font-bold text-red-600">-{team.transfers.cost}</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" className="gap-2">
+              <History className="w-4 h-4" />
+              Transfer History
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Undo2 className="w-4 h-4" />
+              Reset Transfers
+            </Button>
+          </div>
+        </div>
 
-        <div>
+        {/* Captain Pick Section */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-primary mb-4">Captain Pick</h2>
+          <CaptainSuggestions 
+            allPlayers={players}
+            fixtures={fixtures || []}
+            teams={bootstrapData?.teams || []}
+            onSelectCaptain={(playerId: number) => {
+              const player = players.find(p => p.id === playerId);
+              if (player) {
+                setSelectedPlayer(player);
+              }
+            }}
+            currentCaptainId={captainId || null}
+            currentViceCaptainId={viceCaptainId || null}
+          />
+        </div>
+
+        {/* Pitch Section */}
+        <div className="mb-6">
           <TransferPitch 
             players={startingXI}
             substitutes={substitutes}
-            captainId={captainId}
-            viceCaptainId={viceCaptainId}
-            onPlayerClick={setSelectedPlayer}
-            onSubstituteClick={setSelectedPlayer}
             fixtures={fixtures || []}
-            teams={bootstrapData?.teams}
+            teams={bootstrapData?.teams || []}
+            onPlayerClick={(player) => {
+              setSelectedPlayer(player);
+            }}
           />
-          {selectedPlayer && (
-            <PlayerStats player={selectedPlayer} />
-          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Players to Keep Section */}
+        <div className="mb-6">
           <TransferSuggestions
             currentPlayers={[...startingXI, ...substitutes]}
             allPlayers={players}
             fixtures={fixtures || []}
             teams={bootstrapData?.teams || []}
-            onTransferClick={(inPlayer, outPlayer) => {
-              toast({
-                title: "Transfer Initiated",
-                description: `${outPlayer.web_name} ➜ ${inPlayer.web_name}`,
-              });
+            budget={team?.stats?.bank || 0}
+            freeTransfers={team?.transfers?.limit || 0}
+            onTransfer={(playerId: number) => {
+              const player = players.find(p => p.id === playerId);
+              if (player) {
+                setSelectedPlayer(player);
+              }
             }}
           />
-          <AlternativeTransfers
-            currentPlayers={[...startingXI, ...substitutes]}
-            allPlayers={players}
-            budget={team?.stats?.bank || 0}
-            fixtures={fixtures || []}
-            teams={bootstrapData?.teams || []}
-            freeTransfers={team?.transfers?.limit || 0}
-          />
-          <CaptainSuggestions 
-            allPlayers={players}
-            fixtures={fixtures || []}
-            teams={bootstrapData?.teams || []}
-            onSelectCaptain={handleCaptainSelect}
-            currentCaptainId={captainId}
-            currentViceCaptainId={viceCaptainId}
-          />
         </div>
-      </div>
 
-      {selectedPlayer && (
-        <CaptainDialog
-          player={selectedPlayer}
-          isOpen={!!selectedPlayer}
-          onClose={() => setSelectedPlayer(null)}
-          isCaptain={selectedPlayer.id === captainId}
-          isViceCaptain={selectedPlayer.id === viceCaptainId}
-          onMakeCaptain={() => {
-            updateCaptains(selectedPlayer.id, viceCaptainId || 0)
-              .then(() => {
-                queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                toast({
-                  title: "Captain Updated",
-                  description: `${selectedPlayer.web_name} is now your captain`,
+        {selectedPlayer && (
+          <PlayerStats player={selectedPlayer} />
+        )}
+
+        {selectedPlayer && (
+          <CaptainDialog
+            player={selectedPlayer}
+            isOpen={!!selectedPlayer}
+            onClose={() => setSelectedPlayer(null)}
+            isCaptain={selectedPlayer.id === captainId}
+            isViceCaptain={selectedPlayer.id === viceCaptainId}
+            onMakeCaptain={() => {
+              updateCaptains(selectedPlayer.id, viceCaptainId || 0)
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                  toast({
+                    title: "Captain Updated",
+                    description: `${selectedPlayer.web_name} is now your captain`,
+                  });
+                  setSelectedPlayer(null);
+                })
+                .catch(() => {
+                  toast({
+                    title: "Error",
+                    description: "Failed to update captain",
+                    variant: "destructive",
+                  });
                 });
-                setSelectedPlayer(null);
-              })
-              .catch(() => {
-                toast({
-                  title: "Error",
-                  description: "Failed to update captain",
-                  variant: "destructive",
+            }}
+            onMakeViceCaptain={() => {
+              updateCaptains(captainId || 0, selectedPlayer.id)
+                .then(() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
+                  toast({
+                    title: "Vice Captain Updated",
+                    description: `${selectedPlayer.web_name} is now your vice captain`,
+                  });
+                  setSelectedPlayer(null);
+                })
+                .catch(() => {
+                  toast({
+                    title: "Error",
+                    description: "Failed to update vice captain",
+                    variant: "destructive",
+                  });
                 });
-              });
-          }}
-          onMakeViceCaptain={() => {
-            updateCaptains(captainId || 0, selectedPlayer.id)
-              .then(() => {
-                queryClient.invalidateQueries({ queryKey: ["/api/fpl/my-team/1"] });
-                toast({
-                  title: "Vice Captain Updated",
-                  description: `${selectedPlayer.web_name} is now your vice captain`,
-                });
-                setSelectedPlayer(null);
-              })
-              .catch(() => {
-                toast({
-                  title: "Error",
-                  description: "Failed to update vice captain",
-                  variant: "destructive",
-                });
-              });
-          }}
-        />
-      )}
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

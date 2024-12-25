@@ -38,6 +38,26 @@ const calculateConfidence = (player: Player, recentMinutes: number[]): number =>
   return Math.min(confidence, 1);
 };
 
+// Get next N fixtures for a team, sorted by gameweek
+export const getNextFixtures = (teamId: number, fixtures: any[], count: number = 3): any[] => {
+  const now = new Date();
+  
+  return fixtures
+    .filter(f => 
+      // Filter future fixtures
+      new Date(f.kickoff_time) > now &&
+      // Filter for team's fixtures
+      (f.team_h === teamId || f.team_a === teamId)
+    )
+    .sort((a, b) => 
+      // Sort by gameweek first, then by kickoff time
+      a.event !== b.event 
+        ? a.event - b.event
+        : new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
+    )
+    .slice(0, count);
+};
+
 export const predictPlayerPoints = (player: Player, fixtures: any[]) => {
   // Take only the next 3 fixtures
   const nextFixtures = fixtures.slice(0, 3);

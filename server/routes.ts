@@ -40,7 +40,30 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
     }
 
     const entryData = await entryResponse.json();
-    console.log("Entry data:", entryData);
+
+    // Fetch transfer status which includes free transfers
+    let transferStatus = null;
+    try {
+      console.log("Fetching transfer status for manager:", managerId);
+      const transfersResponse = await fetch(
+        `https://fantasy.premierleague.com/api/entry/${managerId}/transfers/`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json, text/plain, */*'
+          }
+        }
+      );
+
+      if (!transfersResponse.ok) {
+        console.error(`Transfer status response error: ${transfersResponse.status} - ${await transfersResponse.text()}`);
+      } else {
+        transferStatus = await transfersResponse.json();
+        console.log("Transfer status response:", transferStatus);
+      }
+    } catch (error) {
+      console.error("Error fetching transfer status:", error);
+    }
 
     // Fetch history data which includes current gameweek stats
     const historyResponse = await fetch(
@@ -84,22 +107,41 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
       picks = picksData.picks || [];
     }
 
-    // Calculate free transfers
-    let freeTransfers = 1; // Default is 1 free transfer
-    if (entryData.transfers) {
-      // If we have transfer data from the entry, use it
-      freeTransfers = entryData.transfers.limit;
-    } else if (lastGw) {
-      // Otherwise calculate based on last gameweek
-      const transfersMade = lastGw.event_transfers || 0;
-      const transfersCost = lastGw.event_transfers_cost || 0;
-
-      // If no transfers were made last week, add one to the previous limit
-      if (transfersMade === 0 && transfersCost === 0) {
-        // Cap at 2 free transfers
-        freeTransfers = Math.min(2, (lastGw.transfers_limit || 1) + 1);
+    // Calculate free transfers using history data
+    let freeTransfers = 1; // Start with 1 free transfer
+    
+    try {
+      if (historyData && historyData.current) {
+        const currentGwHistory = historyData.current;
+        console.log("Current gameweek history:", currentGwHistory);
+        
+        // Count consecutive gameweeks with no transfers
+        let consecutiveNoTransfers = 0;
+        for (let i = currentGwHistory.length - 1; i >= 0; i--) {
+          const gw = currentGwHistory[i];
+          if ((gw.event_transfers || 0) === 0 && (gw.event_transfers_cost || 0) === 0) {
+            consecutiveNoTransfers++;
+          } else {
+            break;
+          }
+        }
+        
+        console.log("Consecutive gameweeks with no transfers:", consecutiveNoTransfers);
+        
+        // Add one transfer for each unused gameweek, capped at 5 (new FPL rules)
+        freeTransfers = Math.min(5, 1 + consecutiveNoTransfers);
       }
+    } catch (error) {
+      console.error("Error calculating free transfers:", error);
+      // Keep default of 1 free transfer
     }
+    
+    console.log("Calculated free transfers:", freeTransfers);
+    console.log("Raw transfers data:", {
+      entryTransfers: entryData.transfers,
+      lastGwTransfers: lastGw?.transfers,
+      lastGwTransfersLimit: lastGw?.transfers_limit
+    });
 
     // Structure the response data
     const combinedData = {

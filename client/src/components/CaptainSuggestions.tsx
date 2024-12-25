@@ -1,236 +1,215 @@
-import { useMemo } from "react";
-import { type Player } from "../types/fpl";
-import { cn } from "@/lib/utils";
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Crown,
+  Star,
+  TrendingUp,
+  Target,
+  Shield,
+  Zap,
+  ChevronRight,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge"; // Import Badge component
+import { cn } from "@/lib/utils";
+import { getNextFixtures } from "@/lib/fpl-utils";
 
 interface CaptainSuggestionsProps {
-  allPlayers: Player[];
+  allPlayers: any[];
   fixtures: any[];
-  teams: any;
-  onSelectCaptain: (player: Player) => void;
-  currentCaptainId?: number;
-  currentViceCaptainId?: number;
+  teams: any[];
+  onSelectCaptain: (playerId: number) => void;
+  currentCaptainId: number | null;
+  currentViceCaptainId: number | null;
 }
 
-interface TeamData {
-  id: number;
-  short_name: string;
-}
-
-const CaptainSuggestions: React.FC<CaptainSuggestionsProps> = ({
+export default function CaptainSuggestions({
   allPlayers,
   fixtures,
   teams,
   onSelectCaptain,
   currentCaptainId,
-  currentViceCaptainId
-}) => {
-  // Calculate player scores based on form and upcoming fixture difficulty
-  const viableCaptains = useMemo(() => {
-    if (!fixtures || !teams) {
-      console.log("Missing data:", { fixtures: !!fixtures, teams: !!teams });
-      return [];
-    }
-
-    // Create team mapping
-    const teamMap = teams.reduce((acc: Record<number, string>, team: TeamData) => {
-      acc[team.id] = team.short_name;
-      return acc;
-    }, {});
-
-    // Get next gameweek's fixtures
-    const nextGameweek = Math.min(...fixtures.map(f => f.event || 38));
-    const nextFixtures = fixtures.filter(f => f.event === nextGameweek);
-
-    console.log("Processing fixtures:", {
-      nextGameweek,
-      fixturesCount: nextFixtures.length,
-      teamMap
-    });
-
+  currentViceCaptainId,
+}: CaptainSuggestionsProps) {
+  const suggestions = React.useMemo(() => {
     return allPlayers
-      .filter(p => p.minutes > 0) // Only players who have played
+      .filter(player => {
+        const form = parseFloat(player.form || '0');
+        const minutes = player.minutes || 0;
+        const isAvailable = player.chance_of_playing_next_round !== 0;
+        const hasPlayingTime = minutes > 450; // At least 5 full matches
+        return form >= 4 && isAvailable && hasPlayingTime;
+      })
       .map(player => {
-        const nextFixture = nextFixtures.find(f => 
-          f.team_h === player.team || f.team_a === player.team
-        );
-        
-        if (!nextFixture) {
-          console.log("No fixture found for player:", player.web_name);
-          return null;
-        }
+        const nextFixtures = getNextFixtures(player.team, fixtures)
+          .map(fixture => ({
+            opponent: teams.find(t => 
+              t.id === (fixture.team_h === player.team ? fixture.team_a : fixture.team_h)
+            )?.short_name || '',
+            difficulty: fixture.team_h === player.team ? fixture.team_h_difficulty : fixture.team_a_difficulty,
+            isHome: fixture.team_h === player.team
+          }));
 
-        const isHome = nextFixture.team_h === player.team;
-        const opponent = isHome ? nextFixture.team_a : nextFixture.team_h;
-        const difficulty = nextFixture.difficulty || 3;
-        const opponentName = teamMap[opponent];
+        const form = parseFloat(player.form || '0');
+        const minutes = player.minutes || 0;
+        const totalPoints = player.total_points || 0;
+        const pointsPerGame = totalPoints / (minutes / 90);
+        const homeAdvantage = nextFixtures[0]?.isHome ? 1.1 : 1.0;
+        const bonusPoints = player.bonus || 0;
+        const bonusPerGame = bonusPoints / (minutes / 90);
         
-        if (!opponentName) {
-          console.log("No team name found for opponent:", opponent);
-          return null;
-        }
+        // Calculate fixture difficulty impact
+        const fixtureDifficultyMultiplier = 
+          nextFixtures[0]?.difficulty <= 2 ? 1.3 :
+          nextFixtures[0]?.difficulty === 3 ? 1.0 :
+          nextFixtures[0]?.difficulty === 4 ? 0.8 :
+          0.6;
 
-        // Calculate captain score based on form and fixture difficulty
-        const captainScore = 
-          parseFloat(player.form) * 2 + 
-          parseFloat(player.points_per_game) - 
-          (difficulty / 2);
+        // Position-based multiplier
+        const positionMultiplier = 
+          player.element_type === 1 ? 0.8 :  // GKP
+          player.element_type === 2 ? 0.9 :  // DEF
+          player.element_type === 3 ? 1.1 :  // MID
+          1.2;                               // FWD
+
+        // Calculate expected points considering all factors
+        const expectedPoints = (
+          (form * 0.3) +              // 30% weight to current form
+          (pointsPerGame * 0.3) +     // 30% weight to points per game
+          (bonusPerGame * 0.2)        // 20% weight to bonus points tendency
+        ) * fixtureDifficultyMultiplier * positionMultiplier * homeAdvantage;
 
         return {
-          ...player,
-          nextOpponent: opponent,
-          isHome,
-          captainScore,
-          difficulty,
-          opponentName
+          id: player.id,
+          name: player.web_name,
+          position: ['GKP', 'DEF', 'MID', 'FWD'][player.element_type - 1],
+          form,
+          expectedPoints,
+          fixtures: nextFixtures,
+          pointsPerGame: pointsPerGame.toFixed(1),
+          stats: {
+            goals: player.goals_scored || 0,
+            assists: player.assists || 0,
+            cleanSheets: player.clean_sheets || 0,
+            bonus: bonusPoints,
+            minutes,
+          }
         };
       })
-      .filter((p): p is NonNullable<typeof p> => p !== null)
-      .sort((a, b) => b.captainScore - a.captainScore)
+      .sort((a, b) => b.expectedPoints - a.expectedPoints)
       .slice(0, 5);
   }, [allPlayers, fixtures, teams]);
 
-  console.log("Viable captains:", viableCaptains.length);
-
   return (
-    <div className="bg-card rounded-xl p-4 shadow-lg border border-border h-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold bg-gradient-to-r from-primary to-primary/80 text-transparent bg-clip-text">
+    <Card className="border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Crown className="h-5 w-5 text-yellow-500" />
           Captain Picks
-        </h3>
-        <span className="px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">
-          Top {viableCaptains.length}
-        </span>
-      </div>
-
-      <div className="space-y-3">
-        {viableCaptains.map((player, index) => (
-          <div
-            key={index}
-            onClick={() => onSelectCaptain(player)}
-            className="bg-muted/50 rounded-lg p-3 border border-border/50 hover:border-primary/30 transition-colors cursor-pointer"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center space-x-2">
-                <span className="text-primary font-medium">{player.web_name}</span>
-                {player.id === currentCaptainId && (
-                  <Badge variant="default" className="bg-primary/20 text-primary text-xs">C</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-3 gap-4">
+          {suggestions.map((player, index) => (
+            <div key={player.id} className="group relative">
+              <div 
+                className={cn(
+                  "flex flex-col p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-all border",
+                  player.id === currentCaptainId ? "border-yellow-300 bg-yellow-50/50" : 
+                  player.id === currentViceCaptainId ? "border-yellow-200 bg-yellow-50/30" :
+                  "border-yellow-100"
                 )}
-                {player.id === currentViceCaptainId && (
-                  <Badge variant="default" className="bg-primary/20 text-primary text-xs">VC</Badge>
-                )}
-                <span className="text-muted-foreground text-sm">
-                  ({player.total_points} pts)
-                </span>
-              </div>
-              <div className="px-2 py-1 rounded-md bg-primary/10 text-primary text-sm">
-                x2
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 text-sm">
-              <div className="bg-background/50 rounded-md p-2 text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">Form</p>
-                        <p className="text-foreground font-semibold">{player.form}</p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Average points over the last 4 gameweeks</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="bg-background/50 rounded-md p-2 text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">PPG</p>
-                        <p className="text-foreground font-semibold">{player.points_per_game}</p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Average points per game this season</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="bg-background/50 rounded-md p-2 text-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">Selected</p>
-                        <p className="text-foreground font-semibold">{player.selected_by_percent}%</p>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Percentage of teams that have selected this player</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
-
-            <div className="mt-2 flex items-center justify-between text-xs">
-              <div className="flex items-center space-x-1">
-                <span className="text-muted-foreground">Next:</span>
-                <div className="flex space-x-1">
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span
-                          className={cn(
-                            "px-1.5 py-0.5 rounded",
-                            player.difficulty <= 2 ? "bg-green-500/20 text-green-400" :
-                            player.difficulty === 3 ? "bg-primary/20 text-primary" :
-                            "bg-destructive/20 text-destructive"
-                          )}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  {index === 0 ? (
+                    <Crown className="h-4 w-4 text-yellow-500" />
+                  ) : (
+                    <Star className="h-4 w-4 text-yellow-500" />
+                  )}
+                  <div>
+                    <p className="font-medium">{player.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {player.position} • Form: {player.form} • PPG: {player.pointsPerGame}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {player.stats.goals > 0 && (
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
+                        <Target className="h-3 w-3 mr-1" />
+                        {player.stats.goals} Goals
+                      </Badge>
+                    )}
+                    {player.stats.assists > 0 && (
+                      <Badge variant="secondary" className="bg-blue-50 text-blue-700 border-blue-200">
+                        <Zap className="h-3 w-3 mr-1" />
+                        {player.stats.assists} Assists
+                      </Badge>
+                    )}
+                    {player.stats.cleanSheets > 0 && (
+                      <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
+                        <Shield className="h-3 w-3 mr-1" />
+                        {player.stats.cleanSheets} CS
+                      </Badge>
+                    )}
+                    {player.stats.bonus > 0 && (
+                      <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        <Star className="h-3 w-3 mr-1" />
+                        {player.stats.bonus} Bonus
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    <p className="font-medium mb-1">Next Fixtures:</p>
+                    <div className="flex gap-1">
+                      {player.fixtures.map((fixture, idx) => (
+                        <Badge 
+                          key={idx}
+                          variant={fixture.difficulty <= 2 ? "success" : fixture.difficulty >= 4 ? "destructive" : "secondary"}
+                          className="h-5"
                         >
-                          {player.opponentName}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Fixture difficulty: {
-                          player.difficulty <= 2 ? 'Easy' :
-                          player.difficulty === 3 ? 'Moderate' :
-                          'Difficult'
-                        }</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                          {fixture.opponent}
+                          {fixture.isHome ? " (H)" : " (A)"}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-3 flex items-center justify-between">
+                  <Progress value={player.form * 10} className="flex-1 mr-3" />
+                  <Badge 
+                    variant="outline" 
+                    className={cn(
+                      "cursor-pointer",
+                      player.id === currentCaptainId 
+                        ? "bg-yellow-100 text-yellow-700 border-yellow-300" 
+                        : "hover:bg-yellow-50"
+                    )}
+                    onClick={() => onSelectCaptain(player.id)}
+                  >
+                    {player.id === currentCaptainId ? "Captain" : "Set Captain"}
+                  </Badge>
                 </div>
               </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="text-muted-foreground">
-                      {player.minutes > 630 ? '🟢' : 
-                       player.minutes > 450 ? '🟡' : '🔴'} 
-                      {Math.round((player.minutes / 90) / 8 * 100)}% starts
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Percentage of matches started in the last 8 gameweeks</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
-
-export default CaptainSuggestions;
