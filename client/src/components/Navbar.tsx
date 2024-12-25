@@ -24,7 +24,7 @@ export function Navbar() {
           <div className="flex items-center gap-3 md:gap-6">
             {links.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href}>
-                <div
+                <a
                   className={cn(
                     "flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
                     "transition-all duration-300 ease-in-out",
@@ -42,7 +42,7 @@ export function Navbar() {
                     "group-hover:rotate-3"
                   )} />
                   <span className="hidden sm:inline font-medium">{label}</span>
-                </div>
+                </a>
               </Link>
             ))}
           </div>
