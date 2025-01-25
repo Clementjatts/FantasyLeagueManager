@@ -41,7 +41,7 @@ A comprehensive fantasy league management system built with modern web technolog
 
 ## Technology Stack
 - **Frontend**
-  - Vue.js/Nuxt.js for the user interface
+  - React.js with TypeScript for the user interface
   - TailwindCSS for styling
   - WebSocket for real-time updates
 
@@ -52,8 +52,8 @@ A comprehensive fantasy league management system built with modern web technolog
   - WebSocket server for real-time features
 
 - **Infrastructure**
-  - Deployed on Cloud Run
-  - Docker containerization
+  - Deployed on Replit
+  - GitHub integration for version control
   - CI/CD pipeline for automated deployments
 
 ## Getting Started
@@ -62,11 +62,12 @@ A comprehensive fantasy league management system built with modern web technolog
 - Node.js (v20 or higher)
 - PostgreSQL (v16)
 - npm or yarn package manager
+- GitHub account and personal access token
 
 ### Installation
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/fantasy-league-manager.git
+   git clone https://github.com/Clementjatts/FantasyLeagueManager.git
    cd fantasy-league-manager
    ```
 
@@ -91,6 +92,58 @@ The application will be available at:
 - API: http://localhost:5000
 - Development tools: Various ports (see .replit configuration)
 
+## GitHub Integration
+
+### Initial Setup
+1. Create a new repository on GitHub
+2. Initialize local Git repository (if not already done):
+   ```bash
+   git init
+   ```
+3. Add GitHub repository as remote:
+   ```bash
+   git remote add origin https://github.com/yourusername/your-repo-name.git
+   ```
+
+### Required Secrets
+To push code to GitHub, you'll need to set up a Personal Access Token:
+1. Go to GitHub.com → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)
+2. Generate new token with 'repo' scope
+3. Save the token in your project's secrets as `GITHUB_TOKEN`
+
+### Pushing Updates to GitHub
+Changes made in your local project are NOT automatically pushed to GitHub. You need to manually push your changes using these steps:
+
+1. Check what files have changed:
+   ```bash
+   git status
+   ```
+
+2. Stage your changes:
+   ```bash
+   git add .    # Add all changes
+   # OR
+   git add filename    # Add specific file
+   ```
+
+3. Commit your changes:
+   ```bash
+   git commit -m "Your commit message describing the changes"
+   ```
+
+4. Push to GitHub:
+   ```bash
+   git push origin main
+   ```
+
+### Common Git Commands for Daily Use
+- `git status`: Check which files have changed
+- `git diff`: See exact changes in files
+- `git log`: View commit history
+- `git pull`: Get latest changes from GitHub
+- `git branch`: List or create branches
+- `git checkout`: Switch branches
+
 ## Development
 
 ### Available Scripts
@@ -103,7 +156,7 @@ The application will be available at:
 ### Project Structure
 ```
 fantasy-league-manager/
-├── client/            # Frontend Vue.js application
+├── client/            # Frontend React application
 ├── server/            # Backend Node.js application
 ├── database/          # Database migrations and seeds
 ├── tests/            # Test files
@@ -121,7 +174,7 @@ fantasy-league-manager/
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
-- Project Link: [https://github.com/Clementjatts/fantasy-league-manager](https://github.com/Clementjatts/fantasy-league-manager)
+- Project Link: [https://github.com/Clementjatts/FantasyLeagueManager](https://github.com/Clementjatts/FantasyLeagueManager)
 - Developer: [@Clementjatts](https://github.com/Clementjatts)
 
 ## Acknowledgments
