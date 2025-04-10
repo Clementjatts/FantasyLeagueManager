@@ -5,8 +5,8 @@ import TeamPage from "./pages/TeamPage";
 import PlayersPage from "./pages/PlayersPage";
 import StatisticsPage from "./pages/StatisticsPage";
 import DreamTeamPage from "./pages/DreamTeamPage";
-import ChipsStrategyPage from "./pages/ChipsStrategyPage";
 import TopManagersTeamPage from "./pages/TopManagersTeamPage";
+import ChipsStrategyPage from "./pages/ChipsStrategyPage";
 
 function App() {
   return (

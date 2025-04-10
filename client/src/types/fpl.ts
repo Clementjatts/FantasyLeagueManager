@@ -42,6 +42,18 @@ export interface Player {
   chance_of_playing_this_round: number | null;
   news: string;
   news_added: string | null;
+  cost_change_event_fall?: number;
+  next_fixture?: {
+    opponent: number;
+    difficulty: number;
+    clean_sheet_probability?: number;
+  };
+  stats?: {
+    triple_captain_history?: {
+      event: number;
+      points: number;
+    }[];
+  };
 }
 
 export interface Team {
@@ -115,10 +127,39 @@ export interface Fixture {
   id: number;
   team_h: number;
   team_a: number;
-  team_h_difficulty: number;
-  team_a_difficulty: number;
+  team_h_score?: number;
+  team_a_score?: number;
+  finished: boolean;
+  started: boolean;
+  kickoff_time: string;
   event: number;
-  difficulty?: number; 
+  difficulty?: number;
+}
+
+export interface GameweekEvent {
+  id: number;
+  name: string;
+  deadline_time: string;
+  average_entry_score: number;
+  finished: boolean;
+  data_checked: boolean;
+  highest_scoring_entry?: number;
+  deadline_time_epoch: number;
+  deadline_time_game_offset: number;
+  highest_score?: number;
+  is_previous: boolean;
+  is_current: boolean;
+  is_next: boolean;
+  chip_plays: any[];
+  most_selected?: number;
+  most_transferred_in?: number;
+  top_element?: number;
+  top_element_info?: any;
+  transfers_made: number;
+  most_captained?: number;
+  most_vice_captained?: number;
+  difficulty?: number;
+  fixtures: Fixture[];
 }
 
 export interface BootstrapTeam {
@@ -132,45 +173,53 @@ export interface BootstrapTeam {
   strength_attack_away: number;
   strength_defence_home: number;
   strength_defence_away: number;
+  clean_sheet_probability?: number;
+}
+
+export interface GameSettings {
+  league_join_private_max: number;
+  league_join_public_max: number;
+  league_max_size_public_classic: number;
+  league_max_size_public_h2h: number;
+  league_max_size_private_h2h: number;
+  league_max_ko_rounds_private_h2h: number;
+  squad_squadplay: number;
+  squad_squadsize: number;
+  squad_team_limit: number;
+  squad_total_spend: number;
+  ui_currency_multiplier: number;
+  ui_use_special_shirts: boolean;
+  stats_form_days: number;
+  sys_vice_captain_enabled: boolean;
+  transfers_cap: number;
+  transfers_sell_on_fee: number;
+  cup_start_event_id: number;
+  timezone: string;
+}
+
+export interface Phase {
+  id: number;
+  name: string;
+  start_event: number;
+  stop_event: number;
 }
 
 export interface BootstrapStatic {
   events: GameweekEvent[];
+  game_settings: GameSettings;
+  phases: Phase[];
   teams: BootstrapTeam[];
   total_players: number;
   elements: Player[];
   element_stats: ElementStats[];
   element_types: ElementType[];
-  chips?: ChipInfo[]; 
+  fixtures: Fixture[];
 }
 
 export interface ChipInfo {
   name: string;
   played: number;
   max_played: number;
-}
-
-export interface GameweekEvent {
-  id: number;
-  name: string;
-  deadline_time: string;
-  average_entry_score: number;
-  finished: boolean;
-  data_checked: boolean;
-  highest_scoring_entry: number;
-  deadline_time_epoch: number;
-  deadline_time_game_offset: number;
-  highest_score: number;
-  is_previous: boolean;
-  is_current: boolean;
-  is_next: boolean;
-  chip_plays: ChipPlay[];
-  most_selected: number;
-  most_transferred_in: number;
-  top_element: number;
-  transfers_made: number;
-  most_captained: number;
-  most_vice_captained: number;
 }
 
 export interface ElementStats {

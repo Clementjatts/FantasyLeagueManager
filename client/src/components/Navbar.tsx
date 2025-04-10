@@ -23,26 +23,26 @@ export function Navbar() {
           </div>
           <div className="flex items-center gap-3 md:gap-6">
             {links.map(({ href, label, icon: Icon }) => (
-              <Link key={href} href={href}>
-                <a
-                  className={cn(
-                    "flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
-                    "transition-all duration-300 ease-in-out",
-                    "hover:bg-gradient-to-r hover:from-purple-500/15 hover:to-blue-500/15",
-                    "hover:shadow-lg hover:scale-105 hover:text-white",
-                    "active:scale-95 active:shadow-inner",
-                    location === href
-                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg scale-105"
-                      : "text-zinc-400 hover:text-white"
-                  )}
-                >
-                  <Icon className={cn(
-                    "w-4 h-4 transition-all duration-300",
-                    location === href ? "scale-110 animate-pulse" : "",
-                    "group-hover:rotate-3"
-                  )} />
-                  <span className="hidden sm:inline font-medium">{label}</span>
-                </a>
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
+                  "transition-all duration-300 ease-in-out",
+                  "hover:bg-gradient-to-r hover:from-purple-500/15 hover:to-blue-500/15",
+                  "hover:shadow-lg hover:scale-105 hover:text-white",
+                  "active:scale-95 active:shadow-inner",
+                  location === href
+                    ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg scale-105"
+                    : "text-zinc-400 hover:text-white"
+                )}
+              >
+                <Icon className={cn(
+                  "w-4 h-4 transition-all duration-300",
+                  location === href ? "scale-110 animate-pulse" : "",
+                  "group-hover:rotate-3"
+                )} />
+                <span className="hidden sm:inline font-medium">{label}</span>
               </Link>
             ))}
           </div>
