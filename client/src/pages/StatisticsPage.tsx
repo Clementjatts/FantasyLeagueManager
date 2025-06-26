@@ -14,7 +14,8 @@ import { fetchPlayers, fetchBootstrapStatic } from "../lib/api";
 import { SeasonSelector } from "../components/SeasonSelector";
 import { useSeason } from "../contexts/SeasonContext";
 import { Player } from "../types/fpl";
-import { Shield, Crosshair, Star } from "lucide-react";
+import { Shield, Crosshair, Star, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PositionConfig {
   id: number;
@@ -259,7 +260,7 @@ export default function StatisticsPage() {
                 {currentSeason.name} Season
               </Badge>
               {!currentSeason.isCurrent && (
-                <Badge variant="outline" className="text-sm">
+                <Badge variant="outline" className="text-sm border-orange-200 text-orange-700 bg-orange-50">
                   Historical Data
                 </Badge>
               )}
@@ -269,6 +270,17 @@ export default function StatisticsPage() {
             <SeasonSelector />
           </div>
         </div>
+
+        {/* Historical Data Notice */}
+        {!currentSeason.isCurrent && (
+          <Alert className="border-orange-200 bg-orange-50">
+            <Info className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              You're viewing historical data for the {currentSeason.name} season.
+              This data is representative and based on actual season performance patterns.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* League Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

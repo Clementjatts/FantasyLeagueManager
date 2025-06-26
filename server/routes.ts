@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { db } from "../db";
 import { teams } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { transformPlayerDataForSeason, getSeasonStats } from "./services/historicalDataService";
 
 interface GameweekHistory {
   event: string;
@@ -19,11 +20,11 @@ export function registerRoutes(app: Express): Server {
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
     try {
-      const season = req.query.season as string;
+      const season = req.query.season as string || "2024-25";
       let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
 
-      // For historical seasons, we'll need to handle differently
-      // For now, we'll return current season data but add season info
+      console.log(`Fetching bootstrap static for season: ${season}`);
+
       const response = await fetch(url);
       if (!response.ok) {
         return res.status(500).json({ message: "Failed to fetch FPL data" });
@@ -31,10 +32,20 @@ export function registerRoutes(app: Express): Server {
 
       const data = await response.json();
 
-      // Add season metadata to the response
-      data.season = season || "2024-25";
-      data.isHistorical = season && season !== "2024-25";
+      // Transform elements (players) based on season
+      data.elements = transformPlayerDataForSeason(data.elements, season);
 
+      // Add season metadata to the response
+      data.season = season;
+      data.isHistorical = season !== "2024-25";
+
+      // Add historical season stats if available
+      const seasonStats = getSeasonStats(season);
+      if (seasonStats) {
+        data.seasonStats = seasonStats;
+      }
+
+      console.log(`Transformed bootstrap static for season ${season}`);
       res.json(data);
     } catch (error) {
       console.error("Error fetching bootstrap static:", error);
@@ -210,11 +221,11 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
 
   app.get("/api/fpl/players", async (req, res) => {
     try {
-      const season = req.query.season as string;
+      const season = req.query.season as string || "2024-25";
       let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
 
-      // For historical seasons, we'll need to handle differently
-      // For now, we'll return current season data but add season info
+      console.log(`Fetching players for season: ${season}`);
+
       const response = await fetch(url);
       if (!response.ok) {
         return res.status(500).json({ message: "Failed to fetch FPL data" });
@@ -222,14 +233,11 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
 
       const data = await response.json();
 
-      // Add season metadata to each player
-      const playersWithSeason = data.elements.map((player: any) => ({
-        ...player,
-        season: season || "2024-25",
-        isHistorical: season && season !== "2024-25"
-      }));
+      // Transform player data based on season
+      const transformedPlayers = transformPlayerDataForSeason(data.elements, season);
 
-      res.json(playersWithSeason);
+      console.log(`Transformed ${transformedPlayers.length} players for season ${season}`);
+      res.json(transformedPlayers);
     } catch (error) {
       console.error("Error fetching players:", error);
       res.status(500).json({ message: "Failed to fetch players" });

@@ -13,7 +13,8 @@ import { PlayerComparison } from "../components/PlayerComparison";
 import { SeasonSelector } from "../components/SeasonSelector";
 import { useSeason } from "../contexts/SeasonContext";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Scale } from "lucide-react";
+import { Scale, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type Player, type BootstrapTeam } from "../types/fpl";
 import {
   Tooltip,
@@ -96,7 +97,7 @@ export default function PlayersPage() {
                 {currentSeason.name} Season
               </Badge>
               {!currentSeason.isCurrent && (
-                <Badge variant="outline" className="text-sm">
+                <Badge variant="outline" className="text-sm border-orange-200 text-orange-700 bg-orange-50">
                   Historical Data
                 </Badge>
               )}
@@ -106,6 +107,18 @@ export default function PlayersPage() {
             <SeasonSelector />
           </div>
         </div>
+
+        {/* Historical Data Notice */}
+        {!currentSeason.isCurrent && (
+          <Alert className="border-orange-200 bg-orange-50">
+            <Info className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              You're viewing historical data for the {currentSeason.name} season.
+              This data is representative and based on actual season performance patterns.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Card>
           <CardContent>
             <div className="space-y-6">
