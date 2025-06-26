@@ -1,6 +1,6 @@
-# Fantasy League Manager
+# Fantasy Premier League Manager
 
-A comprehensive fantasy league management system built with modern web technologies. This platform enables users to create, manage, and participate in fantasy sports leagues with real-time updates, detailed statistics tracking, and an intuitive user interface.
+A comprehensive Fantasy Premier League management system built with modern web technologies. This platform connects to the official Fantasy Premier League API to provide real-time player data, statistics, and league management features with an intuitive user interface.
 
 ## Features
 - **League Management**
@@ -42,55 +42,92 @@ A comprehensive fantasy league management system built with modern web technolog
 ## Technology Stack
 - **Frontend**
   - React.js with TypeScript for the user interface
+  - Vite for fast development and building
   - TailwindCSS for styling
-  - WebSocket for real-time updates
+  - Radix UI components for accessible UI elements
+  - Tanstack Query for data fetching and caching
 
 - **Backend**
-  - Node.js/Express.js server
+  - Node.js/Express.js server with TypeScript
   - PostgreSQL database for data storage
-  - Redis for caching
-  - WebSocket server for real-time features
+  - Drizzle ORM for database operations
+  - WebSocket for real-time features
 
-- **Infrastructure**
-  - Deployed on Replit
+- **Development & Deployment**
+  - Originally developed on Replit
+  - Local development support
   - GitHub integration for version control
-  - CI/CD pipeline for automated deployments
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js (v20 or higher)
-- PostgreSQL (v16)
-- npm or yarn package manager
-- GitHub account and personal access token
+- PostgreSQL (v16 recommended)
+- npm package manager
+- Git for version control
 
-### Installation
-1. Clone the repository
+### Local Development Setup
+
+#### Quick Setup
+1. **Clone the repository**
    ```bash
    git clone https://github.com/Clementjatts/FantasyLeagueManager.git
-   cd fantasy-league-manager
+   cd FantasyLeagueManager
    ```
 
-2. Install dependencies
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Set up environment variables
+3. **Install PostgreSQL** (if not already installed)
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   # macOS with Homebrew
+   brew install postgresql@16
+   brew services start postgresql@16
+
+   # Add to PATH
+   echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
    ```
 
-4. Start the development server
+4. **Set up database**
+   ```bash
+   # Create user and database
+   createuser -s clementjatts
+   createdb -O clementjatts fantasy_league_manager
+
+   # Set password
+   psql -d fantasy_league_manager -c "ALTER USER clementjatts WITH PASSWORD '1234567890';"
+   ```
+
+5. **Configure environment variables**
+
+   Create a `.env` file in the project root:
+   ```env
+   # Database connection
+   DATABASE_URL=postgresql://clementjatts:1234567890@localhost:5432/fantasy_league_manager
+
+   # Application settings
+   NODE_ENV=development
+   PORT=3000
+   ```
+
+6. **Initialize database schema**
+   ```bash
+   npm run db:push
+   ```
+
+7. **Start the development server**
    ```bash
    npm run dev
    ```
 
 The application will be available at:
-- Frontend: http://localhost:3000
-- API: http://localhost:5000
-- Development tools: Various ports (see .replit configuration)
+- **Main Application**: http://localhost:3000
+- **API Endpoints**: http://localhost:3000/api/*
+
+#### Detailed Setup Guide
+For detailed setup instructions, troubleshooting, and additional configuration options, see [LOCAL_SETUP.md](LOCAL_SETUP.md).
 
 ## GitHub Integration
 
@@ -102,7 +139,7 @@ The application will be available at:
    ```
 3. Add GitHub repository as remote:
    ```bash
-   git remote add origin https://github.com/yourusername/your-repo-name.git
+   git remote add origin https://github.com/Clementjatts/FantasyLeagueManager.git
    ```
 
 ### Required Secrets
@@ -144,23 +181,69 @@ Changes made in your local project are NOT automatically pushed to GitHub. You n
 - `git branch`: List or create branches
 - `git checkout`: Switch branches
 
+## Fantasy Premier League Integration
+
+This application connects to the official Fantasy Premier League API to provide:
+- Real-time player statistics and performance data
+- Current gameweek information
+- Player prices and ownership percentages
+- Fixture schedules and results
+- League standings and player rankings
+
+**Note**: An active internet connection is required for API functionality.
+
+## Troubleshooting
+
+### Common Issues
+
+**Database Connection Problems:**
+- Ensure PostgreSQL is running: `brew services start postgresql@16`
+- Verify DATABASE_URL in `.env` file is correct
+- Check that database and user exist
+
+**Port Already in Use:**
+- Kill process using the port: `lsof -ti:3000 | xargs kill -9`
+- Or change PORT in `.env` file
+
+**Node Modules Issues:**
+- Delete `node_modules` and `package-lock.json`
+- Run `npm install` again
+
+**TypeScript Errors:**
+- Run `npm run check` to see detailed errors
+- Ensure all dependencies are installed
+
 ## Development
 
 ### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run test` - Run tests
-- `npm run lint` - Run linting
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build the application for production
+- `npm run start` - Start production server (run `build` first)
+- `npm run db:push` - Update database schema
+- `npm run check` - Run TypeScript type checking
 
 ### Project Structure
 ```
-fantasy-league-manager/
-├── client/            # Frontend React application
-├── server/            # Backend Node.js application
-├── database/          # Database migrations and seeds
-├── tests/            # Test files
-└── docs/             # Documentation
+FantasyLeagueManager/
+├── client/                 # Frontend React application
+│   ├── src/               # React source files
+│   ├── public/            # Static assets
+│   └── index.html         # Main HTML file
+├── server/                # Backend Node.js application
+│   ├── index.ts           # Main server file
+│   ├── routes.ts          # API routes
+│   └── vite.ts            # Development server setup
+├── db/                    # Database configuration
+│   ├── index.ts           # Database connection
+│   └── schema.ts          # Database schema definitions
+├── docs/                  # Documentation
+├── package.json           # Dependencies and scripts
+├── vite.config.ts         # Frontend build configuration
+├── tailwind.config.ts     # CSS framework configuration
+├── drizzle.config.ts      # Database ORM configuration
+├── tsconfig.json          # TypeScript configuration
+├── LOCAL_SETUP.md         # Detailed local setup guide
+└── .env                   # Environment variables (create this)
 ```
 
 ## Contributing
