@@ -18,9 +18,28 @@ export function registerRoutes(app: Express): Server {
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
-    const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
-    const data = await response.json();
-    res.json(data);
+    try {
+      const season = req.query.season as string;
+      let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
+
+      // For historical seasons, we'll need to handle differently
+      // For now, we'll return current season data but add season info
+      const response = await fetch(url);
+      if (!response.ok) {
+        return res.status(500).json({ message: "Failed to fetch FPL data" });
+      }
+
+      const data = await response.json();
+
+      // Add season metadata to the response
+      data.season = season || "2024-25";
+      data.isHistorical = season && season !== "2024-25";
+
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching bootstrap static:", error);
+      res.status(500).json({ message: "Failed to fetch bootstrap static data" });
+    }
   });
 
 app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
@@ -191,20 +210,56 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
 
   app.get("/api/fpl/players", async (req, res) => {
     try {
-      const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
+      const season = req.query.season as string;
+      let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
+
+      // For historical seasons, we'll need to handle differently
+      // For now, we'll return current season data but add season info
+      const response = await fetch(url);
+      if (!response.ok) {
+        return res.status(500).json({ message: "Failed to fetch FPL data" });
+      }
+
       const data = await response.json();
-      res.json(data.elements);
+
+      // Add season metadata to each player
+      const playersWithSeason = data.elements.map((player: any) => ({
+        ...player,
+        season: season || "2024-25",
+        isHistorical: season && season !== "2024-25"
+      }));
+
+      res.json(playersWithSeason);
     } catch (error) {
+      console.error("Error fetching players:", error);
       res.status(500).json({ message: "Failed to fetch players" });
     }
   });
 
   app.get("/api/fpl/fixtures", async (req, res) => {
     try {
-      const response = await fetch("https://fantasy.premierleague.com/api/fixtures/");
+      const season = req.query.season as string;
+      let url = "https://fantasy.premierleague.com/api/fixtures/";
+
+      // For historical seasons, we'll need to handle differently
+      // For now, we'll return current season data but add season info
+      const response = await fetch(url);
+      if (!response.ok) {
+        return res.status(500).json({ message: "Failed to fetch FPL data" });
+      }
+
       const data = await response.json();
-      res.json(data);
+
+      // Add season metadata to each fixture
+      const fixturesWithSeason = data.map((fixture: any) => ({
+        ...fixture,
+        season: season || "2024-25",
+        isHistorical: season && season !== "2024-25"
+      }));
+
+      res.json(fixturesWithSeason);
     } catch (error) {
+      console.error("Error fetching fixtures:", error);
       res.status(500).json({ message: "Failed to fetch fixtures" });
     }
   });

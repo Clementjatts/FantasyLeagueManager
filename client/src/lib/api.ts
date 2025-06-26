@@ -15,9 +15,10 @@ export async function fetchMyTeam(managerId: number): Promise<Team> {
   return data;
 }
 
-export async function fetchPlayers(): Promise<Player[]> {
-  console.log("Fetching players...");
-  const res = await fetch(`${API_BASE}/players`);
+export async function fetchPlayers(season?: string): Promise<Player[]> {
+  console.log("Fetching players...", season ? `for season ${season}` : "");
+  const url = season ? `${API_BASE}/players?season=${season}` : `${API_BASE}/players`;
+  const res = await fetch(url);
   if (!res.ok) {
     console.error("Failed to fetch players. Status:", res.status);
     throw new Error("Failed to fetch players");
@@ -27,9 +28,10 @@ export async function fetchPlayers(): Promise<Player[]> {
   return data;
 }
 
-export async function fetchFixtures(): Promise<Fixture[]> {
-  console.log("Fetching fixtures...");
-  const res = await fetch(`${API_BASE}/fixtures`);
+export async function fetchFixtures(season?: string): Promise<Fixture[]> {
+  console.log("Fetching fixtures...", season ? `for season ${season}` : "");
+  const url = season ? `${API_BASE}/fixtures?season=${season}` : `${API_BASE}/fixtures`;
+  const res = await fetch(url);
   if (!res.ok) {
     console.error("Failed to fetch fixtures. Status:", res.status);
     throw new Error("Failed to fetch fixtures");
@@ -39,9 +41,10 @@ export async function fetchFixtures(): Promise<Fixture[]> {
   return data;
 }
 
-export async function fetchBootstrapStatic(): Promise<BootstrapStatic> {
-  console.log("Fetching bootstrap static...");
-  const res = await fetch(`${API_BASE}/bootstrap-static`);
+export async function fetchBootstrapStatic(season?: string): Promise<BootstrapStatic> {
+  console.log("Fetching bootstrap static...", season ? `for season ${season}` : "");
+  const url = season ? `${API_BASE}/bootstrap-static?season=${season}` : `${API_BASE}/bootstrap-static`;
+  const res = await fetch(url);
   if (!res.ok) {
     console.error("Failed to fetch bootstrap static. Status:", res.status);
     throw new Error("Failed to fetch bootstrap static");

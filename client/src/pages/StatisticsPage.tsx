@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { fetchPlayers, fetchBootstrapStatic } from "../lib/api";
+import { SeasonSelector } from "../components/SeasonSelector";
+import { useSeason } from "../contexts/SeasonContext";
 import { Player } from "../types/fpl";
 import { Shield, Crosshair, Star } from "lucide-react";
 
@@ -152,17 +154,21 @@ function PlayerStatCard({ player }: { player: Player }) {
 }
 
 export default function StatisticsPage() {
+  const { currentSeason, isLoading: isSeasonLoading } = useSeason();
+
   const { data: players, isLoading } = useQuery({
-    queryKey: ["/api/fpl/players"],
-    queryFn: fetchPlayers,
+    queryKey: ["/api/fpl/players", currentSeason.id],
+    queryFn: () => fetchPlayers(currentSeason.id),
+    enabled: !isSeasonLoading
   });
 
   const { data: bootstrapData } = useQuery({
-    queryKey: ["/api/fpl/bootstrap-static"],
-    queryFn: fetchBootstrapStatic,
+    queryKey: ["/api/fpl/bootstrap-static", currentSeason.id],
+    queryFn: () => fetchBootstrapStatic(currentSeason.id),
+    enabled: !isSeasonLoading
   });
 
-  if (isLoading) {
+  if (isLoading || isSeasonLoading) {
     return (
       <div className="p-6">
         <div className="grid gap-6">
@@ -248,6 +254,19 @@ export default function StatisticsPage() {
             <p className="text-lg text-muted-foreground">
               Comprehensive statistics and performance analysis
             </p>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-sm">
+                {currentSeason.name} Season
+              </Badge>
+              {!currentSeason.isCurrent && (
+                <Badge variant="outline" className="text-sm">
+                  Historical Data
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <SeasonSelector />
           </div>
         </div>
 

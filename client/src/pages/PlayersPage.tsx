@@ -6,9 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { TransferFilters, type FilterOptions } from "@/components/TransferFilters";
 import { PriceChangeTracker } from "../components/PriceChangeTracker";
 import { PlayerComparison } from "../components/PlayerComparison";
+import { SeasonSelector } from "../components/SeasonSelector";
+import { useSeason } from "../contexts/SeasonContext";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Scale } from "lucide-react";
 import { type Player, type BootstrapTeam } from "../types/fpl";
@@ -20,6 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export default function PlayersPage() {
+  const { currentSeason, isLoading: isSeasonLoading } = useSeason();
   const [search, setSearch] = useState("");
   const [isComparisonMode, setIsComparisonMode] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -32,20 +36,23 @@ export default function PlayersPage() {
     quickFilter: undefined
   });
 
-  // Fetch data
+  // Fetch data with season parameter
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
-    queryKey: ["/api/fpl/players"],
-    queryFn: fetchPlayers
+    queryKey: ["/api/fpl/players", currentSeason.id],
+    queryFn: () => fetchPlayers(currentSeason.id),
+    enabled: !isSeasonLoading
   });
 
   const { data: fixtures } = useQuery({
-    queryKey: ["/api/fpl/fixtures"],
-    queryFn: fetchFixtures
+    queryKey: ["/api/fpl/fixtures", currentSeason.id],
+    queryFn: () => fetchFixtures(currentSeason.id),
+    enabled: !isSeasonLoading
   });
 
   const { data: bootstrapData } = useQuery({
-    queryKey: ["/api/fpl/bootstrap-static"],
-    queryFn: fetchBootstrapStatic
+    queryKey: ["/api/fpl/bootstrap-static", currentSeason.id],
+    queryFn: () => fetchBootstrapStatic(currentSeason.id),
+    enabled: !isSeasonLoading
   });
 
   // Filter players based on search and filters
@@ -64,7 +71,7 @@ export default function PlayersPage() {
     });
   }, [players, bootstrapData?.teams, search, filters]);
 
-  if (isLoadingPlayers) {
+  if (isLoadingPlayers || isSeasonLoading) {
     return <div className="space-y-4">
       <Skeleton className="h-8 w-48" />
       <Skeleton className="h-96 w-full" />
@@ -84,6 +91,19 @@ export default function PlayersPage() {
             <p className="text-lg text-muted-foreground">
               Search and compare player statistics
             </p>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-sm">
+                {currentSeason.name} Season
+              </Badge>
+              {!currentSeason.isCurrent && (
+                <Badge variant="outline" className="text-sm">
+                  Historical Data
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <SeasonSelector />
           </div>
         </div>
         <Card>
