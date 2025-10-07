@@ -89,20 +89,17 @@ export function ElitePlayerCard({
           <Card 
             className={cn(
               "elite-card relative w-[160px] h-[140px] cursor-pointer transition-all duration-300",
-              "bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-lg",
-              "border border-white/20 shadow-lg shadow-black/20",
-              "hover:shadow-primary/30 hover:scale-[1.03]",
+              "bg-slate-900 border border-slate-700 shadow-lg shadow-black/20",
+              "hover:shadow-primary/30 hover:scale-[1.03] hover:border-slate-600",
               "group overflow-hidden",
               className
             )}
             style={{ '--glow-color': glowColor } as React.CSSProperties}
           >
-            {/* Glass effect overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
             
-            {/* Captain/Vice-Captain indicators */}
+            {/* Captain/Vice-Captain indicators - Top Middle */}
             {(isCaptain || isViceCaptain) && (
-              <div className="absolute -top-1 -left-1 z-20">
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 z-20">
                 <div className={cn(
                   "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold",
                   "bg-gradient-to-br backdrop-blur-sm shadow-lg",
