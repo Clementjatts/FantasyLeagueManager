@@ -65,11 +65,11 @@ export function PlayerCard({
         return (
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg blur-sm group-hover:blur-md transition-all" />
-            <Badge variant="outline" className="relative bg-background/40 backdrop-blur-md border-none px-3 py-1.5 font-medium">
+            <Badge variant="outline" className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-white/50 dark:border-gray-600/50 px-3 py-1.5 font-medium shadow-sm">
               <span className="text-primary">{player.event_points || 0}</span>
               <span className="text-xs ml-0.5">pts</span>
               {showLiveStats && player.minutes > 0 && (
-                <span className="ml-1.5 text-xs text-muted-foreground">({player.minutes}′)</span>
+                <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400">({player.minutes}′)</span>
               )}
             </Badge>
           </div>
@@ -78,7 +78,7 @@ export function PlayerCard({
         return (
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg blur-sm group-hover:blur-md transition-all" />
-            <Badge variant="outline" className="relative bg-background/40 backdrop-blur-md border-none px-3 py-1.5 font-medium">
+            <Badge variant="outline" className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-white/50 dark:border-gray-600/50 px-3 py-1.5 font-medium shadow-sm">
               <span className="text-primary">£{(player.now_cost / 10).toFixed(1)}</span>
               <span className="text-xs ml-0.5">m</span>
               {showTransferInfo && player.cost_change_event !== 0 && (

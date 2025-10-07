@@ -4,6 +4,8 @@ import { db } from "../db";
 import { teams } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { transformPlayerDataForSeason, getSeasonStats } from "./services/historicalDataService";
+import { fetchHistoricalPlayers, fetchHistoricalBootstrapData } from "./services/realHistoricalDataService";
+import { fetchEnhancedFPLData } from "./services/enhancedFPLDataService";
 
 interface GameweekHistory {
   event: string;
@@ -21,32 +23,56 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
     try {
       const season = req.query.season as string || "2024-25";
-      let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
 
       console.log(`Fetching bootstrap static for season: ${season}`);
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        return res.status(500).json({ message: "Failed to fetch FPL data" });
+      // For current season, use the official FPL API
+      if (season === "2024-25") {
+        let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          return res.status(500).json({ message: "Failed to fetch FPL data" });
+        }
+
+        const data = await response.json();
+
+        // Add season metadata to the response
+        data.season = season;
+        data.isHistorical = false;
+
+        console.log(`Fetched current season bootstrap static for season ${season}`);
+        res.json(data);
+      } else {
+        // For historical seasons, use real historical data
+        try {
+          const historicalData = await fetchHistoricalBootstrapData(season);
+          console.log(`Fetched historical bootstrap static for season ${season}`);
+          res.json(historicalData);
+        } catch (historicalError) {
+          console.error(`Failed to fetch historical data for ${season}, falling back to mock data:`, historicalError);
+          
+          // Fallback to mock data if historical data fails
+          let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
+          const response = await fetch(url);
+          if (!response.ok) {
+            return res.status(500).json({ message: "Failed to fetch FPL data" });
+          }
+
+          const data = await response.json();
+          data.elements = transformPlayerDataForSeason(data.elements, season);
+          data.season = season;
+          data.isHistorical = true;
+
+          const seasonStats = getSeasonStats(season);
+          if (seasonStats) {
+            data.seasonStats = seasonStats;
+          }
+
+          console.log(`Used fallback mock data for season ${season}`);
+          res.json(data);
+        }
       }
-
-      const data = await response.json();
-
-      // Transform elements (players) based on season
-      data.elements = transformPlayerDataForSeason(data.elements, season);
-
-      // Add season metadata to the response
-      data.season = season;
-      data.isHistorical = season !== "2024-25";
-
-      // Add historical season stats if available
-      const seasonStats = getSeasonStats(season);
-      if (seasonStats) {
-        data.seasonStats = seasonStats;
-      }
-
-      console.log(`Transformed bootstrap static for season ${season}`);
-      res.json(data);
     } catch (error) {
       console.error("Error fetching bootstrap static:", error);
       res.status(500).json({ message: "Failed to fetch bootstrap static data" });
@@ -222,22 +248,38 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
   app.get("/api/fpl/players", async (req, res) => {
     try {
       const season = req.query.season as string || "2024-25";
-      let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
 
       console.log(`Fetching players for season: ${season}`);
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        return res.status(500).json({ message: "Failed to fetch FPL data" });
+      // For current season, use enhanced FPL data
+      if (season === "2024-25") {
+        console.log("Fetching enhanced FPL data for current season");
+        const enhancedPlayers = await fetchEnhancedFPLData();
+        console.log(`Fetched ${enhancedPlayers.length} enhanced current season players`);
+        res.json(enhancedPlayers);
+      } else {
+        // For historical seasons, use real historical data
+        try {
+          const historicalPlayers = await fetchHistoricalPlayers(season);
+          console.log(`Fetched ${historicalPlayers.length} historical players for season ${season}`);
+          res.json(historicalPlayers);
+        } catch (historicalError) {
+          console.error(`Failed to fetch historical players for ${season}, falling back to mock data:`, historicalError);
+          
+          // Fallback to mock data if historical data fails
+          let url = "https://fantasy.premierleague.com/api/bootstrap-static/";
+          const response = await fetch(url);
+          if (!response.ok) {
+            return res.status(500).json({ message: "Failed to fetch FPL data" });
+          }
+
+          const data = await response.json();
+          const transformedPlayers = transformPlayerDataForSeason(data.elements, season);
+
+          console.log(`Used fallback mock data for ${transformedPlayers.length} players in season ${season}`);
+          res.json(transformedPlayers);
+        }
       }
-
-      const data = await response.json();
-
-      // Transform player data based on season
-      const transformedPlayers = transformPlayerDataForSeason(data.elements, season);
-
-      console.log(`Transformed ${transformedPlayers.length} players for season ${season}`);
-      res.json(transformedPlayers);
     } catch (error) {
       console.error("Error fetching players:", error);
       res.status(500).json({ message: "Failed to fetch players" });

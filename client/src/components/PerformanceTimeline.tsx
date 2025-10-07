@@ -11,6 +11,40 @@ interface PerformanceTimelineProps {
 }
 
 export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
+  // Handle empty data case
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
+          <div>
+            <div className="text-sm font-medium text-muted-foreground">No data available</div>
+            <div className="text-2xl font-bold text-muted-foreground">-</div>
+          </div>
+          <div className="px-2 py-1 rounded-full text-sm font-medium bg-muted text-muted-foreground">
+            New Season
+          </div>
+        </div>
+        <div className="relative h-[60px] w-full bg-background/50 rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="text-muted-foreground text-sm">Performance data will appear after your first gameweek</div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-sm">
+          <div className="p-2 rounded-lg bg-primary/5">
+            <div className="text-muted-foreground">Highest</div>
+            <div className="font-bold">-</div>
+          </div>
+          <div className="p-2 rounded-lg bg-primary/5">
+            <div className="text-muted-foreground">Average</div>
+            <div className="font-bold">-</div>
+          </div>
+          <div className="p-2 rounded-lg bg-primary/5">
+            <div className="text-muted-foreground">Lowest</div>
+            <div className="font-bold">-</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const sortedData = [...data].sort((a, b) => a.gameweek - b.gameweek);
   const maxPoints = Math.max(...sortedData.map(d => d.points));
   const minPoints = Math.min(...sortedData.map(d => d.points));
@@ -25,8 +59,10 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
   const width = 100;
   const height = 40;
   const points = sortedData.map((d, i) => {
-    const x = (i / (sortedData.length - 1)) * width;
-    const y = height - ((d.points - minPoints) / (maxPoints - minPoints)) * height;
+    const x = sortedData.length > 1 ? (i / (sortedData.length - 1)) * width : width / 2;
+    const y = maxPoints !== minPoints 
+      ? height - ((d.points - minPoints) / (maxPoints - minPoints)) * height
+      : height / 2;
     return `${x},${y}`;
   }).join(' ');
 
@@ -75,8 +111,11 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
           
           {/* Latest point highlight */}
           <circle
-            cx={width}
-            cy={height - ((latestGameweek.points - minPoints) / (maxPoints - minPoints)) * height}
+            cx={sortedData.length > 1 ? width : width / 2}
+            cy={maxPoints !== minPoints 
+              ? height - ((latestGameweek.points - minPoints) / (maxPoints - minPoints)) * height
+              : height / 2
+            }
             r="3"
             fill="hsl(var(--primary))"
           />
@@ -107,7 +146,10 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
         <div className="p-2 rounded-lg bg-primary/5">
           <div className="text-muted-foreground">Average</div>
           <div className="font-bold">
-            {Math.round(sortedData.reduce((acc, curr) => acc + curr.points, 0) / sortedData.length)}
+            {sortedData.length > 0 
+              ? Math.round(sortedData.reduce((acc, curr) => acc + curr.points, 0) / sortedData.length)
+              : 0
+            }
           </div>
         </div>
         <div className="p-2 rounded-lg bg-primary/5">

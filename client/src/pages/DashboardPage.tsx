@@ -59,11 +59,11 @@ export default function DashboardPage() {
                     Dashboard
                   </h1>
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10">
-                    <span className="text-sm font-medium text-muted-foreground">Gameweek</span>
+                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Gameweek</span>
                     <span className="text-xl font-bold text-primary">-</span>
                   </div>
                 </div>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-lg text-slate-600 dark:text-slate-300 font-medium">
                   Your FPL overview and team management hub
                 </p>
               </div>

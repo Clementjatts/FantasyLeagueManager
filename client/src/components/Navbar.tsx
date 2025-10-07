@@ -13,7 +13,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="border-b bg-gradient-to-r from-background/95 via-background/98 to-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 shadow-lg">
+    <nav className="border-b bg-gradient-to-r from-white/80 via-white/90 to-white/80 dark:from-gray-900/80 dark:via-gray-800/90 dark:to-gray-900/80 backdrop-blur-md supports-[backdrop-filter]:bg-white/70 dark:supports-[backdrop-filter]:bg-gray-900/70 sticky top-0 z-50 shadow-lg border-white/20 dark:border-gray-700/20">
       <div className="container mx-auto px-6 sm:px-8">
         <div className="flex h-20 items-center justify-between py-4">
           <div className="flex-shrink-0 mr-10">

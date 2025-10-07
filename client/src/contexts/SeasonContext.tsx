@@ -17,7 +17,7 @@ interface SeasonContextType {
 
 const SeasonContext = createContext<SeasonContextType | undefined>(undefined);
 
-// Available FPL seasons - can be expanded as needed
+// Available FPL seasons - comprehensive list from 2016-2024
 const AVAILABLE_SEASONS: Season[] = [
   {
     id: '2024-25',
@@ -45,6 +45,41 @@ const AVAILABLE_SEASONS: Season[] = [
     name: '2021-22',
     startYear: 2021,
     endYear: 2022,
+    isCurrent: false
+  },
+  {
+    id: '2020-21',
+    name: '2020-21',
+    startYear: 2020,
+    endYear: 2021,
+    isCurrent: false
+  },
+  {
+    id: '2019-20',
+    name: '2019-20',
+    startYear: 2019,
+    endYear: 2020,
+    isCurrent: false
+  },
+  {
+    id: '2018-19',
+    name: '2018-19',
+    startYear: 2018,
+    endYear: 2019,
+    isCurrent: false
+  },
+  {
+    id: '2017-18',
+    name: '2017-18',
+    startYear: 2017,
+    endYear: 2018,
+    isCurrent: false
+  },
+  {
+    id: '2016-17',
+    name: '2016-17',
+    startYear: 2016,
+    endYear: 2017,
     isCurrent: false
   }
 ];

@@ -55,20 +55,20 @@ export function SeasonSelector({
           <SelectTrigger 
             className={cn(
               "bg-background border-input hover:bg-accent hover:text-accent-foreground transition-colors",
-              isCompact ? "w-[100px] h-8 text-xs" : "w-[140px]",
+              isCompact ? "w-[100px] h-8 text-xs" : "w-[160px]",
               isLoading && "opacity-50"
             )}
           >
             <div className="flex items-center gap-2">
               {isLoading && <Loader2 className="h-3 w-3 animate-spin" />}
               <SelectValue>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 whitespace-nowrap">
                   <span>{currentSeason.name}</span>
                   {currentSeason.isCurrent && (
                     <Badge 
                       variant="secondary" 
                       className={cn(
-                        "text-xs px-1 py-0",
+                        "text-xs px-1 py-0 flex-shrink-0",
                         isCompact && "hidden"
                       )}
                     >
@@ -87,10 +87,10 @@ export function SeasonSelector({
                 value={season.id}
                 className="cursor-pointer"
               >
-                <div className="flex items-center justify-between w-full">
+                <div className="flex items-center justify-between w-full whitespace-nowrap">
                   <span>{season.name}</span>
                   {season.isCurrent && (
-                    <Badge variant="secondary" className="ml-2 text-xs">
+                    <Badge variant="secondary" className="ml-2 text-xs flex-shrink-0">
                       Current
                     </Badge>
                   )}
