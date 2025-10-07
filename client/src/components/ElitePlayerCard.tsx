@@ -66,6 +66,16 @@ export function ElitePlayerCard({
   const epNext = parseFloat(player.ep_next || "0");
   const price = (player.now_cost / 10).toFixed(1);
   const [isOpen, setIsOpen] = useState(false);
+
+  // Position-specific glow colors
+  const positionGlowColors = {
+    1: 'hsl(54 96% 48%)', // GK - Yellow
+    2: 'hsl(204 96% 48%)', // DEF - Blue
+    3: 'hsl(145 96% 48%)', // MID - Green
+    4: 'hsl(5 96% 48%)', // FWD - Red
+  };
+
+  const glowColor = positionGlowColors[player.element_type as keyof typeof positionGlowColors];
   
   // Get next 3 fixtures
   const nextFixtures = fixtures
@@ -78,13 +88,14 @@ export function ElitePlayerCard({
       <DialogTrigger asChild>
           <Card 
             className={cn(
-              "relative w-[160px] h-[140px] cursor-pointer transition-all duration-300",
-              "bg-black/20 backdrop-blur-md border border-white/30",
-              "hover:bg-black/30 hover:border-white/40",
-              `hover:shadow-2xl hover:${getEliteOwnershipGlow(eliteOwnership)}`,
-              "group overflow-hidden shadow-lg",
+              "elite-card relative w-[160px] h-[140px] cursor-pointer transition-all duration-300",
+              "bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-lg",
+              "border border-white/20 shadow-lg shadow-black/20",
+              "hover:shadow-primary/30 hover:scale-[1.03]",
+              "group overflow-hidden",
               className
             )}
+            style={{ '--glow-color': glowColor } as React.CSSProperties}
           >
             {/* Glass effect overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
@@ -169,10 +180,10 @@ export function ElitePlayerCard({
               </div>
             </div>
 
-            {/* Hover glow effect */}
+            {/* Enhanced hover glow effect */}
             <div className={cn(
               "absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-              "bg-gradient-to-br from-white/20 to-transparent pointer-events-none"
+              "bg-gradient-to-br from-white/30 to-transparent pointer-events-none"
             )} />
           </Card>
       </DialogTrigger>
