@@ -61,6 +61,15 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        "radiant-violet": "hsl(var(--radiant-violet))",
+        "cool-slate": "hsl(var(--cool-slate))",
+        "white-smoke": "hsl(var(--white-smoke))",
+        "deep-slate": "hsl(var(--deep-slate))",
+        "neon-green": "hsl(var(--neon-green))",
+        "bright-amber": "hsl(var(--bright-amber))",
+        "electric-red": "hsl(var(--electric-red))",
+        "glass-bg": "var(--glass-bg)",
+        "glass-border": "var(--glass-border)",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -109,6 +118,9 @@ export default {
       boxShadow: {
         'glow': '0 0 20px rgba(var(--primary), 0.35)',
         'glow-lg': '0 0 30px rgba(var(--primary), 0.5)',
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'glass-glow': '0 8px 32px 0 rgba(var(--radiant-violet), 0.2)',
+        'aurora': '0 0 40px rgba(var(--radiant-violet), 0.3), 0 0 80px rgba(var(--radiant-violet), 0.1)',
       }
     },
   },

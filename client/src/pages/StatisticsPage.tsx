@@ -245,10 +245,10 @@ export default function StatisticsPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
                 Statistics & Analysis
               </h1>
-              <Badge className="text-lg bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 border-emerald-300/50 text-black font-bold hover:from-emerald-300 hover:via-cyan-300 hover:to-blue-300 transition-all duration-200 shadow-lg">
+              <Badge className="text-lg bg-neon-green border-neon-green/50 text-deep-slate font-bold hover:bg-neon-green/90 transition-all duration-200 shadow-glass-glow">
                 League Overview
               </Badge>
             </div>
@@ -256,7 +256,7 @@ export default function StatisticsPage() {
               Comprehensive statistics and performance analysis
             </p>
             <div className="flex items-center gap-2">
-              <Badge className="text-sm bg-gradient-to-r from-orange-400 to-pink-400 border-orange-300/50 text-black font-semibold hover:from-orange-300 hover:to-pink-300 transition-all duration-200 shadow-md">
+              <Badge className="text-sm bg-bright-amber border-bright-amber/50 text-deep-slate font-semibold hover:bg-bright-amber/90 transition-all duration-200 shadow-glass">
                 {currentSeason.name} Season
               </Badge>
               {!currentSeason.isCurrent && (

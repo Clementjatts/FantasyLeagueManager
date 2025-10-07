@@ -4,57 +4,80 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 40% 98%;
+    --foreground: 222 84% 5%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 84% 5%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --popover-foreground: 222 84% 5%;
+    --primary: 262 83% 58%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 262 83% 58%;
     --radius: 0.5rem;
+    
+    /* Aurora Glass & Glow Palette */
+    --radiant-violet: 262 83% 58%;
+    --cool-slate: 215 25% 27%;
+    --white-smoke: 210 40% 98%;
+    --deep-slate: 222 84% 5%;
+    --neon-green: 158 64% 52%;
+    --bright-amber: 43 96% 56%;
+    --electric-red: 0 84% 60%;
+    
+    /* Glass effects */
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.2);
   }
 
   .dark {
-    --background: 230 15% 15%;
-    --foreground: 0 0% 100%;
-    --card: 230 15% 15%;
-    --card-foreground: 0 0% 100%;
-    --popover: 230 15% 15%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 230 100% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 230 20% 20%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 230 20% 20%;
-    --muted-foreground: 230 20% 60%;
-    --accent: 230 20% 20%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 230 20% 30%;
-    --input: 230 20% 30%;
-    --ring: 230 100% 50%;
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+    --card: 222 84% 5%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 84% 5%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 262 83% 58%;
+    
+    /* Dark mode Aurora colors */
+    --radiant-violet: 262 83% 58%;
+    --cool-slate: 215 25% 27%;
+    --white-smoke: 210 40% 98%;
+    --deep-slate: 222 84% 5%;
+    --neon-green: 158 64% 52%;
+    --bright-amber: 43 96% 56%;
+    --electric-red: 0 84% 60%;
+    
+    /* Dark mode glass effects */
+    --glass-bg: rgba(30, 41, 59, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
 
   .dark body {
-    background: linear-gradient(135deg, 
-      hsl(230, 15%, 12%) 0%, 
-      hsl(240, 20%, 10%) 25%, 
-      hsl(220, 18%, 8%) 50%, 
-      hsl(230, 15%, 12%) 75%, 
-      hsl(240, 20%, 10%) 100%);
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(circle at 1px 1px, hsl(var(--border) / 0.3) 1px, transparent 0);
+    background-size: 2rem 2rem;
   }
 }
 
@@ -65,14 +88,11 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background: linear-gradient(135deg, 
-      hsl(240, 15%, 97%) 0%, 
-      hsl(250, 20%, 94%) 25%, 
-      hsl(220, 25%, 92%) 50%, 
-      hsl(240, 15%, 97%) 75%, 
-      hsl(250, 20%, 94%) 100%);
-    background-attachment: fixed;
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(circle at 1px 1px, hsl(var(--border) / 0.5) 1px, transparent 0);
+    background-size: 2rem 2rem;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
 
   /* Modern Scrollbar */
