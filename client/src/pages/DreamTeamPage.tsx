@@ -466,6 +466,18 @@ export default function DreamTeamPage() {
     enabled: !!teamId
   });
 
+  // Compute optimal team unconditionally to keep hook order stable across renders
+  const optimalTeam = useMemo<OptimalTeam | null>(() => {
+    if (!players || !fixtures || !bootstrap) return null;
+    // Check if the user has an existing team
+    if (userTeam && (userTeam as any).picks && (userTeam as any).picks.length > 0) {
+      // MODE A: User is an EXISTING player
+      return calculatePointsDeltaMaximizer(userTeam as Team, players, fixtures, (bootstrap as any).teams);
+    }
+    // MODE B: User is a NEW player or no team data
+    return buildInitialSquad(players, fixtures, (bootstrap as any).teams);
+  }, [userTeam, players, fixtures, bootstrap]);
+
   const isLoading = playersLoading || fixturesLoading || bootstrapLoading || teamLoading;
   const error = playersError;
 
@@ -511,19 +523,7 @@ export default function DreamTeamPage() {
     );
   }
 
-  // Dual-mode algorithm logic
-  const optimalTeam = useMemo(() => {
-    // Check if the user has an existing team
-    if (userTeam && userTeam.picks && userTeam.picks.length > 0) {
-      // MODE A: User is an EXISTING player
-      // Run the "Personalized Points Maximizer" algorithm
-      return calculatePointsDeltaMaximizer(userTeam, players, fixtures, bootstrap.teams);
-    } else {
-      // MODE B: User is a NEW player or no team data
-      // Run the "Initial Squad Builder" algorithm
-      return buildInitialSquad(players, fixtures, bootstrap.teams);
-    }
-  }, [userTeam, players, fixtures, bootstrap.teams]);
+  // Dual-mode algorithm logic now computed above
   
   // Get current gameweek
   const currentGameweek = bootstrap.events?.find((event: any) => event.is_current)?.id || 1;

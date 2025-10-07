@@ -76,20 +76,10 @@ export default function TeamPage() {
       <div className="p-6">
         <div className="space-y-8">
           <div className="flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
-                Transfer Planning
-              </h1>
-            </div>
+            <Skeleton className="h-10 w-64" />
             <div className="flex items-center gap-3">
-              <Button variant="outline" className="gap-2" disabled>
-                <Trophy className="w-4 h-4" />
-                Dream Team
-              </Button>
-              <Button variant="outline" className="gap-2" disabled>
-                <Zap className="w-4 h-4" />
-                Chips Strategy
-              </Button>
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-40" />
             </div>
           </div>
           <div className="grid gap-6">

@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Chip, BootstrapStatic, Pick, Team, Player, Fixture } from "@/types/fpl";
 import { cn } from "@/lib/utils";
-import { Sparkles } from "lucide-react";
+import { Sparkles, TrendingUp, TrendingDown, AlertTriangle, Target, Users } from "lucide-react";
 import { useCallback } from "react";
 
 // Scoring constants for better maintainability
@@ -108,8 +109,31 @@ export function ChipAdvisor({ chips, currentGameweek, bootstrapStatic, team }: C
         return acc + (player?.cost_change_event_fall || 0);
       }, 0);
 
-      const next3GWs = getNextFixtures(3);
-      const upcomingDoubles = next3GWs.filter(gw => gw.difficulty && gw.difficulty > 4).length;
+      // Team Form Analysis - Calculate average form of starting XI vs league average
+      const startingXI = team.picks.filter(p => p.position <= 11);
+      const teamForm = startingXI.reduce((acc, pick) => {
+        const player = getPlayerDetails(pick.element);
+        return acc + (parseFloat(player?.form || '0'));
+      }, 0) / startingXI.length;
+      
+      // League average form (approximate based on top players)
+      const leagueAverageForm = 4.5; // Approximate league average
+      const formDifference = Math.max(0, leagueAverageForm - teamForm);
+      
+      // Fixture Difficulty Swing Analysis
+      const next5GWs = getNextFixtures(5);
+      const currentFDR = next5GWs.slice(0, 2).reduce((acc, gw) => acc + (gw.difficulty || 3), 0) / 2;
+      const futureFDR = next5GWs.slice(2, 5).reduce((acc, gw) => acc + (gw.difficulty || 3), 0) / 3;
+      const fdrSwing = Math.max(0, currentFDR - futureFDR);
+      
+      // Deadwood Detection - Players with minimal minutes in recent gameweeks
+      const deadwoodPlayers = team.picks.filter(p => {
+        const player = getPlayerDetails(p.element);
+        if (!player) return false;
+        const minutesPerGame = parseFloat(player.minutes_per_game || '0');
+        const pointsPerGame = parseFloat(player.points_per_game || '0');
+        return minutesPerGame < 30 && pointsPerGame < 2;
+      }).length;
 
       // Calculate transfer cost savings
       const transferCost = (team.transfers?.cost || 0) / 10;
@@ -117,7 +141,9 @@ export function ChipAdvisor({ chips, currentGameweek, bootstrapStatic, team }: C
       return (
         (Math.min(injuredPlayers, 5) * SCORE_WEIGHTS.INJURY) +
         (Math.min(Math.abs(priceChanges), 10) * SCORE_WEIGHTS.PRICE_CHANGE) +
-        (upcomingDoubles * SCORE_WEIGHTS.DOUBLE_GW) +
+        (formDifference * 0.6) + // Team form penalty
+        (fdrSwing * 0.4) + // Fixture difficulty swing bonus
+        (Math.min(deadwoodPlayers, 4) * 0.5) + // Deadwood penalty
         (transferCost * SCORE_WEIGHTS.TRANSFER_COST)
       );
     } catch (error) {
@@ -135,6 +161,41 @@ export function ChipAdvisor({ chips, currentGameweek, bootstrapStatic, team }: C
       const nextGW = next3GWs[0];
       const nextGWDifficulty = nextGW?.difficulty || 0;
 
+      // Gameweek Anomaly Detection - Check for blank/double gameweeks
+      const allFixtures = bootstrapStatic.fixtures || [];
+      const nextGWFixtures = allFixtures.filter(f => f.event === nextGW?.id);
+      
+      // Count teams with no fixtures (blank gameweek)
+      const teamsWithFixtures = new Set();
+      nextGWFixtures.forEach(fixture => {
+        teamsWithFixtures.add(fixture.team_h);
+        teamsWithFixtures.add(fixture.team_a);
+      });
+      
+      const teamsWithBlanks = bootstrapStatic.teams.filter(team => 
+        !teamsWithFixtures.has(team.id)
+      ).length;
+      
+      // Count teams with multiple fixtures (double gameweek)
+      const teamAppearances = new Map<number, number>();
+      nextGWFixtures.forEach(fixture => {
+        teamAppearances.set(fixture.team_h, (teamAppearances.get(fixture.team_h) || 0) + 1);
+        teamAppearances.set(fixture.team_a, (teamAppearances.get(fixture.team_a) || 0) + 1);
+      });
+      
+      const teamsWithDoubles = Array.from(teamAppearances.values()).filter(count => count > 1).length;
+      
+      // Team-Specific Impact Analysis
+      const userPlayersWithoutFixtures = team.picks.filter(p => {
+        const player = getPlayerDetails(p.element);
+        return player && !teamsWithFixtures.has(player.team);
+      }).length;
+      
+      const userPlayersWithDoubles = team.picks.filter(p => {
+        const player = getPlayerDetails(p.element);
+        return player && (teamAppearances.get(player.team) || 0) > 1;
+      }).length;
+
       // Calculate team's defensive strength for next fixtures
       const teamDefensiveStrength = team.picks.reduce((acc, pick) => {
         const player = getPlayerDetails(pick.element);
@@ -149,7 +210,11 @@ export function ChipAdvisor({ chips, currentGameweek, bootstrapStatic, team }: C
         (futureBlanks * 1.8) + 
         (futureDoubles * SCORE_WEIGHTS.DOUBLE_GW) +
         (Math.max(0, 5 - teamDefensiveStrength) * 0.4) +
-        (nextGWDifficulty * SCORE_WEIGHTS.FIXTURE_DIFFICULTY)
+        (nextGWDifficulty * SCORE_WEIGHTS.FIXTURE_DIFFICULTY) +
+        (teamsWithBlanks > 4 ? 2.0 : 0) + // Major blank gameweek bonus
+        (teamsWithDoubles > 2 ? 1.5 : 0) + // Major double gameweek bonus
+        (userPlayersWithoutFixtures > 4 ? 1.8 : 0) + // High impact blank gameweek
+        (userPlayersWithDoubles > 3 ? 1.2 : 0) // High impact double gameweek
       );
     } catch (error) {
       console.error('Error calculating freehit score:', error);
@@ -181,10 +246,35 @@ export function ChipAdvisor({ chips, currentGameweek, bootstrapStatic, team }: C
         );
       }, 0);
 
+      // Gameweek Anomaly Detection for Bench Boost
+      const allFixtures = bootstrapStatic.fixtures || [];
+      const nextGW = getNextFixtures(1)[0];
+      const nextGWFixtures = allFixtures.filter(f => f.event === nextGW?.id);
+      
+      // Count teams with multiple fixtures (double gameweek)
+      const teamAppearances = new Map<number, number>();
+      nextGWFixtures.forEach(fixture => {
+        teamAppearances.set(fixture.team_h, (teamAppearances.get(fixture.team_h) || 0) + 1);
+        teamAppearances.set(fixture.team_a, (teamAppearances.get(fixture.team_a) || 0) + 1);
+      });
+      
+      const teamsWithDoubles = Array.from(teamAppearances.values()).filter(count => count > 1).length;
+      
+      // Team-Specific Impact Analysis for Bench Boost
+      const benchPlayersWithDoubles = benchPlayers.filter(p => {
+        const player = getPlayerDetails(p.element);
+        return player && (teamAppearances.get(player.team) || 0) > 1;
+      }).length;
+
       const next3GWs = getNextFixtures(3);
       const upcomingDoubles = next3GWs.filter(gw => gw.average_entry_score > 65).length;
 
-      return (benchStrength * 0.8) + (upcomingDoubles * SCORE_WEIGHTS.DOUBLE_GW);
+      return (
+        (benchStrength * 0.8) + 
+        (upcomingDoubles * SCORE_WEIGHTS.DOUBLE_GW) +
+        (teamsWithDoubles > 2 ? 1.5 : 0) + // Major double gameweek bonus
+        (benchPlayersWithDoubles > 2 ? 1.8 : 0) // High impact double gameweek for bench
+      );
     } catch (error) {
       console.error('Error calculating bench boost score:', error);
       return 0;
@@ -196,32 +286,69 @@ export function ChipAdvisor({ chips, currentGameweek, bootstrapStatic, team }: C
       validateInputs();
       if (!team || !bootstrapStatic || !currentGameweek) return 0;
       
-      const captain = team.picks.find((p: Pick) => p.is_captain);
-      if (!captain) return 0;
+      // Identify Elite Options - Scan entire squad for best Triple Captain candidate
+      const allPlayers = team.picks.map(p => ({
+        pick: p,
+        player: getPlayerDetails(p.element)
+      })).filter(item => item.player);
+      
+      let bestCandidate = null;
+      let bestScore = 0;
+      
+      // Check all players, not just current captain
+      allPlayers.forEach(({ pick, player }) => {
+        if (!player) return;
+        
+        // Calculate player's form and fixture potential
+        const form = parseFloat(player.form) || 0;
+        const expectedGoals = player.expected_goals || 0;
+        const expectedAssists = player.expected_assists || 0;
+        const totalExpected = expectedGoals + expectedAssists;
+        
+        // "Explosive" Player Trait - High ICT index for threat and influence
+        const threatIndex = parseFloat(player.ict_index_threat || '0');
+        const influenceIndex = parseFloat(player.ict_index_influence || '0');
+        const explosiveTrait = (threatIndex + influenceIndex) / 2;
+        
+        // Double Gameweek Priority - Check if player has double gameweek
+        const allFixtures = bootstrapStatic.fixtures || [];
+        const nextGW = getNextFixtures(1)[0];
+        const nextGWFixtures = allFixtures.filter(f => f.event === nextGW?.id);
+        
+        const teamAppearances = new Map<number, number>();
+        nextGWFixtures.forEach(fixture => {
+          teamAppearances.set(fixture.team_h, (teamAppearances.get(fixture.team_h) || 0) + 1);
+          teamAppearances.set(fixture.team_a, (teamAppearances.get(fixture.team_a) || 0) + 1);
+        });
+        
+        const hasDoubleGameweek = (teamAppearances.get(player.team) || 0) > 1;
+        const doubleGameweekBonus = hasDoubleGameweek ? 2.0 : 0;
+        
+        // Add rotation risk factor
+        const rotationRisk = player.chance_of_playing_next_round 
+          ? (100 - player.chance_of_playing_next_round)/100 
+          : 0;
+        const riskPenalty = rotationRisk * 2;
 
-      const captainPlayer = getPlayerDetails(captain.element);
-      if (!captainPlayer) return 0;
+        const next3GWs = getNextFixtures(3);
+        const nextGWDifficulty = next3GWs[0]?.difficulty || 50;
 
-      // Calculate captain's form and fixture potential
-      const form = parseFloat(captainPlayer.form) || 0;
-      const expectedGoals = captainPlayer.expected_goals || 0;
-      const expectedAssists = captainPlayer.expected_assists || 0;
-      const totalExpected = expectedGoals + expectedAssists;
+        const formScore = Math.min(form, 8) * SCORE_WEIGHTS.FORM;
+        const expectedScore = Math.min(totalExpected * 2, 5);
+        const fixtureScore = (100 - nextGWDifficulty) / 20;
+        const explosiveScore = Math.min(explosiveTrait / 10, 3); // Cap explosive score
+        
+        const playerScore = Math.max(0, 
+          formScore + expectedScore + fixtureScore + explosiveScore + doubleGameweekBonus - riskPenalty
+        );
+        
+        if (playerScore > bestScore) {
+          bestScore = playerScore;
+          bestCandidate = { pick, player, hasDoubleGameweek, explosiveTrait };
+        }
+      });
 
-      // Add rotation risk factor
-      const rotationRisk = captainPlayer.chance_of_playing_next_round 
-        ? (100 - captainPlayer.chance_of_playing_next_round)/100 
-        : 0;
-      const riskPenalty = rotationRisk * 2;
-
-      const next3GWs = getNextFixtures(3);
-      const nextGWDifficulty = next3GWs[0]?.difficulty || 50;
-
-      const formScore = Math.min(form, 8) * SCORE_WEIGHTS.FORM;
-      const expectedScore = Math.min(totalExpected * 2, 5);
-      const fixtureScore = (100 - nextGWDifficulty) / 20;
-
-      return Math.max(0, formScore + expectedScore + fixtureScore - riskPenalty);
+      return bestScore;
     } catch (error) {
       console.error('Error calculating triple captain score:', error);
       return 0;
