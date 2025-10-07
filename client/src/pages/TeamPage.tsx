@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
 import { type Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Zap, Users, ArrowLeftRight, Wallet, MinusCircle, History, Undo2 } from "lucide-react";
+import { Trophy, Zap, Users } from "lucide-react";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
@@ -186,54 +186,9 @@ export default function TeamPage() {
           </div>
         </div>
 
-        {/* Transfer Strategy Section */}
-        <div className="flex items-center justify-between p-4 mb-6 rounded-lg bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-200">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <ArrowLeftRight className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Free Transfers</p>
-                <p className="text-2xl font-bold text-blue-600">{team.transfers?.limit || 0}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-green-500/10">
-                <Wallet className="h-5 w-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">Transfer Budget</p>
-                <p className="text-2xl font-bold text-green-600">£{((team?.stats?.bank || 0) / 10).toFixed(1)}m</p>
-              </div>
-            </div>
-            {team.transfers?.cost > 0 && (
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-red-500/10">
-                  <MinusCircle className="h-5 w-5 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">Transfer Cost</p>
-                  <p className="text-2xl font-bold text-red-600">-{team.transfers.cost}</p>
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" className="gap-2">
-              <History className="w-4 h-4" />
-              Transfer History
-            </Button>
-            <Button variant="outline" className="gap-2">
-              <Undo2 className="w-4 h-4" />
-              Reset Transfers
-            </Button>
-          </div>
-        </div>
 
         {/* Captain Pick Section */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-primary mb-4">Captain Pick</h2>
           <CaptainSuggestions 
             allPlayers={players}
             fixtures={fixtures || []}

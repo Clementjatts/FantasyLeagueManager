@@ -45,14 +45,18 @@ export default function CaptainSuggestions({
   const suggestions = React.useMemo(() => {
     return allPlayers
       .filter(player => {
-        const form = parseFloat(player.form || '0');
+        // Enhanced filtering criteria
+        const chanceOfPlaying = player.chance_of_playing_next_round || 100;
         const minutes = player.minutes || 0;
-        const isAvailable = player.chance_of_playing_next_round !== 0;
-        const hasPlayingTime = minutes > 450; // At least 5 full matches
-        return form >= 4 && isAvailable && hasPlayingTime;
+        const epNext = parseFloat(player.ep_next || '0');
+        
+        return chanceOfPlaying > 50 &&           // Exclude major doubts
+               minutes > 180 &&                  // At least 2 full matches
+               epNext > 3.0;                     // Filter for players expected to score reasonably
       })
       .map(player => {
-        const nextFixtures = getNextFixtures(player.team, fixtures)
+        // Get next 3 fixtures for better analysis
+        const nextThreeFixtures = getNextFixtures(player.team, fixtures, 3)
           .map(fixture => ({
             opponent: teams.find(t => 
               t.id === (fixture.team_h === player.team ? fixture.team_a : fixture.team_h)
@@ -61,62 +65,77 @@ export default function CaptainSuggestions({
             isHome: fixture.team_h === player.team
           }));
 
+        // 1. Calculate Base Score (50% weight) - anchored by ep_next
+        const baseScore = parseFloat(player.ep_next || '0') * 5;
+
+        // 2. Calculate Form & Potential Score (50% weight)
         const form = parseFloat(player.form || '0');
-        const minutes = player.minutes || 0;
-        const totalPoints = player.total_points || 0;
-        const pointsPerGame = totalPoints / (minutes / 90);
-        const homeAdvantage = nextFixtures[0]?.isHome ? 1.1 : 1.0;
+        const ictIndex = parseFloat(player.ict_index || '0');
+        const formAndPotentialScore = (form * 2.5) + (ictIndex * 0.25);
+
+        // 3. Calculate Modifiers
+        // Fixture Score - analyze next 3 fixtures
+        const avgDifficulty = nextThreeFixtures.length > 0 
+          ? nextThreeFixtures.reduce((acc, f) => acc + f.difficulty, 0) / nextThreeFixtures.length 
+          : 3;
+        const fixtureModifier = 1 + ((3 - avgDifficulty) * 0.1);
+
+        // Explosiveness Score - reward players who deliver big hauls
+        const dreamteamCount = player.dreamteam_count || 0;
         const bonusPoints = player.bonus || 0;
-        const bonusPerGame = bonusPoints / (minutes / 90);
-        
-        // Calculate fixture difficulty impact
-        const fixtureDifficultyMultiplier = 
-          nextFixtures[0]?.difficulty <= 2 ? 1.3 :
-          nextFixtures[0]?.difficulty === 3 ? 1.0 :
-          nextFixtures[0]?.difficulty === 4 ? 0.8 :
-          0.6;
+        const totalPoints = player.total_points || 1;
+        const explosivenessModifier = 1 + (dreamteamCount * 0.05) + ((bonusPoints / totalPoints) * 0.5);
 
-        // Position-based multiplier
-        const positionMultiplier = 
-          player.element_type === 1 ? 0.8 :  // GKP
-          player.element_type === 2 ? 0.9 :  // DEF
-          player.element_type === 3 ? 1.1 :  // MID
-          1.2;                               // FWD
+        // Risk Penalty - penalize players not guaranteed to start
+        const riskModifier = (player.chance_of_playing_next_round || 100) / 100;
 
-        // Calculate expected points considering all factors
-        const expectedPoints = (
-          (form * 0.3) +              // 30% weight to current form
-          (pointsPerGame * 0.3) +     // 30% weight to points per game
-          (bonusPerGame * 0.2)        // 20% weight to bonus points tendency
-        ) * fixtureDifficultyMultiplier * positionMultiplier * homeAdvantage;
+        // Combined modifier
+        const finalModifier = fixtureModifier * explosivenessModifier * riskModifier;
+
+        // 4. Final Haul Potential Score
+        const haulPotential = (baseScore + formAndPotentialScore) * finalModifier;
+
+        // 5. Generate Dynamic Reason
+        let reason = `Strong pick with form of ${form} and ${player.ep_next} xP.`;
+        if (avgDifficulty <= 2) reason += " Excellent upcoming fixtures.";
+        if (explosivenessModifier > 1.2) reason += " High potential for a big score.";
+        if (ictIndex > 100) reason += " High involvement in team's play.";
+        if (dreamteamCount > 2) reason += " Consistent dream team performer.";
 
         return {
           id: player.id,
           name: player.web_name,
           position: ['GKP', 'DEF', 'MID', 'FWD'][player.element_type - 1],
           form,
-          expectedPoints,
-          fixtures: nextFixtures,
-          pointsPerGame: pointsPerGame.toFixed(1),
+          haulPotential,
+          reason,
+          fixtures: nextThreeFixtures,
+          epNext: player.ep_next,
+          ictIndex: ictIndex.toFixed(1),
           stats: {
             goals: player.goals_scored || 0,
             assists: player.assists || 0,
             cleanSheets: player.clean_sheets || 0,
             bonus: bonusPoints,
-            minutes,
+            minutes: player.minutes || 0,
+            dreamteamCount,
+            expectedGoals: player.expected_goals_per_90 || 0,
+            expectedAssists: player.expected_assists_per_90 || 0,
           }
         };
       })
-      .sort((a, b) => b.expectedPoints - a.expectedPoints)
+      .sort((a, b) => b.haulPotential - a.haulPotential)
       .slice(0, 5);
   }, [allPlayers, fixtures, teams]);
 
   return (
-    <Card className="border-yellow-200 bg-gradient-to-br from-yellow-50 to-white">
+    <Card className="border-yellow-200/50 bg-gradient-to-br from-yellow-50/80 to-white/80 backdrop-blur-sm shadow-glass-glow">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-yellow-500" />
-          Captain Picks
+          <Crown className="h-5 w-5 text-bright-amber" />
+          <span className="bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+            Captain Picks
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -125,10 +144,10 @@ export default function CaptainSuggestions({
             <div key={player.id} className="group relative">
               <div 
                 className={cn(
-                  "flex flex-col p-4 rounded-lg bg-white shadow-sm hover:shadow-md transition-all border",
-                  player.id === currentCaptainId ? "border-yellow-300 bg-yellow-50/50" : 
-                  player.id === currentViceCaptainId ? "border-yellow-200 bg-yellow-50/30" :
-                  "border-yellow-100"
+                  "flex flex-col p-4 rounded-lg bg-glass-bg backdrop-blur-sm shadow-glass hover:shadow-glass-glow transition-all border border-glass-border",
+                  player.id === currentCaptainId ? "border-bright-amber/50 bg-bright-amber/10 shadow-aurora" : 
+                  player.id === currentViceCaptainId ? "border-bright-amber/30 bg-bright-amber/5" :
+                  "hover:border-bright-amber/20"
                 )}
               >
                 <div className="flex items-center gap-3 mb-3">
@@ -140,13 +159,20 @@ export default function CaptainSuggestions({
                   <div>
                     <p className="font-medium">{player.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {player.position} • Form: {player.form} • PPG: {player.pointsPerGame}
+                      {player.position} • Form: {player.form} • xP: {player.epNext} • ICT: {player.ictIndex}
                     </p>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex flex-wrap gap-2">
+                  {/* Dynamic Reason - Fixed height for 2 lines */}
+                  <div className="text-xs text-muted-foreground bg-slate-50 p-2 rounded border h-20 flex flex-col justify-center">
+                    <p className="font-medium text-slate-700 mb-1">Why this pick:</p>
+                    <p className="line-clamp-2 leading-relaxed">{player.reason}</p>
+                  </div>
+
+                  {/* Badges section - Fixed height for 2 lines */}
+                  <div className="h-16 flex flex-wrap gap-2 content-start">
                     {player.stats.goals > 0 && (
                       <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200">
                         <Target className="h-3 w-3 mr-1" />
@@ -159,16 +185,22 @@ export default function CaptainSuggestions({
                         {player.stats.assists} Assists
                       </Badge>
                     )}
-                    {player.stats.cleanSheets > 0 && (
-                      <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
-                        <Shield className="h-3 w-3 mr-1" />
-                        {player.stats.cleanSheets} CS
+                    {player.stats.dreamteamCount > 0 && (
+                      <Badge variant="success" className="bg-neon-green text-deep-slate">
+                        <Crown className="h-3 w-3 mr-1" />
+                        {player.stats.dreamteamCount} DT
                       </Badge>
                     )}
-                    {player.stats.bonus > 0 && (
-                      <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                        <Star className="h-3 w-3 mr-1" />
-                        {player.stats.bonus} Bonus
+                    {player.stats.expectedGoals > 0 && (
+                      <Badge variant="secondary" className="bg-orange-50 text-orange-700 border-orange-200">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        xG: {player.stats.expectedGoals.toFixed(1)}
+                      </Badge>
+                    )}
+                    {player.stats.expectedAssists > 0 && (
+                      <Badge variant="secondary" className="bg-cyan-50 text-cyan-700 border-cyan-200">
+                        <Zap className="h-3 w-3 mr-1" />
+                        xA: {player.stats.expectedAssists.toFixed(1)}
                       </Badge>
                     )}
                   </div>
@@ -191,7 +223,13 @@ export default function CaptainSuggestions({
                 </div>
                 
                 <div className="mt-3 flex items-center justify-between">
-                  <Progress value={player.form * 10} className="flex-1 mr-3" />
+                  <div className="flex-1 mr-3">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>Haul Potential</span>
+                      <span>{player.haulPotential.toFixed(1)}</span>
+                    </div>
+                    <Progress value={Math.min(player.haulPotential * 2, 100)} className="h-2" />
+                  </div>
                   <Badge 
                     variant="outline" 
                     className={cn(
