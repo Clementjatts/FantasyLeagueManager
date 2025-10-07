@@ -122,13 +122,13 @@ export function ElitePlayerCard({
                     </span>
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground font-medium">
+                <div className="text-xs text-slate-400 font-medium">
                   {player.element_type === 1 ? 'GK' : 
                    player.element_type === 2 ? 'DEF' : 
                    player.element_type === 3 ? 'MID' : 'FWD'}
                 </div>
               </div>
-              <h3 className="text-sm font-semibold text-foreground truncate mt-1">
+              <h3 className="text-sm font-semibold text-white truncate mt-1">
                 {player.web_name}
               </h3>
             </div>
@@ -142,7 +142,7 @@ export function ElitePlayerCard({
                 )}>
                   {eliteOwnership.toFixed(1)}%
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-slate-400">
                   Elite Ownership
                 </div>
               </div>
@@ -186,12 +186,12 @@ export function ElitePlayerCard({
       </DialogTrigger>
       
       {/* Comprehensive Dialog */}
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto bg-slate-900 border-slate-700 text-white">
           <div className="space-y-3">
             {/* Player Info */}
             <div className="space-y-1">
               <h4 className="font-semibold text-lg">{player.web_name}</h4>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-slate-400">
                 {player.first_name} {player.second_name} • {team.name} • {player.element_type === 1 ? 'Goalkeeper' : 
                  player.element_type === 2 ? 'Defender' : 
                  player.element_type === 3 ? 'Midfielder' : 'Forward'}
@@ -203,20 +203,20 @@ export function ElitePlayerCard({
               <h5 className="font-medium text-sm">Market Stats</h5>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Price:</span>
-                  <span className="font-medium">£{price}m</span>
+                  <span className="text-slate-400">Price:</span>
+                  <span className="font-medium text-white">£{price}m</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Overall Ownership:</span>
-                  <span className="font-medium">{parseFloat(player.selected_by_percent || "0").toFixed(1)}%</span>
+                  <span className="text-slate-400">Overall Ownership:</span>
+                  <span className="font-medium text-white">{parseFloat(player.selected_by_percent || "0").toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between col-span-2">
-                  <span className="text-muted-foreground">Elite Ownership:</span>
+                  <span className="text-slate-400">Elite Ownership:</span>
                   <span className={cn("font-medium", getEliteOwnershipColor(eliteOwnership))}>
                     {eliteOwnership.toFixed(1)}%
                   </span>
                 </div>
-                <div className="col-span-2 text-xs text-muted-foreground">
+                <div className="col-span-2 text-xs text-slate-500">
                   Percentage of top 1k managers who own this player
                 </div>
               </div>
@@ -227,20 +227,20 @@ export function ElitePlayerCard({
               <h5 className="font-medium text-sm">Performance Stats</h5>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Points:</span>
-                  <span className="font-medium">{player.total_points}</span>
+                  <span className="text-slate-400">Total Points:</span>
+                  <span className="font-medium text-white">{player.total_points}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bonus Points:</span>
-                  <span className="font-medium">{player.bonus}</span>
+                  <span className="text-slate-400">Bonus Points:</span>
+                  <span className="font-medium text-white">{player.bonus}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">ICT Index:</span>
-                  <span className="font-medium">{parseFloat(player.ict_index || "0").toFixed(1)}</span>
+                  <span className="text-slate-400">ICT Index:</span>
+                  <span className="font-medium text-white">{parseFloat(player.ict_index || "0").toFixed(1)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">PPG:</span>
-                  <span className="font-medium">{parseFloat(player.points_per_game || "0").toFixed(1)}</span>
+                  <span className="text-slate-400">PPG:</span>
+                  <span className="font-medium text-white">{parseFloat(player.points_per_game || "0").toFixed(1)}</span>
                 </div>
               </div>
             </div>
@@ -250,19 +250,19 @@ export function ElitePlayerCard({
               <h5 className="font-medium text-sm">Predictive Stats</h5>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Expected Points:</span>
-                  <span className="font-medium">{epNext.toFixed(1)}</span>
+                  <span className="text-slate-400">Expected Points:</span>
+                  <span className="font-medium text-white">{epNext.toFixed(1)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">xG per 90:</span>
-                  <span className="font-medium">{parseFloat(player.expected_goals_per_90 || "0").toFixed(2)}</span>
+                  <span className="text-slate-400">xG per 90:</span>
+                  <span className="font-medium text-white">{parseFloat(player.expected_goals_per_90 || "0").toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">xA per 90:</span>
-                  <span className="font-medium">{parseFloat(player.expected_assists_per_90 || "0").toFixed(2)}</span>
+                  <span className="text-slate-400">xA per 90:</span>
+                  <span className="font-medium text-white">{parseFloat(player.expected_assists_per_90 || "0").toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Form:</span>
+                  <span className="text-slate-400">Form:</span>
                   <span className={cn("font-medium", getFormColor(player.form))}>
                     {form.toFixed(1)}
                   </span>
@@ -275,11 +275,11 @@ export function ElitePlayerCard({
               <h5 className="font-medium text-sm">Elite Captaincy</h5>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Captain:</span>
+                  <span className="text-slate-400">Captain:</span>
                   <span className="font-medium text-yellow-400">{player.captaincyCount || 0} managers</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Vice-Captain:</span>
+                  <span className="text-slate-400">Vice-Captain:</span>
                   <span className="font-medium text-gray-400">{player.viceCaptaincyCount || 0} managers</span>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export function ElitePlayerCard({
                     
                     return (
                       <div key={index} className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">
+                        <span className="text-slate-400">
                           {isHome ? 'vs' : '@'} {opponent}
                         </span>
                         <Badge 
