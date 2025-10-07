@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { type Player } from "../types/fpl";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HistoricalPlayerTableProps {
   players: Player[];
@@ -80,18 +81,31 @@ export function HistoricalPlayerTable({
 
   const SortableHeader = ({ 
     children, 
-    sortKey 
+    sortKey,
+    tooltip
   }: { 
     children: React.ReactNode;
     sortKey: keyof Player | 'position';
+    tooltip?: string;
   }) => (
-    <div 
-      className="flex items-center gap-1 cursor-pointer hover:text-primary transition-colors"
-      onClick={() => handleSort(sortKey)}
-    >
-      {children}
-      <ArrowUpDown className="w-4 h-4" />
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div 
+            className="flex w-full items-center justify-center gap-1 cursor-pointer hover:text-primary transition-colors"
+            onClick={() => handleSort(sortKey)}
+          >
+            {children}
+            <ArrowUpDown className="w-4 h-4" />
+          </div>
+        </TooltipTrigger>
+        {tooltip && (
+          <TooltipContent>
+            <span>{tooltip}</span>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
   );
 
   const totalPages = Math.ceil(sortedPlayers.length / itemsPerPage);
@@ -105,75 +119,75 @@ export function HistoricalPlayerTable({
       <div className="overflow-x-auto"> 
         <Table>
           <TableHeader>
-            <TableRow className="border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent hover:from-primary/10">
-              <TableHead className="sticky left-0 bg-background w-[200px]">
-                <SortableHeader sortKey="web_name">Player</SortableHeader>
+            <TableRow className="border-b border-border/40 bg-gradient-to-r from-primary/5 to-transparent hover:from-primary/10 divide-x divide-border/30">
+              <TableHead className="sticky left-0 bg-background w-[200px] text-center">
+                <SortableHeader sortKey="web_name" tooltip="Player name and club">Player</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="element_type">Pos</SortableHeader>
+                <SortableHeader sortKey="element_type" tooltip="Position (GK, DEF, MID, FWD)">Pos</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="now_cost">End Price</SortableHeader>
+                <SortableHeader sortKey="now_cost" tooltip="End of season price">EP</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="total_points">Total Points</SortableHeader>
+                <SortableHeader sortKey="total_points" tooltip="Total points">TP</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="points_per_game">PPG</SortableHeader>
+                <SortableHeader sortKey="points_per_game" tooltip="Points per game">PPG</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="minutes">Minutes</SortableHeader>
+                <SortableHeader sortKey="minutes" tooltip="Minutes played">Minutes</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="goals_scored">Goals</SortableHeader>
+                <SortableHeader sortKey="goals_scored" tooltip="Goals scored">Goals</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="assists">Assists</SortableHeader>
+                <SortableHeader sortKey="assists" tooltip="Assists">Assists</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="bonus">Bonus</SortableHeader>
+                <SortableHeader sortKey="bonus" tooltip="Bonus points">Bonus</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="bps">BPS</SortableHeader>
+                <SortableHeader sortKey="bps" tooltip="Bonus point system score">BPS</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="clean_sheets">CS</SortableHeader>
+                <SortableHeader sortKey="clean_sheets" tooltip="Clean sheets">CS</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="goals_conceded">GC</SortableHeader>
+                <SortableHeader sortKey="goals_conceded" tooltip="Goals conceded">GC</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="saves">Saves</SortableHeader>
+                <SortableHeader sortKey="saves" tooltip="Saves (GK)">Saves</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="penalties_saved">PS</SortableHeader>
+                <SortableHeader sortKey="penalties_saved" tooltip="Penalties saved (GK)">PS</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="penalties_missed">PM</SortableHeader>
+                <SortableHeader sortKey="penalties_missed" tooltip="Penalties missed">PM</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="yellow_cards">YC</SortableHeader>
+                <SortableHeader sortKey="yellow_cards" tooltip="Yellow cards">YC</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="red_cards">RC</SortableHeader>
+                <SortableHeader sortKey="red_cards" tooltip="Red cards">RC</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="selected_by_percent">Sel%</SortableHeader>
+                <SortableHeader sortKey="selected_by_percent" tooltip="Selected by percentage">Sel%</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="transfers_in_event">TI</SortableHeader>
+                <SortableHeader sortKey="transfers_in_event" tooltip="Transfers in (this GW)">TI</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="transfers_out_event">TO</SortableHeader>
+                <SortableHeader sortKey="transfers_out_event" tooltip="Transfers out (this GW)">TO</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="expected_goals">xG</SortableHeader>
+                <SortableHeader sortKey="expected_goals" tooltip="Expected goals">xG</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="expected_assists">xA</SortableHeader>
+                <SortableHeader sortKey="expected_assists" tooltip="Expected assists">xA</SortableHeader>
               </TableHead>
               <TableHead className="text-center">
-                <SortableHeader sortKey="ict_index">ICT</SortableHeader>
+                <SortableHeader sortKey="ict_index" tooltip="Influence, Creativity, Threat index">ICT</SortableHeader>
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -182,7 +196,7 @@ export function HistoricalPlayerTable({
               <TableRow 
                 key={player.id}
                 className={cn(
-                  "cursor-pointer transition-all duration-200 hover:bg-primary/5 hover:backdrop-blur-lg group",
+                  "cursor-pointer transition-all duration-200 hover:bg-primary/5 hover:backdrop-blur-lg group border-b border-border/20 divide-x divide-border/20",
                   selectedPlayerId === player.id && "bg-primary/10 hover:bg-primary/15",
                   highlightedPlayer?.id === player.id && "bg-blue-500/10 hover:bg-blue-500/15 ring-1 ring-blue-500/30"
                 )}
@@ -221,7 +235,7 @@ export function HistoricalPlayerTable({
                   </Badge>
                 </TableCell>
                 <TableCell className="text-center font-medium">
-                  <span className="bg-primary/5 px-2 py-1 rounded-md">
+                  <span className="bg-primary/5 px-2 py-1 rounded-md inline-block">
                     £{(player.now_cost / 10).toFixed(1)}m
                   </span>
                 </TableCell>
@@ -313,39 +327,7 @@ export function HistoricalPlayerTable({
         </Button>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          Historical Data Guide
-        </h3>
-        <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-2">
-          {[
-            { abbr: "Pos", full: "Position" },
-            { abbr: "PPG", full: "Points Per Game" },
-            { abbr: "CS", full: "Clean Sheets" },
-            { abbr: "Sel%", full: "Selected By %" },
-            { abbr: "BPS", full: "Bonus Points" },
-            { abbr: "GC", full: "Goals Conceded" },
-            { abbr: "PS", full: "Penalties Saved" },
-            { abbr: "PM", full: "Penalties Missed" },
-            { abbr: "YC", full: "Yellow Cards" },
-            { abbr: "RC", full: "Red Cards" },
-            { abbr: "TI", full: "Transfers In" },
-            { abbr: "TO", full: "Transfers Out" },
-            { abbr: "xG", full: "Expected Goals" },
-            { abbr: "xA", full: "Expected Assists" },
-            { abbr: "ICT", full: "ICT Index" },
-            { abbr: "End Price", full: "End of Season Price" },
-          ].map(({ abbr, full }) => (
-            <div 
-              key={abbr}
-              className="bg-gradient-to-br from-card to-card/80 rounded-md p-2 border border-border/40 shadow-sm hover:shadow-md transition-all hover:bg-gradient-to-br hover:from-primary/5 hover:to-primary/10"
-            >
-              <div className="font-semibold text-sm text-primary/90">{abbr}</div>
-              <div className="text-xs text-muted-foreground">{full}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+
     </div>
   );
 }

@@ -41,13 +41,7 @@ export default function PlayersPage() {
     quickFilter: undefined
   });
 
-  // Effect to automatically switch to historical tab when historical season is selected
-  // Only switch automatically when season changes, not when user manually switches tabs
-  useEffect(() => {
-    if (currentSeason && !currentSeason.isCurrent && activeTab === "current") {
-      setActiveTab("historical");
-    }
-  }, [currentSeason?.isCurrent]); // Removed activeTab from dependencies
+  // Default to current season tab on load; no auto-switching away from current
 
   // Fetch current season data (2024-25) for Current Season tab
   const { data: currentPlayers, isLoading: isLoadingCurrentPlayers } = useQuery({
@@ -56,13 +50,13 @@ export default function PlayersPage() {
     enabled: !isSeasonLoading
   });
 
-  const { data: currentFixtures } = useQuery({
+  const { data: currentFixtures, isLoading: isLoadingCurrentFixtures } = useQuery({
     queryKey: ["/api/fpl/fixtures", "2024-25"],
     queryFn: () => fetchFixtures("2024-25"),
     enabled: !isSeasonLoading
   });
 
-  const { data: currentBootstrapData } = useQuery({
+  const { data: currentBootstrapData, isLoading: isLoadingCurrentBootstrap } = useQuery({
     queryKey: ["/api/fpl/bootstrap-static", "2024-25"],
     queryFn: () => fetchBootstrapStatic("2024-25"),
     enabled: !isSeasonLoading
@@ -108,10 +102,12 @@ export default function PlayersPage() {
     });
   }, [historicalPlayers, historicalBootstrapData?.teams, search, filters]);
 
-  if (isLoadingCurrentPlayers || isSeasonLoading) {
+  const isLoadingCurrentTab = isSeasonLoading || isLoadingCurrentPlayers || isLoadingCurrentFixtures || isLoadingCurrentBootstrap;
+
+  if (isLoadingCurrentTab) {
     return <div className="space-y-4">
       <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-96 w-full" />
+      <Skeleton className="h-[560px] w-full" />
     </div>;
   }
 
@@ -181,51 +177,9 @@ export default function PlayersPage() {
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className={`gap-2 ${filters.quickFilter === 'IN_FORM' ? 'bg-primary/10' : ''}`}
-                                onClick={() => setFilters(prev => ({
-                                  ...prev,
-                                  quickFilter: prev.quickFilter === 'IN_FORM' ? undefined : 'IN_FORM'
-                                }))}
-                              >
-                                In Form
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Players with form rating above 5.0</p>
-                            </TooltipContent>
-                          </Tooltip>
-
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className={`gap-2 ${filters.quickFilter === 'BEST_VALUE' ? 'bg-primary/10' : ''}`}
-                                onClick={() => setFilters(prev => ({
-                                  ...prev,
-                                  quickFilter: prev.quickFilter === 'BEST_VALUE' ? undefined : 'BEST_VALUE'
-                                }))}
-                              >
-                                Best Value
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Players costing less than £7.0m</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-
                         <TransferFilters
-                          teams={currentBootstrapData?.teams ? 
-                            currentBootstrapData.teams
-                              .filter((team: BootstrapTeam) => currentPlayers?.some(p => p.team === team.id))
-                              .sort((a: BootstrapTeam, b: BootstrapTeam) => a.name.localeCompare(b.name))
+                          teams={currentBootstrapData?.teams 
+                            ? currentBootstrapData.teams.sort((a: BootstrapTeam, b: BootstrapTeam) => a.name.localeCompare(b.name))
                             : []}
                           onFilterChange={setFilters}
                         />
@@ -246,26 +200,33 @@ export default function PlayersPage() {
                       </div>
                     </div>
 
-                    <PlayerTable 
-                      players={filteredCurrentPlayers}
-                      fixtures={currentFixtures}
-                      teams={currentBootstrapData?.teams}
-                      selectedPlayerId={selectedPlayer?.id}
-                      highlightedPlayer={comparisonPlayer}
-                      onPlayerClick={(player) => {
-                        if (isComparisonMode) {
-                          if (!comparisonPlayer) {
-                            setComparisonPlayer(player);
+                    {isLoadingCurrentTab ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-[480px] w-full" />
+                      </div>
+                    ) : (
+                      <PlayerTable 
+                        players={filteredCurrentPlayers}
+                        fixtures={currentFixtures}
+                        teams={currentBootstrapData?.teams}
+                        selectedPlayerId={selectedPlayer?.id}
+                        highlightedPlayer={comparisonPlayer}
+                        onPlayerClick={(player) => {
+                          if (isComparisonMode) {
+                            if (!comparisonPlayer) {
+                              setComparisonPlayer(player);
+                            } else {
+                              setSelectedPlayer(player);
+                              setShowComparisonDialog(true);
+                            }
                           } else {
                             setSelectedPlayer(player);
-                            setShowComparisonDialog(true);
+                            setShowPriceDialog(true);
                           }
-                        } else {
-                          setSelectedPlayer(player);
-                          setShowPriceDialog(true);
-                        }
-                      }}
-                    />
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -351,10 +312,8 @@ export default function PlayersPage() {
                       
                       <div className="flex flex-wrap items-center gap-2">
                         <TransferFilters
-                          teams={historicalBootstrapData?.teams ? 
-                            historicalBootstrapData.teams
-                              .filter((team: BootstrapTeam) => historicalPlayers?.some(p => p.team === team.id))
-                              .sort((a: BootstrapTeam, b: BootstrapTeam) => a.name.localeCompare(b.name))
+                          teams={historicalBootstrapData?.teams 
+                            ? historicalBootstrapData.teams.sort((a: BootstrapTeam, b: BootstrapTeam) => a.name.localeCompare(b.name))
                             : []}
                           onFilterChange={setFilters}
                         />
