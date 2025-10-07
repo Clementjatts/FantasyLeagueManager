@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,7 @@ interface TransferRecommendation {
 }
 
 interface OptimalTeam {
+  mode: 'optimizer' | 'builder';
   optimalSquad: Player[];
   recommendedTransfers: TransferRecommendation[];
   pointsDelta: number;
@@ -26,6 +27,7 @@ interface OptimalTeam {
   viceCaptainId: number;
   formation: string;
   totalPoints: number;
+  remainingBudget?: number;
 }
 
 function isPlayerAvailable(player: Player): boolean {
@@ -214,6 +216,7 @@ function calculatePointsDeltaMaximizer(
   // If no positive scenario, recommend holding transfers
   if (bestScenario.pointsDelta <= 0) {
     return {
+      mode: 'optimizer',
       optimalSquad: userSquad,
       recommendedTransfers: [],
       pointsDelta: 0,
@@ -242,6 +245,7 @@ function calculatePointsDeltaMaximizer(
   const viceCaptainId = sortedByEp[1].id;
 
   return {
+    mode: 'optimizer',
     optimalSquad: optimizedSquad,
     recommendedTransfers: bestScenario.transfers,
     pointsDelta: bestScenario.pointsDelta,
@@ -268,6 +272,158 @@ function calculateAverageDifficultyNext3(teamId: number, fixtures: any[]): numbe
   }, 0);
   
   return totalDifficulty / next3Fixtures.length;
+}
+
+function buildInitialSquad(allPlayers: Player[], fixtures: any[], teams: any[]): OptimalTeam {
+  // Filter out unavailable players (chance of playing < 75%)
+  const availablePlayers = allPlayers.filter(player => {
+    const chance = player.chance_of_playing_next_round;
+    return chance === null || chance >= 75;
+  });
+
+  // Calculate Value_3GW for each player
+  const playersWithValue = availablePlayers.map(player => {
+    const epNext1 = parseFloat(player.ep_next || '0');
+    const epNext2 = parseFloat(player.ep_next || '0') * 0.9; // Slightly reduced for GW2
+    const epNext3 = parseFloat(player.ep_next || '0') * 0.8; // Further reduced for GW3
+    const value3GW = (epNext1 + epNext2 + epNext3) / (player.now_cost / 10);
+    
+    return {
+      ...player,
+      value3GW,
+      epNext1,
+      epNext2,
+      epNext3
+    };
+  });
+
+  // Initialize squad building
+  let remainingBudget = 100.0;
+  const squad: (Player & { value3GW: number; epNext1: number; epNext2: number; epNext3: number })[] = [];
+  const clubCounts: { [key: number]: number } = {};
+  const positionCounts = { gk: 0, def: 0, mid: 0, fwd: 0 };
+
+  // Greedy selection process
+  while (squad.length < 15) {
+    let bestPlayer = null;
+    let bestValue = -1;
+
+    // Find the best value player that can be legally added
+    for (const player of playersWithValue) {
+      // Skip if already in squad
+      if (squad.some(p => p.id === player.id)) continue;
+
+      // Check position limits
+      const positionKey = player.element_type === 1 ? 'gk' : 
+                         player.element_type === 2 ? 'def' : 
+                         player.element_type === 3 ? 'mid' : 'fwd';
+      
+      const maxForPosition = positionKey === 'gk' ? 2 : 
+                            positionKey === 'def' ? 5 : 
+                            positionKey === 'mid' ? 5 : 3;
+      
+      if (positionCounts[positionKey] >= maxForPosition) continue;
+
+      // Check club limit (max 3 players per club)
+      const currentClubCount = clubCounts[player.team] || 0;
+      if (currentClubCount >= 3) continue;
+
+      // Check budget
+      const playerCost = player.now_cost / 10;
+      if (playerCost > remainingBudget) continue;
+
+      // Check if this is the best value
+      if (player.value3GW > bestValue) {
+        bestValue = player.value3GW;
+        bestPlayer = player;
+      }
+    }
+
+    // Add the best player to squad
+    if (bestPlayer) {
+      squad.push(bestPlayer);
+      remainingBudget -= bestPlayer.now_cost / 10;
+      clubCounts[bestPlayer.team] = (clubCounts[bestPlayer.team] || 0) + 1;
+      
+      const positionKey = bestPlayer.element_type === 1 ? 'gk' : 
+                         bestPlayer.element_type === 2 ? 'def' : 
+                         bestPlayer.element_type === 3 ? 'mid' : 'fwd';
+      positionCounts[positionKey]++;
+    } else {
+      // No valid player found, break to avoid infinite loop
+      break;
+    }
+  }
+
+  // Sort squad by ep_next for starting XI selection
+  const sortedSquad = [...squad].sort((a, b) => b.epNext1 - a.epNext1);
+
+  // Determine starting XI and formation
+  const gks = sortedSquad.filter(p => p.element_type === 1);
+  const defs = sortedSquad.filter(p => p.element_type === 2);
+  const mids = sortedSquad.filter(p => p.element_type === 3);
+  const fwds = sortedSquad.filter(p => p.element_type === 4);
+
+  // Try different formations and pick the best one
+  const formations = [
+    { def: 3, mid: 4, fwd: 3 },
+    { def: 3, mid: 5, fwd: 2 },
+    { def: 4, mid: 3, fwd: 3 },
+    { def: 4, mid: 4, fwd: 2 },
+    { def: 5, mid: 3, fwd: 2 }
+  ];
+
+  let bestFormation = formations[0];
+  let bestScore = 0;
+
+  for (const formation of formations) {
+    if (defs.length >= formation.def && mids.length >= formation.mid && fwds.length >= formation.fwd) {
+      const score = defs.slice(0, formation.def).reduce((sum, p) => sum + p.epNext1, 0) +
+                   mids.slice(0, formation.mid).reduce((sum, p) => sum + p.epNext1, 0) +
+                   fwds.slice(0, formation.fwd).reduce((sum, p) => sum + p.epNext1, 0) +
+                   gks[0].epNext1;
+      
+      if (score > bestScore) {
+        bestScore = score;
+        bestFormation = formation;
+      }
+    }
+  }
+
+  // Create starting XI
+  const startingXI = [
+    gks[0],
+    ...defs.slice(0, bestFormation.def),
+    ...mids.slice(0, bestFormation.mid),
+    ...fwds.slice(0, bestFormation.fwd)
+  ].map((p, i) => ({ ...p, position: i + 1 }));
+
+  // Create substitutes
+  const substitutes = [
+    gks[1],
+    ...defs.slice(bestFormation.def),
+    ...mids.slice(bestFormation.mid),
+    ...fwds.slice(bestFormation.fwd)
+  ].filter(Boolean).map((p, i) => ({ ...p, position: i + 12 }));
+
+  const finalSquad = [...startingXI, ...substitutes];
+
+  // Set captain and vice-captain
+  const captainId = startingXI[0].id;
+  const viceCaptainId = startingXI[1].id;
+
+  return {
+    mode: 'builder',
+    optimalSquad: finalSquad,
+    recommendedTransfers: [],
+    pointsDelta: 0,
+    transferCost: 0,
+    captainId,
+    viceCaptainId,
+    formation: `${bestFormation.def}-${bestFormation.mid}-${bestFormation.fwd}`,
+    totalPoints: finalSquad.reduce((sum, p) => sum + p.epNext1, 0),
+    remainingBudget
+  };
 }
 
 function calculateFixtureScore(teamId: number, fixtures: any[]): number {
@@ -330,7 +486,7 @@ export default function DreamTeamPage() {
               </h1>
             </div>
             <p className="text-lg text-muted-foreground">
-              AI-powered optimal team selection based on form, fixtures, and performance
+              Data-driven optimal team selection based on form, fixtures, and performance
             </p>
           </div>
           <Card>
@@ -355,19 +511,19 @@ export default function DreamTeamPage() {
     );
   }
 
-  if (!teamId || !userTeam) {
-    return (
-      <div className="p-6">
-        <Alert>
-          <AlertDescription>
-            Please connect your FPL account to view your personalized dream team.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  const optimalTeam = calculatePointsDeltaMaximizer(userTeam, players, fixtures, bootstrap.teams);
+  // Dual-mode algorithm logic
+  const optimalTeam = useMemo(() => {
+    // Check if the user has an existing team
+    if (userTeam && userTeam.picks && userTeam.picks.length > 0) {
+      // MODE A: User is an EXISTING player
+      // Run the "Personalized Points Maximizer" algorithm
+      return calculatePointsDeltaMaximizer(userTeam, players, fixtures, bootstrap.teams);
+    } else {
+      // MODE B: User is a NEW player or no team data
+      // Run the "Initial Squad Builder" algorithm
+      return buildInitialSquad(players, fixtures, bootstrap.teams);
+    }
+  }, [userTeam, players, fixtures, bootstrap.teams]);
   
   // Get current gameweek
   const currentGameweek = bootstrap.events?.find((event: any) => event.is_current)?.id || 1;
@@ -385,36 +541,84 @@ export default function DreamTeamPage() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
-              Personalized Dream Team
+              {optimalTeam.mode === 'optimizer' ? 'Personalized Dream Team' : 'Initial Squad Builder'}
             </h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            AI-powered transfer recommendations to maximize your points for Gameweek {nextGameweek}
+            {optimalTeam.mode === 'optimizer' 
+              ? `Data-driven transfer recommendations to maximize your points for Gameweek ${nextGameweek}`
+              : `Data-driven optimal squad builder for new managers - the perfect starting team within £100m budget`
+            }
           </p>
         </div>
 
         <div className="grid gap-6">
-          {/* Transfer Recommendation Card */}
-          <TransferRecommendationCard
-            recommendedTransfers={optimalTeam.recommendedTransfers}
-            pointsDelta={optimalTeam.pointsDelta}
-            transferCost={optimalTeam.transferCost}
-            gameweek={nextGameweek}
-            teams={bootstrap.teams}
-            fixtures={fixtures}
-          />
+          {/* Transfer Recommendation Card - Only show for optimizer mode */}
+          {optimalTeam.mode === 'optimizer' && (
+            <TransferRecommendationCard
+              recommendedTransfers={optimalTeam.recommendedTransfers}
+              pointsDelta={optimalTeam.pointsDelta}
+              transferCost={optimalTeam.transferCost}
+              gameweek={nextGameweek}
+              teams={bootstrap.teams}
+              fixtures={fixtures}
+            />
+          )}
+
+          {/* Squad Builder Summary - Only show for builder mode */}
+          {optimalTeam.mode === 'builder' && (
+            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-lg">
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <div className="text-6xl mb-4">🏗️</div>
+                  <h3 className="text-2xl font-semibold text-slate-800 mb-2">Your Optimal Starting Squad</h3>
+                  <p className="text-slate-600 max-w-2xl mx-auto">
+                    This optimized squad is built using the Value_3GW algorithm, prioritizing players with the best 
+                    expected points per million over the next 3 gameweeks. Perfect for new managers looking for a 
+                    competitive starting team.
+                  </p>
+                  <div className="grid grid-cols-3 gap-4 mt-6">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600 mb-1">
+                        £{(100 - (optimalTeam.remainingBudget || 0)).toFixed(1)}m
+                      </div>
+                      <div className="text-sm text-slate-600">Total Cost</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">
+                        £{(optimalTeam.remainingBudget || 0).toFixed(1)}m
+                      </div>
+                      <div className="text-sm text-slate-600">Remaining Budget</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-indigo-600 mb-1">
+                        {optimalTeam.totalPoints.toFixed(1)}
+                      </div>
+                      <div className="text-sm text-slate-600">Expected Points</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Optimized Team Pitch */}
           <Card>
             <CardContent className="pt-6">
               <div className="mb-4">
-                <h3 className="text-xl font-semibold text-slate-100 mb-2">
-                  Your Optimized Squad for Gameweek {nextGameweek}
+                <h3 className="text-xl font-semibold text-slate-800 mb-2">
+                  {optimalTeam.mode === 'optimizer' 
+                    ? `Your Optimized Squad for Gameweek ${nextGameweek}`
+                    : `Your Optimal Starting Squad`
+                  }
                 </h3>
-                <p className="text-sm text-slate-400">
-                  {optimalTeam.recommendedTransfers.length > 0 
-                    ? `After applying the recommended transfers, your team is projected to score ${optimalTeam.totalPoints.toFixed(1)} points.`
-                    : `Your current team is already optimized and projected to score ${optimalTeam.totalPoints.toFixed(1)} points.`
+                <p className="text-sm text-slate-600">
+                  {optimalTeam.mode === 'optimizer' 
+                    ? (optimalTeam.recommendedTransfers.length > 0 
+                        ? `After applying the recommended transfers, your team is projected to score ${optimalTeam.totalPoints.toFixed(1)} points.`
+                        : `Your current team is already optimized and projected to score ${optimalTeam.totalPoints.toFixed(1)} points.`
+                      )
+                    : `This squad is built for long-term value and is projected to score ${optimalTeam.totalPoints.toFixed(1)} points in the upcoming gameweek.`
                   }
                 </p>
               </div>

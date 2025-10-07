@@ -81,9 +81,8 @@ export function TintedGlassPlayerCard({
         <Card 
           className={cn(
             "tinted-glass-card relative w-[160px] h-[140px] cursor-pointer transition-all duration-300",
-            "bg-gradient-to-br from-slate-900/70 to-slate-900/40 backdrop-blur-xl",
-            "border border-white/20 shadow-lg shadow-black/20",
-            "hover:shadow-primary/30 hover:scale-[1.03] hover:border-white/30",
+            "bg-slate-900 border border-slate-700 shadow-lg shadow-black/20",
+            "hover:shadow-primary/30 hover:scale-[1.03] hover:border-slate-600",
             "group overflow-hidden",
             isNewPlayer && "border-green-400/50 shadow-green-400/20",
             className
@@ -130,7 +129,7 @@ export function TintedGlassPlayerCard({
                  player.element_type === 3 ? 'MID' : 'FWD'}
               </div>
             </div>
-            <h3 className="text-sm font-semibold text-slate-100 truncate mt-1">
+            <h3 className="text-sm font-semibold text-white truncate mt-1">
               {player.web_name}
             </h3>
           </div>
@@ -156,7 +155,7 @@ export function TintedGlassPlayerCard({
               {/* Form */}
               <div className="flex items-center gap-1">
                 <TrendingUpIcon className={cn("w-3 h-3", getFormColor(player.form))} />
-                <span className={cn("font-medium text-slate-100", getFormColor(player.form))}>
+                <span className={cn("font-medium", getFormColor(player.form))}>
                   {form.toFixed(1)}
                 </span>
               </div>
@@ -164,7 +163,7 @@ export function TintedGlassPlayerCard({
               {/* ICT Index */}
               <div className="flex items-center gap-1">
                 <TargetIcon className="w-3 h-3 text-blue-400" />
-                <span className="font-medium text-slate-100">
+                <span className="font-medium text-white">
                   {parseFloat(player.ict_index || "0").toFixed(1)}
                 </span>
               </div>
@@ -172,7 +171,7 @@ export function TintedGlassPlayerCard({
               {/* Price */}
               <div className="flex items-center gap-1">
                 <CoinsIcon className="w-3 h-3 text-yellow-400" />
-                <span className="font-medium text-slate-100">
+                <span className="font-medium text-white">
                   £{price}m
                 </span>
               </div>
@@ -209,14 +208,14 @@ export function TintedGlassPlayerCard({
           <div className="space-y-2">
             <h5 className="font-medium text-sm">Market Stats</h5>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Price:</span>
-                <span className="font-medium text-slate-100">£{price}m</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Ownership:</span>
-                <span className="font-medium text-slate-100">{parseFloat(player.selected_by_percent || "0").toFixed(1)}%</span>
-              </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Price:</span>
+                  <span className="font-medium text-white">£{price}m</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Ownership:</span>
+                  <span className="font-medium text-white">{parseFloat(player.selected_by_percent || "0").toFixed(1)}%</span>
+                </div>
             </div>
           </div>
 
@@ -224,22 +223,22 @@ export function TintedGlassPlayerCard({
           <div className="space-y-2">
             <h5 className="font-medium text-sm">Performance Stats</h5>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Total Points:</span>
-                <span className="font-medium text-slate-100">{player.total_points}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Bonus Points:</span>
-                <span className="font-medium text-slate-100">{player.bonus}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">ICT Index:</span>
-                <span className="font-medium text-slate-100">{parseFloat(player.ict_index || "0").toFixed(1)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">PPG:</span>
-                <span className="font-medium text-slate-100">{parseFloat(player.points_per_game || "0").toFixed(1)}</span>
-              </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Total Points:</span>
+                  <span className="font-medium text-white">{player.total_points}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Bonus Points:</span>
+                  <span className="font-medium text-white">{player.bonus}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">ICT Index:</span>
+                  <span className="font-medium text-white">{parseFloat(player.ict_index || "0").toFixed(1)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">PPG:</span>
+                  <span className="font-medium text-white">{parseFloat(player.points_per_game || "0").toFixed(1)}</span>
+                </div>
             </div>
           </div>
 
@@ -253,14 +252,14 @@ export function TintedGlassPlayerCard({
                   {epNext.toFixed(1)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">xG per 90:</span>
-                <span className="font-medium text-slate-100">{parseFloat(player.expected_goals_per_90 || "0").toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">xA per 90:</span>
-                <span className="font-medium text-slate-100">{parseFloat(player.expected_assists_per_90 || "0").toFixed(2)}</span>
-              </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">xG per 90:</span>
+                  <span className="font-medium text-white">{parseFloat(player.expected_goals_per_90 || "0").toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">xA per 90:</span>
+                  <span className="font-medium text-white">{parseFloat(player.expected_assists_per_90 || "0").toFixed(2)}</span>
+                </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Form:</span>
                 <span className={cn("font-medium", getFormColor(player.form))}>
