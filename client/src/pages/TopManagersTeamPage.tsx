@@ -4,16 +4,10 @@ import { fetchPlayers, fetchBootstrapStatic, fetchFixtures, fetchTopManagersTeam
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TopManagersPitch } from "../components/pitch/TopManagersPitch";
-import { AlertCircle, ArrowLeft, RefreshCcw, SlidersHorizontal } from "lucide-react";
+import { AlertCircle, ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { type Player, type Pick } from "../types/fpl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import {
   Sheet,
@@ -24,12 +18,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-
-interface PlayerCardProps {
-  player: Player & { position: number; selection_percentage: number };
-  team: { short_name: string; name: string };
-}
 
 interface TeamStats {
   teamId: number;
@@ -38,41 +26,6 @@ interface TeamStats {
   averagePrice: number;
   totalSelectionPercentage: number;
 }
-
-const PlayerCard = ({ player, team }: PlayerCardProps) => (
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <li className="flex justify-between items-center text-sm p-2 rounded-lg bg-gradient-to-r from-background to-muted hover:from-muted/50 hover:to-muted transition-colors duration-200">
-          <span className="flex items-center gap-3">
-            <span className="w-8 h-8 flex items-center justify-center text-xs font-semibold bg-primary/10 text-primary rounded-md">
-              {team?.short_name}
-            </span>
-            <span className="font-medium">{player.web_name}</span>
-            <span className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">
-              {player.selection_percentage?.toFixed(1)}%
-            </span>
-          </span>
-          <span className="font-medium text-primary">
-            £{(player.now_cost / 10).toFixed(1)}m
-          </span>
-        </li>
-      </TooltipTrigger>
-      <TooltipContent>
-        <div className="space-y-1">
-          <p className="font-medium">{player.web_name}</p>
-          <p className="text-sm text-muted-foreground">Form: {player.form}</p>
-          <p className="text-sm text-muted-foreground">Points: {player.total_points}</p>
-          <p className="text-sm text-muted-foreground">Team: {team.name}</p>
-          <div className="flex gap-2 mt-1">
-            <Badge variant="outline">ICT: {player.ict_index}</Badge>
-            <Badge variant="outline">PPG: {player.points_per_game}</Badge>
-          </div>
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-);
 
 const TeamStatsCard = ({ stats }: { stats: TeamStats }) => (
   <Card>
@@ -90,7 +43,7 @@ const TeamStatsCard = ({ stats }: { stats: TeamStats }) => (
           <span className="font-medium">£{stats.averagePrice.toFixed(1)}m</span>
         </p>
         <p className="flex justify-between">
-          <span className="text-muted-foreground">Avg. Selection:</span>
+          <span className="text-muted-foreground">Avg. Elite Ownership:</span>
           <span className="font-medium">{(stats.totalSelectionPercentage / stats.playerCount).toFixed(1)}%</span>
         </p>
       </div>
@@ -156,10 +109,21 @@ export default function TopManagersTeamPage() {
         return {
           ...player,
           position: pick.position,
-          selection_percentage: pick.selection_percentage,
+          eliteOwnership: pick.eliteOwnership || 0,
+          captaincyCount: pick.captaincyCount || 0,
+          viceCaptaincyCount: pick.viceCaptaincyCount || 0,
+          is_captain: pick.is_captain,
+          is_vice_captain: pick.is_vice_captain,
         };
       })
-      .filter((player): player is (Player & { position: number; selection_percentage: number }) => player !== null);
+      .filter((player): player is (Player & { 
+        position: number; 
+        eliteOwnership: number;
+        captaincyCount: number;
+        viceCaptaincyCount: number;
+        is_captain: boolean;
+        is_vice_captain: boolean;
+      }) => player !== null);
 
     return {
       startingXI: mapPicks(topManagersTeam.picks.filter(pick => pick.position <= 11)),
@@ -188,7 +152,7 @@ export default function TopManagersTeamPage() {
 
       existing.playerCount++;
       existing.averagePrice += player.now_cost / 10;
-      existing.totalSelectionPercentage += player.selection_percentage;
+      existing.totalSelectionPercentage += player.eliteOwnership;
 
       statsMap.set(team.id, existing);
     });
@@ -201,19 +165,7 @@ export default function TopManagersTeamPage() {
       .sort((a, b) => b.playerCount - a.playerCount);
   }, [allPlayers, bootstrapData?.teams]);
 
-  const playersByPosition = useMemo(() => ({
-    Goalkeepers: allPlayers.filter(p => p.element_type === 1),
-    Defenders: allPlayers.filter(p => p.element_type === 2),
-    Midfielders: allPlayers.filter(p => p.element_type === 3),
-    Forwards: allPlayers.filter(p => p.element_type === 4)
-  }), [allPlayers]);
 
-  const handleRefresh = () => {
-    refetchPlayers();
-    refetchBootstrap();
-    refetchFixtures();
-    refetchTopTeam();
-  };
 
   if (isLoading) {
     return (
@@ -290,7 +242,7 @@ export default function TopManagersTeamPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
-                Most Selected Players in FPL
+                Elite Managers' Team
               </h1>
             </div>
             <div className="flex items-center gap-2">
@@ -321,18 +273,10 @@ export default function TopManagersTeamPage() {
                   </ScrollArea>
                 </SheetContent>
               </Sheet>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleRefresh}
-                className="ml-2"
-              >
-                <RefreshCcw className="h-4 w-4" />
-              </Button>
             </div>
           </div>
           <p className="text-lg text-muted-foreground">
-            Most selected players by all FPL managers
+            The most selected players by the top 1,000 FPL managers worldwide
           </p>
         </div>
 
@@ -343,34 +287,6 @@ export default function TopManagersTeamPage() {
             fixtures={fixtures}
             teams={bootstrapData?.teams}
           />
-
-          <div className="mt-6">
-            <h2 className="text-2xl font-semibold mb-4">Selection Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {Object.entries(playersByPosition).map(([position, positionPlayers]) => (
-                <Card key={position}>
-                  <CardHeader>
-                    <CardTitle className="text-lg font-semibold">{position}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ScrollArea className="h-[300px] pr-4">
-                      <ul className="space-y-3">
-                        {positionPlayers
-                          .sort((a, b) => b.selection_percentage - a.selection_percentage)
-                          .map(player => (
-                            <PlayerCard
-                              key={player.id}
-                              player={player}
-                              team={bootstrapData.teams.find(t => t.id === player.team)!}
-                            />
-                          ))}
-                      </ul>
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

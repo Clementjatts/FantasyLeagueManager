@@ -113,6 +113,9 @@ export interface Pick {
   multiplier: number;
   event_points?: number;
   selection_percentage?: number;
+  eliteOwnership?: number;
+  captaincyCount?: number;
+  viceCaptaincyCount?: number;
 }
 
 export interface Chip {

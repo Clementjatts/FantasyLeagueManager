@@ -457,6 +457,9 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
 
   app.get("/api/fpl/top-managers-team", async (req, res) => {
     try {
+      console.log("Starting Elite Cohort Analysis...");
+      
+      // Step 1: Fetch bootstrap static data
       console.log("Fetching bootstrap static data...");
       const bootstrapResponse = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/", {
         headers: {
@@ -473,25 +476,137 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
       const bootstrapData = await bootstrapResponse.json();
       console.log("Successfully fetched bootstrap data");
       
-      // Instead of fetching top managers, we'll use the most selected players directly from bootstrap data
-      const playersByPosition = bootstrapData.elements.reduce((acc: any, player: any) => {
+      // Step 2: Fetch the Elite - Get top 1000 managers from Overall League (ID: 314)
+      console.log("Fetching elite managers from Overall League...");
+      const leagueResponse = await fetch("https://fantasy.premierleague.com/api/leagues-classic/314/standings/?page_standings=1", {
+        headers: {
+          'User-Agent': 'Mozilla/5.0',
+          'Accept': 'application/json, text/plain, */*'
+        }
+      });
+      
+      if (!leagueResponse.ok) {
+        console.error("Failed to fetch league standings:", await leagueResponse.text());
+        return res.status(500).json({ message: "Failed to fetch elite managers data" });
+      }
+      
+      const leagueData = await leagueResponse.json();
+      const eliteManagers = leagueData.standings?.results?.slice(0, 1000) || [];
+      console.log(`Found ${eliteManagers.length} elite managers`);
+      
+      if (eliteManagers.length === 0) {
+        return res.status(500).json({ message: "No elite managers found" });
+      }
+      
+      // Step 3: Get current gameweek
+      const currentEvent = bootstrapData.events?.find((event: any) => event.is_current)?.id || 1;
+      console.log(`Current gameweek: ${currentEvent}`);
+      
+      // Step 4: Sample the Cohort - Fetch team picks for each elite manager
+      console.log("Fetching team picks for elite managers...");
+      const eliteOwnership: { [playerId: number]: number } = {};
+      const captaincyCount: { [playerId: number]: number } = {};
+      const viceCaptaincyCount: { [playerId: number]: number } = {};
+      
+      // Process managers in batches to avoid overwhelming the API
+      const batchSize = 50;
+      const totalBatches = Math.ceil(eliteManagers.length / batchSize);
+      
+      for (let batch = 0; batch < totalBatches; batch++) {
+        const startIndex = batch * batchSize;
+        const endIndex = Math.min(startIndex + batchSize, eliteManagers.length);
+        const batchManagers = eliteManagers.slice(startIndex, endIndex);
+        
+        console.log(`Processing batch ${batch + 1}/${totalBatches} (managers ${startIndex + 1}-${endIndex})`);
+        
+        // Process batch in parallel
+        const batchPromises = batchManagers.map(async (manager: any) => {
+          try {
+            const picksResponse = await fetch(
+              `https://fantasy.premierleague.com/api/entry/${manager.entry}/event/${currentEvent}/picks/`,
+              {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0',
+                  'Accept': 'application/json, text/plain, */*'
+                }
+              }
+            );
+            
+            if (picksResponse.ok) {
+              const picksData = await picksResponse.json();
+              const picks = picksData.picks || [];
+              
+              // Count ownership and captaincy
+              picks.forEach((pick: any) => {
+                if (pick.element) {
+                  eliteOwnership[pick.element] = (eliteOwnership[pick.element] || 0) + 1;
+                  
+                  if (pick.is_captain) {
+                    captaincyCount[pick.element] = (captaincyCount[pick.element] || 0) + 1;
+                  }
+                  
+                  if (pick.is_vice_captain) {
+                    viceCaptaincyCount[pick.element] = (viceCaptaincyCount[pick.element] || 0) + 1;
+                  }
+                }
+              });
+            }
+          } catch (error) {
+            console.error(`Error fetching picks for manager ${manager.entry}:`, error);
+          }
+        });
+        
+        await Promise.all(batchPromises);
+        
+        // Add delay between batches to be respectful to the API
+        if (batch < totalBatches - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+      
+      console.log(`Processed ${Object.keys(eliteOwnership).length} unique players`);
+      
+      // Step 5: Calculate Elite Ownership % and build the Elite XI
+      const totalEliteManagers = eliteManagers.length;
+      const playersWithEliteOwnership = bootstrapData.elements.map((player: any) => ({
+        ...player,
+        eliteOwnership: ((eliteOwnership[player.id] || 0) / totalEliteManagers) * 100,
+        captaincyCount: captaincyCount[player.id] || 0,
+        viceCaptaincyCount: viceCaptaincyCount[player.id] || 0
+      }));
+      
+      // Group players by position and sort by elite ownership
+      const playersByPosition = playersWithEliteOwnership.reduce((acc: any, player: any) => {
         if (!acc[player.element_type]) {
           acc[player.element_type] = [];
         }
-        acc[player.element_type].push({
-          ...player,
-          selection_percentage: parseFloat(player.selected_by_percent)
-        });
+        acc[player.element_type].push(player);
         return acc;
       }, {});
       
-      // Select the most popular players for each position
-      const gkps = playersByPosition[1].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 2);
-      const defs = playersByPosition[2].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 5);
-      const mids = playersByPosition[3].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 5);
-      const fwds = playersByPosition[4].sort((a: any, b: any) => b.selection_percentage - a.selection_percentage).slice(0, 3);
+      // Sort each position by elite ownership
+      Object.keys(playersByPosition).forEach(position => {
+        playersByPosition[position].sort((a: any, b: any) => b.eliteOwnership - a.eliteOwnership);
+      });
       
-      // Create team structure with selection percentages
+      // Select the most elite-owned players for each position
+      const gkps = playersByPosition[1]?.slice(0, 2) || [];
+      const defs = playersByPosition[2]?.slice(0, 5) || [];
+      const mids = playersByPosition[3]?.slice(0, 5) || [];
+      const fwds = playersByPosition[4]?.slice(0, 3) || [];
+      
+      // Determine captain and vice-captain from elite cohort
+      const allPlayers = [...gkps, ...defs, ...mids, ...fwds];
+      const captain = allPlayers.reduce((prev, current) => 
+        (current.captaincyCount > prev.captaincyCount) ? current : prev
+      );
+      const viceCaptain = allPlayers
+        .filter(player => player.id !== captain.id)
+        .reduce((prev, current) => 
+          (current.viceCaptaincyCount > prev.viceCaptaincyCount) ? current : prev
+        );
+      
+      // Create team structure with elite ownership data
       const teamData = {
         picks: [
           // Starting XI
@@ -501,9 +616,11 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             selling_price: player.now_cost,
             multiplier: 1,
             purchase_price: player.now_cost,
-            is_captain: false,
-            is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            is_captain: player.id === captain.id,
+            is_vice_captain: player.id === viceCaptain.id,
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           ...defs.slice(0, 4).map((player: any, index: number) => ({
             element: player.id,
@@ -511,9 +628,11 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             selling_price: player.now_cost,
             multiplier: 1,
             purchase_price: player.now_cost,
-            is_captain: index === 0,
-            is_vice_captain: index === 1,
-            selection_percentage: player.selection_percentage
+            is_captain: player.id === captain.id,
+            is_vice_captain: player.id === viceCaptain.id,
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           ...mids.slice(0, 4).map((player: any, index: number) => ({
             element: player.id,
@@ -521,9 +640,11 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             selling_price: player.now_cost,
             multiplier: 1,
             purchase_price: player.now_cost,
-            is_captain: false,
-            is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            is_captain: player.id === captain.id,
+            is_vice_captain: player.id === viceCaptain.id,
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           ...fwds.slice(0, 2).map((player: any, index: number) => ({
             element: player.id,
@@ -531,9 +652,11 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             selling_price: player.now_cost,
             multiplier: 1,
             purchase_price: player.now_cost,
-            is_captain: false,
-            is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            is_captain: player.id === captain.id,
+            is_vice_captain: player.id === viceCaptain.id,
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           // Substitutes
           ...gkps.slice(1).map((player: any) => ({
@@ -544,7 +667,9 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             purchase_price: player.now_cost,
             is_captain: false,
             is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           ...defs.slice(4).map((player: any) => ({
             element: player.id,
@@ -554,7 +679,9 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             purchase_price: player.now_cost,
             is_captain: false,
             is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           ...mids.slice(4).map((player: any) => ({
             element: player.id,
@@ -564,7 +691,9 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             purchase_price: player.now_cost,
             is_captain: false,
             is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           })),
           ...fwds.slice(2).map((player: any) => ({
             element: player.id,
@@ -574,7 +703,9 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
             purchase_price: player.now_cost,
             is_captain: false,
             is_vice_captain: false,
-            selection_percentage: player.selection_percentage
+            eliteOwnership: player.eliteOwnership,
+            captaincyCount: player.captaincyCount,
+            viceCaptaincyCount: player.viceCaptaincyCount
           }))
         ],
         transfers: {
@@ -591,17 +722,24 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
           bank: 0,
           team_value: 1000,
           total_value: 1000
+        },
+        meta: {
+          totalEliteManagers: totalEliteManagers,
+          currentGameweek: currentEvent,
+          algorithm: "Elite Cohort Analysis"
         }
       };
       
-      console.log("Sending team data:", JSON.stringify(teamData, null, 2));
+      console.log("Elite Cohort Analysis completed successfully");
+      console.log(`Captain: ${captain.web_name} (${captain.captaincyCount} selections)`);
+      console.log(`Vice-Captain: ${viceCaptain.web_name} (${viceCaptain.viceCaptaincyCount} selections)`);
       
       res.setHeader('Content-Type', 'application/json');
       return res.json(teamData);
     } catch (error) {
-      console.error("Server error:", error);
+      console.error("Elite Cohort Analysis error:", error);
       return res.status(500).json({ 
-        message: "Failed to fetch top managers team",
+        message: "Failed to fetch elite managers team",
         error: error instanceof Error ? error.message : String(error)
       });
     }
