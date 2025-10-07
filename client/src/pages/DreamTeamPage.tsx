@@ -625,8 +625,6 @@ export default function DreamTeamPage() {
               <DreamPitch 
                 players={optimalTeam.optimalSquad.filter(p => p.position <= 11)}
                 substitutes={optimalTeam.optimalSquad.filter(p => p.position > 11)}
-                captainId={optimalTeam.captainId}
-                viceCaptainId={optimalTeam.viceCaptainId}
                 fixtures={fixtures}
                 teams={bootstrap.teams}
               />

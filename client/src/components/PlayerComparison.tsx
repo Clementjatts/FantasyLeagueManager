@@ -88,24 +88,34 @@ function StatComparison({
           )}
         </div>
       </div>
-      <div className="flex gap-1">
-        <Progress 
-          value={progress1} 
-          className={cn(
-            "h-2",
-            better ? "bg-green-500/20" : value2 ? "bg-red-500/20" : ""
-          )}
-        />
-        {value2 && (
+      {value2 ? (
+        <div className="grid grid-cols-2 gap-2">
+          <Progress 
+            value={progress1} 
+            className={cn(
+              "h-2 w-full",
+              better ? "bg-green-500/20" : "bg-red-500/20"
+            )}
+          />
           <Progress 
             value={progress2} 
             className={cn(
-              "h-2",
+              "h-2 w-full",
               !better ? "bg-green-500/20" : "bg-red-500/20"
             )}
           />
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1">
+          <Progress 
+            value={progress1} 
+            className={cn(
+              "h-2 w-full",
+              "bg-primary/20"
+            )}
+          />
+        </div>
+      )}
     </div>
   );
 }

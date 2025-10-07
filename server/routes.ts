@@ -1,8 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { db } from "../db";
-import { teams } from "../db/schema";
-import { eq } from "drizzle-orm";
+// Drizzle is being deprecated; future mutations should be handled client-side or via Firestore
 import { transformPlayerDataForSeason, getSeasonStats } from "./services/historicalDataService";
 import { fetchHistoricalPlayers, fetchHistoricalBootstrapData } from "./services/realHistoricalDataService";
 import { fetchEnhancedFPLData } from "./services/enhancedFPLDataService";
@@ -16,8 +14,8 @@ interface GameweekHistory {
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
-  // Set port from environment or use 5000 as fallback
-  const port = process.env.PORT || 5000;
+  // Always use port 3000 (align with dev preference)
+  const port = 3000;
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
@@ -314,108 +312,12 @@ app.get("/api/fpl/my-team/:managerId/", async (req, res) => {
     }
   });
 
-  app.post("/api/fpl/transfers", async (req, res) => {
-    const { playerId, outId } = req.body;
-    
-    try {
-      const team = await db.query.teams.findFirst({
-        where: eq(teams.userId, 1),
-      });
-      
-      if (!team) {
-        res.status(404).json({ message: "Team not found" });
-        return;
-      }
-      
-      // Get the current picks and transfers
-      const picks = Array.isArray(team.picks) ? team.picks : [];
-      const transfers = team.transfers as any;
-      
-      // Validate transfer
-      if (transfers.limit <= 0) {
-        res.status(400).json({ message: "No free transfers available" });
-        return;
-      }
-      
-      // Get the positions of both players
-      const outPlayer = picks.find(p => p.element === outId);
-      if (!outPlayer) {
-        res.status(400).json({ message: "Player not found in your team" });
-        return;
-      }
-      
-      // Validate position replacement
-      const response = await fetch("https://fantasy.premierleague.com/api/bootstrap-static/");
-      const data = await response.json();
-      const newPlayer = data.elements.find((p: any) => p.id === playerId);
-      const oldPlayer = data.elements.find((p: any) => p.id === outId);
-      
-      if (!newPlayer || !oldPlayer) {
-        res.status(400).json({ message: "Invalid player selection" });
-        return;
-      }
-      
-      // Ensure players are of the same position type
-      if (newPlayer.element_type !== oldPlayer.element_type) {
-        res.status(400).json({ message: "Players must be of the same position" });
-        return;
-      }
-      
-      // Update picks by replacing the outgoing player
-      const updatedPicks = picks.map(pick => 
-        pick.element === outId ? { ...pick, element: playerId } : pick
-      );
-      
-      // Update transfers count and save
-      const updatedTransfers = {
-        ...transfers,
-        limit: transfers.limit - 1,
-        made: transfers.made + 1,
-      };
-      
-      await db.update(teams)
-        .set({ 
-          picks: updatedPicks,
-          transfers: updatedTransfers,
-          updatedAt: new Date(),
-        })
-        .where(eq(teams.userId, 1));
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Transfer error:", error);
-      res.status(500).json({ message: "Failed to make transfer" });
-    }
+  app.post("/api/fpl/transfers", async (_req, res) => {
+    res.status(410).json({ message: "Transfers mutation is deprecated in this server. Use client workflows." });
   });
 
-  app.post("/api/fpl/captains", async (req, res) => {
-    const { captainId, viceCaptainId } = req.body;
-    
-    try {
-      const team = await db.query.teams.findFirst({
-        where: eq(teams.userId, 1),
-      });
-      
-      if (!team) {
-        res.status(404).json({ message: "Team not found" });
-        return;
-      }
-      
-      const picks = team.picks as any[];
-      const updatedPicks = picks.map(pick => ({
-        ...pick,
-        is_captain: pick.element === captainId,
-        is_vice_captain: pick.element === viceCaptainId,
-      }));
-      
-      await db.update(teams)
-        .set({ picks: updatedPicks })
-        .where(eq(teams.userId, 1));
-      
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update captains" });
-    }
+  app.post("/api/fpl/captains", async (_req, res) => {
+    res.status(410).json({ message: "Captain updates are deprecated in this server. Use client workflows." });
   });
   
   app.get("/api/fpl/next-deadline", async (req, res) => {

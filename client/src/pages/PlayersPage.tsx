@@ -17,6 +17,7 @@ import { useSeason } from "../contexts/SeasonContext";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Scale, Info, Calendar, History } from "lucide-react";
+import { HistoricalPlayerSummary } from "@/components/HistoricalPlayerSummary";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type Player, type BootstrapTeam } from "../types/fpl";
 import {
@@ -35,6 +36,7 @@ export default function PlayersPage() {
   const [showPriceDialog, setShowPriceDialog] = useState(false);
   const [showComparisonDialog, setShowComparisonDialog] = useState(false);
   const [activeTab, setActiveTab] = useState("current"); // Add state for active tab
+  const [showHistoricalDialog, setShowHistoricalDialog] = useState(false);
   const [filters, setFilters] = useState<FilterOptions>({
     team: 'ALL',
     position: 'ALL',
@@ -349,12 +351,8 @@ export default function PlayersPage() {
                           }
                         } else {
                           setSelectedPlayer(player);
-                          // For historical data, show comparison instead of price tracking
-                          if (!comparisonPlayer) {
-                            setComparisonPlayer(player);
-                          } else {
-                            setShowComparisonDialog(true);
-                          }
+                          // For historical data, show summary dialog instead of price tracking
+                          setShowHistoricalDialog(true);
                         }
                       }}
                     />
@@ -399,6 +397,18 @@ export default function PlayersPage() {
                   comparedPlayer={comparisonPlayer}
                 />
               </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Historical Player Summary Dialog */}
+        <Dialog open={showHistoricalDialog} onOpenChange={setShowHistoricalDialog}>
+          <DialogContent className="max-w-3xl">
+            {selectedPlayer && (
+              <HistoricalPlayerSummary 
+                player={selectedPlayer}
+                team={historicalBootstrapData?.teams?.find((t: any) => t.id === selectedPlayer.team)}
+              />
             )}
           </DialogContent>
         </Dialog>

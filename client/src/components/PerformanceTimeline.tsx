@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 interface GameweekData {
   gameweek: number;
   points: number;
+  average?: number; // league average for the GW
 }
 
 interface PerformanceTimelineProps {
@@ -48,6 +49,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
   const sortedData = [...data].sort((a, b) => a.gameweek - b.gameweek);
   const maxPoints = Math.max(...sortedData.map(d => d.points));
   const minPoints = Math.min(...sortedData.map(d => d.points));
+  const hasAverage = sortedData.some(d => typeof d.average === "number");
   const latestGameweek = sortedData[sortedData.length - 1];
 
   // Calculate points trend
@@ -66,9 +68,38 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
     return `${x},${y}`;
   }).join(' ');
 
+  const averagePoints = hasAverage ? sortedData.map((d, i) => {
+    const x = sortedData.length > 1 ? (i / (sortedData.length - 1)) * width : width / 2;
+    const avgVal = d.average ?? 0;
+    const y = maxPoints !== minPoints 
+      ? height - ((avgVal - minPoints) / (maxPoints - minPoints)) * height
+      : height / 2;
+    return `${x},${y}`;
+  }).join(' ') : null;
+
   return (
     <div className="flex flex-col space-y-4">
-      {/* Latest points card with trend */}
+      {/* If few points (<5), show simplified stat cards instead of chart */}
+      {sortedData.length < 5 ? (
+        <div className="grid grid-cols-3 gap-2 text-sm">
+          <div className="p-3 rounded-lg bg-primary/5">
+            <div className="text-muted-foreground">Latest</div>
+            <div className="text-2xl font-bold">{latestGameweek.points}</div>
+          </div>
+          <div className="p-3 rounded-lg bg-primary/5">
+            <div className="text-muted-foreground">Average</div>
+            <div className="text-2xl font-bold">
+              {Math.round(sortedData.reduce((a, c) => a + c.points, 0) / sortedData.length)}
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-primary/5">
+            <div className="text-muted-foreground">Highest</div>
+            <div className="text-2xl font-bold">{maxPoints}</div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Latest points card with trend */}
       <div className="flex items-center justify-between p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
         <div>
           <div className="text-sm font-medium text-muted-foreground">Latest (GW {latestGameweek.gameweek})</div>
@@ -108,6 +139,19 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
             strokeLinecap="round"
             strokeLinejoin="round"
           />
+
+              {/* Average line if provided */}
+              {averagePoints && (
+                <polyline
+                  points={averagePoints}
+                  fill="none"
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeWidth="1.5"
+                  strokeDasharray="3 3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
           
           {/* Latest point highlight */}
           <circle
@@ -157,6 +201,8 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
           <div className="font-bold">{minPoints}</div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

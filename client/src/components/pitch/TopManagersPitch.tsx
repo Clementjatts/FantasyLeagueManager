@@ -40,8 +40,8 @@ export function TopManagersPitch({
             team={team}
             fixtures={fixtures}
             teams={teams}
-            isCaptain={player.is_captain}
-            isViceCaptain={player.is_vice_captain}
+            isCaptain={false}
+            isViceCaptain={false}
             className="w-[160px] h-[140px]"
           />
         );
