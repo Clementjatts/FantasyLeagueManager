@@ -1,5 +1,5 @@
 import { Player } from "../../types/fpl";
-import { PlayerCard } from "../PlayerCard";
+import { TintedGlassPlayerCard } from "../TintedGlassPlayerCard";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUpIcon, StarIcon, AlertCircle } from "lucide-react";
@@ -123,30 +123,35 @@ export function DreamPitch({
     <BasePitch
       players={players}
       substitutes={substitutes}
-      renderPlayer={(player: Player, isSubstitute: boolean) => (
-        <div className="relative pt-2">
-          {getPlayerIndicators(player, showOptimalReasons)}
-          <PlayerCard
-            player={player}
-            className={cn(
-              "w-[160px] h-[120px]",
-              "transition-transform hover:scale-105 text-center cursor-pointer",
-              isSubstitute && "opacity-80 hover:opacity-100"
+      renderPlayer={(player: Player, isSubstitute: boolean) => {
+        const team = teams?.find((t: any) => t.id === player.team);
+        if (!team) return null;
+
+        return (
+          <div className="relative pt-2">
+            {getPlayerIndicators(player, showOptimalReasons)}
+            <TintedGlassPlayerCard
+              player={player}
+              team={team}
+              fixtures={fixtures}
+              teams={teams}
+              isCaptain={player.id === captainId}
+              isViceCaptain={player.id === viceCaptainId}
+              isNewPlayer={!player.isUserPlayer} // Show as new if not a user's original player
+              className={cn(
+                "w-[160px] h-[140px]",
+                "transition-transform hover:scale-105 text-center cursor-pointer",
+                isSubstitute && "opacity-80 hover:opacity-100"
+              )}
+            />
+            {showOptimalReasons && player.optimal_reason && !isSubstitute && (
+              <div className="absolute -bottom-6 left-0 right-0 text-xs text-center text-primary bg-background/90 p-1 rounded-md shadow-sm">
+                {player.optimal_reason}
+              </div>
             )}
-            teams={teams}
-            fixtures={fixtures}
-            isCaptain={player.id === captainId}
-            isViceCaptain={player.id === viceCaptainId}
-            displayContext="transfer"
-            showTransferInfo={true}
-          />
-          {showOptimalReasons && player.optimal_reason && !isSubstitute && (
-            <div className="absolute -bottom-6 left-0 right-0 text-xs text-center text-primary bg-background/90 p-1 rounded-md shadow-sm">
-              {player.optimal_reason}
-            </div>
-          )}
-        </div>
-      )}
+          </div>
+        );
+      }}
     />
   );
 }

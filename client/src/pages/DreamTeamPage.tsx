@@ -8,12 +8,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DreamPitch } from "../components/pitch/DreamPitch";
 import { DreamTeamLegend } from "../components/DreamTeamLegend";
-import { fetchPlayers, fetchFixtures, fetchBootstrapStatic } from "../lib/api";
-import { type Player } from "../types/fpl";
+import { TransferRecommendationCard } from "../components/TransferRecommendationCard";
+import { fetchPlayers, fetchFixtures, fetchBootstrapStatic, fetchMyTeam } from "../lib/api";
+import { type Player, type Team } from "../types/fpl";
+
+interface TransferRecommendation {
+  out: Player;
+  in: Player;
+}
 
 interface OptimalTeam {
-  firstTeam: Player[];
-  substitutes: Player[];
+  optimalSquad: Player[];
+  recommendedTransfers: TransferRecommendation[];
+  pointsDelta: number;
+  transferCost: number;
   captainId: number;
   viceCaptainId: number;
   formation: string;
@@ -35,99 +43,231 @@ function isPlayerAvailable(player: Player): boolean {
   return true;
 }
 
-function calculateOptimalTeam(allPlayers: Player[], fixtures: any[], teams: any[]): OptimalTeam {
-  // Filter out injured and unavailable players first
-  const availablePlayers = allPlayers.filter(isPlayerAvailable);
+function calculatePointsDeltaMaximizer(
+  userTeam: Team, 
+  allPlayers: Player[], 
+  fixtures: any[], 
+  teams: any[]
+): OptimalTeam {
+  // Get user's current squad
+  const userSquad = userTeam.picks.map(pick => ({
+    ...allPlayers.find(p => p.id === pick.element)!,
+    position: pick.position,
+    isUserPlayer: true
+  }));
 
-  // Calculate player scores based on multiple factors for better points prediction
-  const playerScores = availablePlayers.map(player => {
-    const form = parseFloat(player.form || '0') * 1.5;
-    const ppg = parseFloat(player.points_per_game || '0');
-    const fixtures_score = calculateFixtureScore(player.team, fixtures);
-    const minutes_factor = Math.min(player.minutes / 900, 1);
-    const bonus_factor = (player.bonus / Math.max(player.minutes / 90, 1)) * 2;
+  const bank = userTeam.stats?.bank || 0;
+  const freeTransfers = userTeam.transfers?.limit || 0;
 
-    // Add availability factor - reduce score if there's any doubt about playing
-    const availabilityFactor = player.chance_of_playing_next_round === null ? 
-      1 : player.chance_of_playing_next_round / 100;
-
-    const expected_points = (
-      (form * 0.35) +
-      (ppg * 0.25) +
-      (fixtures_score * 0.20) +
-      (minutes_factor * 0.10) +
-      (bonus_factor * 0.10)
-    ) * 6 * availabilityFactor;
-
+  // Calculate Keep Score for each player in user's squad
+  const userSquadWithKeepScore = userSquad.map(player => {
+    const epNext = parseFloat(player.ep_next || '0');
+    const form = parseFloat(player.form || '0');
+    const ictIndex = parseFloat(player.ict_index || '0');
+    const avgDifficultyNext3 = calculateAverageDifficultyNext3(player.team, fixtures);
+    
+    const keepScore = (epNext * 0.5) + (form * 0.2) + (ictIndex * 0.1) - (avgDifficultyNext3 * 0.2);
+    
     return {
       ...player,
-      score: expected_points,
-      is_optimal: true,
-      optimal_reason: ''
+      keepScore
     };
   });
 
-  const goalkeepers = playerScores.filter(p => p.element_type === 1).sort((a, b) => b.score - a.score);
-  const defenders = playerScores.filter(p => p.element_type === 2).sort((a, b) => b.score - a.score);
-  const midfielders = playerScores.filter(p => p.element_type === 3).sort((a, b) => b.score - a.score);
-  const forwards = playerScores.filter(p => p.element_type === 4).sort((a, b) => b.score - a.score);
+  // Identify weakest links (candidates for transfer OUT)
+  const transferOutCandidates = userSquadWithKeepScore
+    .sort((a, b) => a.keepScore - b.keepScore)
+    .slice(0, 4);
 
-  const formations = [
-    { def: 4, mid: 3, fwd: 3 },
-    { def: 3, mid: 5, fwd: 2 },
-    { def: 4, mid: 4, fwd: 2 },
-    { def: 5, mid: 3, fwd: 2 },
-    { def: 4, mid: 5, fwd: 1 }
-  ];
+  // Calculate Target Score for all available players (excluding user's players)
+  const availablePlayers = allPlayers
+    .filter(p => !userSquad.some(up => up.id === p.id))
+    .filter(isPlayerAvailable);
 
-  let bestFormation = formations[0];
-  let highestScore = 0;
+  const targetPlayers = availablePlayers.map(player => {
+    const epNext = parseFloat(player.ep_next || '0');
+    const form = parseFloat(player.form || '0');
+    const ictIndex = parseFloat(player.ict_index || '0');
+    
+    const targetScore = (epNext * 1.2) + (form * 0.5) + (ictIndex * 0.2);
+    
+    return {
+      ...player,
+      targetScore
+    };
+  });
 
-  formations.forEach(formation => {
-    const score = (
-      defenders.slice(0, formation.def).reduce((sum, p) => sum + p.score, 0) +
-      midfielders.slice(0, formation.mid).reduce((sum, p) => sum + p.score, 0) +
-      forwards.slice(0, formation.fwd).reduce((sum, p) => sum + p.score, 0) +
-      goalkeepers[0].score
-    );
+  // Group target players by position
+  const targetByPosition = {
+    gk: targetPlayers.filter(p => p.element_type === 1).sort((a, b) => b.targetScore - a.targetScore),
+    def: targetPlayers.filter(p => p.element_type === 2).sort((a, b) => b.targetScore - a.targetScore),
+    mid: targetPlayers.filter(p => p.element_type === 3).sort((a, b) => b.targetScore - a.targetScore),
+    fwd: targetPlayers.filter(p => p.element_type === 4).sort((a, b) => b.targetScore - a.targetScore)
+  };
 
-    if (score > highestScore) {
-      highestScore = score;
-      bestFormation = formation;
+  // Simulate different transfer scenarios
+  const scenarios = [];
+
+  // Scenario 1: Single Transfer (0 points hit)
+  if (transferOutCandidates.length >= 1) {
+    const outPlayer = transferOutCandidates[0];
+    const positionKey = outPlayer.element_type === 1 ? 'gk' : 
+                       outPlayer.element_type === 2 ? 'def' : 
+                       outPlayer.element_type === 3 ? 'mid' : 'fwd';
+    
+    const availableBudget = outPlayer.now_cost + bank;
+    const bestReplacement = targetByPosition[positionKey as keyof typeof targetByPosition]
+      .find(p => p.now_cost <= availableBudget);
+    
+    if (bestReplacement) {
+      const pointsDelta = parseFloat(bestReplacement.ep_next || '0') - parseFloat(outPlayer.ep_next || '0');
+      scenarios.push({
+        transfers: [{ out: outPlayer, in: bestReplacement }],
+        pointsDelta,
+        transferCost: 0,
+        type: 'single'
+      });
+    }
+  }
+
+  // Scenario 2: Double Transfer (-4 points hit)
+  if (transferOutCandidates.length >= 2) {
+    const outPlayer1 = transferOutCandidates[0];
+    const outPlayer2 = transferOutCandidates[1];
+    const availableBudget = outPlayer1.now_cost + outPlayer2.now_cost + bank;
+    
+    const position1Key = outPlayer1.element_type === 1 ? 'gk' : 
+                        outPlayer1.element_type === 2 ? 'def' : 
+                        outPlayer1.element_type === 3 ? 'mid' : 'fwd';
+    const position2Key = outPlayer2.element_type === 1 ? 'gk' : 
+                        outPlayer2.element_type === 2 ? 'def' : 
+                        outPlayer2.element_type === 3 ? 'mid' : 'fwd';
+    
+    const targets1 = targetByPosition[position1Key as keyof typeof targetByPosition];
+    const targets2 = targetByPosition[position2Key as keyof typeof targetByPosition];
+    
+    let bestPair = null;
+    let bestPointsDelta = -Infinity;
+    
+    for (const target1 of targets1) {
+      for (const target2 of targets2) {
+        if (target1.id === target2.id) continue; // Can't transfer in the same player twice
+        
+        const totalCost = target1.now_cost + target2.now_cost;
+        if (totalCost <= availableBudget) {
+          const pointsDelta = (
+            parseFloat(target1.ep_next || '0') + parseFloat(target2.ep_next || '0')
+          ) - (
+            parseFloat(outPlayer1.ep_next || '0') + parseFloat(outPlayer2.ep_next || '0')
+          ) - 4;
+          
+          if (pointsDelta > bestPointsDelta) {
+            bestPointsDelta = pointsDelta;
+            bestPair = { out: outPlayer1, in: target1 };
+          }
+        }
+      }
+    }
+    
+    if (bestPair) {
+      scenarios.push({
+        transfers: [bestPair, { out: outPlayer2, in: bestPair.in }],
+        pointsDelta: bestPointsDelta,
+        transferCost: 4,
+        type: 'double'
+      });
+    }
+  }
+
+  // Scenario 3: Triple Transfer (-8 points hit) - Optional
+  if (transferOutCandidates.length >= 3) {
+    const outPlayer1 = transferOutCandidates[0];
+    const outPlayer2 = transferOutCandidates[1];
+    const outPlayer3 = transferOutCandidates[2];
+    const availableBudget = outPlayer1.now_cost + outPlayer2.now_cost + outPlayer3.now_cost + bank;
+    
+    // Simplified triple transfer - just find the best single replacement for the weakest player
+    const positionKey = outPlayer1.element_type === 1 ? 'gk' : 
+                       outPlayer1.element_type === 2 ? 'def' : 
+                       outPlayer1.element_type === 3 ? 'mid' : 'fwd';
+    
+    const bestReplacement = targetByPosition[positionKey as keyof typeof targetByPosition]
+      .find(p => p.now_cost <= availableBudget);
+    
+    if (bestReplacement) {
+      const pointsDelta = parseFloat(bestReplacement.ep_next || '0') - parseFloat(outPlayer1.ep_next || '0') - 8;
+      scenarios.push({
+        transfers: [{ out: outPlayer1, in: bestReplacement }],
+        pointsDelta,
+        transferCost: 8,
+        type: 'triple'
+      });
+    }
+  }
+
+  // Find the best scenario
+  const bestScenario = scenarios.reduce((best, current) => 
+    current.pointsDelta > best.pointsDelta ? current : best, 
+    { transfers: [], pointsDelta: -Infinity, transferCost: 0, type: 'none' }
+  );
+
+  // If no positive scenario, recommend holding transfers
+  if (bestScenario.pointsDelta <= 0) {
+    return {
+      optimalSquad: userSquad,
+      recommendedTransfers: [],
+      pointsDelta: 0,
+      transferCost: 0,
+      captainId: userTeam.picks.find(p => p.is_captain)?.element || userSquad[0].id,
+      viceCaptainId: userTeam.picks.find(p => p.is_vice_captain)?.element || userSquad[1].id,
+      formation: '4-4-2', // Default formation
+      totalPoints: userSquad.reduce((sum, p) => sum + parseFloat(p.ep_next || '0'), 0)
+    };
+  }
+
+  // Apply the best transfers to create optimized squad
+  const optimizedSquad = [...userSquad];
+  bestScenario.transfers.forEach(transfer => {
+    const outIndex = optimizedSquad.findIndex(p => p.id === transfer.out.id);
+    if (outIndex !== -1) {
+      optimizedSquad[outIndex] = { ...transfer.in, position: transfer.out.position, isUserPlayer: false };
     }
   });
 
-  const firstTeam = [
-    goalkeepers[0],
-    ...defenders.slice(0, bestFormation.def),
-    ...midfielders.slice(0, bestFormation.mid),
-    ...forwards.slice(0, bestFormation.fwd)
-  ].map((p, i) => ({ ...p, position: i + 1 }));
-
-  const substitutes = [
-    goalkeepers[1],
-    defenders[bestFormation.def],
-    midfielders[bestFormation.mid],
-    forwards[bestFormation.fwd]
-  ].filter(Boolean).map((p, i) => ({ ...p, position: i + 12 }));
-
-  // Set optimal reasons for first team players
-  firstTeam.forEach(player => {
-    player.optimal_reason = `Selected for high form (${player.form}) and fixtures score`;
-  });
-
-  const sortedByScore = [...firstTeam].sort((a, b) => b.score - a.score);
-  const captainId = sortedByScore[0].id;
-  const viceCaptainId = sortedByScore[1].id;
+  // Set captain and vice-captain based on highest expected points
+  const sortedByEp = [...optimizedSquad].sort((a, b) => 
+    parseFloat(b.ep_next || '0') - parseFloat(a.ep_next || '0')
+  );
+  const captainId = sortedByEp[0].id;
+  const viceCaptainId = sortedByEp[1].id;
 
   return {
-    firstTeam,
-    substitutes,
+    optimalSquad: optimizedSquad,
+    recommendedTransfers: bestScenario.transfers,
+    pointsDelta: bestScenario.pointsDelta,
+    transferCost: bestScenario.transferCost,
     captainId,
     viceCaptainId,
-    formation: `${bestFormation.def}-${bestFormation.mid}-${bestFormation.fwd}`,
-    totalPoints: highestScore
+    formation: '4-4-2', // Default formation for now
+    totalPoints: optimizedSquad.reduce((sum, p) => sum + parseFloat(p.ep_next || '0'), 0)
   };
+}
+
+function calculateAverageDifficultyNext3(teamId: number, fixtures: any[]): number {
+  const next3Fixtures = fixtures
+    .filter(f => f.team_h === teamId || f.team_a === teamId)
+    .filter(f => !f.finished) // Only upcoming fixtures
+    .slice(0, 3);
+  
+  if (next3Fixtures.length === 0) return 3; // Default to medium difficulty
+  
+  const totalDifficulty = next3Fixtures.reduce((sum, fixture) => {
+    const isHome = fixture.team_h === teamId;
+    const difficulty = isHome ? fixture.team_h_difficulty : fixture.team_a_difficulty;
+    return sum + difficulty;
+  }, 0);
+  
+  return totalDifficulty / next3Fixtures.length;
 }
 
 function calculateFixtureScore(teamId: number, fixtures: any[]): number {
@@ -147,6 +287,8 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
 }
 
 export default function DreamTeamPage() {
+  const teamId = localStorage.getItem("fpl_team_id") ? parseInt(localStorage.getItem("fpl_team_id")!, 10) : null;
+
   const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
     queryKey: ['players'],
     queryFn: fetchPlayers
@@ -162,7 +304,13 @@ export default function DreamTeamPage() {
     queryFn: fetchBootstrapStatic
   });
 
-  const isLoading = playersLoading || fixturesLoading || bootstrapLoading;
+  const { data: userTeam, isLoading: teamLoading } = useQuery({
+    queryKey: ['my-team', teamId],
+    queryFn: () => teamId ? fetchMyTeam(teamId) : null,
+    enabled: !!teamId
+  });
+
+  const isLoading = playersLoading || fixturesLoading || bootstrapLoading || teamLoading;
   const error = playersError;
 
   if (isLoading) {
@@ -207,7 +355,23 @@ export default function DreamTeamPage() {
     );
   }
 
-  const optimalTeam = calculateOptimalTeam(players, fixtures, bootstrap.teams);
+  if (!teamId || !userTeam) {
+    return (
+      <div className="p-6">
+        <Alert>
+          <AlertDescription>
+            Please connect your FPL account to view your personalized dream team.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  const optimalTeam = calculatePointsDeltaMaximizer(userTeam, players, fixtures, bootstrap.teams);
+  
+  // Get current gameweek
+  const currentGameweek = bootstrap.events?.find((event: any) => event.is_current)?.id || 1;
+  const nextGameweek = currentGameweek + 1;
 
   return (
     <div className="p-6">
@@ -221,20 +385,42 @@ export default function DreamTeamPage() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
-              Dream Team
+              Personalized Dream Team
             </h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            AI-powered optimal team selection based on form, fixtures, and performance
+            AI-powered transfer recommendations to maximize your points for Gameweek {nextGameweek}
           </p>
         </div>
 
         <div className="grid gap-6">
+          {/* Transfer Recommendation Card */}
+          <TransferRecommendationCard
+            recommendedTransfers={optimalTeam.recommendedTransfers}
+            pointsDelta={optimalTeam.pointsDelta}
+            transferCost={optimalTeam.transferCost}
+            gameweek={nextGameweek}
+            teams={bootstrap.teams}
+            fixtures={fixtures}
+          />
+
+          {/* Optimized Team Pitch */}
           <Card>
             <CardContent className="pt-6">
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-slate-100 mb-2">
+                  Your Optimized Squad for Gameweek {nextGameweek}
+                </h3>
+                <p className="text-sm text-slate-400">
+                  {optimalTeam.recommendedTransfers.length > 0 
+                    ? `After applying the recommended transfers, your team is projected to score ${optimalTeam.totalPoints.toFixed(1)} points.`
+                    : `Your current team is already optimized and projected to score ${optimalTeam.totalPoints.toFixed(1)} points.`
+                  }
+                </p>
+              </div>
               <DreamPitch 
-                players={optimalTeam.firstTeam}
-                substitutes={optimalTeam.substitutes}
+                players={optimalTeam.optimalSquad.filter(p => p.position <= 11)}
+                substitutes={optimalTeam.optimalSquad.filter(p => p.position > 11)}
                 captainId={optimalTeam.captainId}
                 viceCaptainId={optimalTeam.viceCaptainId}
                 fixtures={fixtures}
