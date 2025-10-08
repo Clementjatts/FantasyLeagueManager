@@ -425,6 +425,86 @@ app.get('/api/fpl/event/:gameweek', async (c) => {
   }
 })
 
+app.get('/api/fpl/players', async (c) => {
+  try {
+    const season = c.req.query('season') || '2024-25'
+    
+    console.log(`Fetching players for season: ${season}`)
+    
+    if (season === '2024-25') {
+      console.log("Fetching enhanced FPL data for current season")
+      
+      // Fetch enhanced FPL data from FPL-Elo-Insights (same as local server)
+      const enhancedDataUrl = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2024-25/players_raw.csv'
+      
+      try {
+        const enhancedResponse = await fetchWithUserAgent(enhancedDataUrl)
+        if (enhancedResponse.ok) {
+          const csvText = await enhancedResponse.text()
+          const lines = csvText.split('\n')
+          const headers = lines[0].split(',')
+          
+          console.log(`Parsing CSV with headers: ${headers.slice(0, 10).join(', ')}...`)
+          
+          const enhancedPlayers = []
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i].trim()) {
+              const values = lines[i].split(',')
+              const player = {}
+              
+              headers.forEach((header, index) => {
+                const value = values[index] || ''
+                // Convert numeric values
+                if (['id', 'now_cost', 'total_points', 'event_points', 'selected_by_percent', 'form', 'influence', 'creativity', 'threat', 'ict_index'].includes(header)) {
+                  player[header] = parseFloat(value) || 0
+                } else {
+                  player[header] = value
+                }
+              })
+              
+              enhancedPlayers.push(player)
+            }
+          }
+          
+          console.log(`Successfully fetched and merged ${enhancedPlayers.length} enhanced players`)
+          return c.json(enhancedPlayers)
+        }
+      } catch (enhancedError) {
+        console.error('Failed to fetch enhanced data, falling back to basic FPL data:', enhancedError)
+      }
+      
+      // Fallback to basic FPL data
+      const url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+      const response = await fetchWithUserAgent(url)
+      
+      if (!response.ok) {
+        return c.json({ message: 'Failed to fetch player data' }, 500)
+      }
+      
+      const data = await response.json()
+      const players = data.elements || []
+      
+      // Add season metadata to each player
+      players.forEach(player => {
+        player.season = season
+        player.isHistorical = false
+      })
+      
+      console.log(`Fetched ${players.length} basic FPL players`)
+      return c.json(players)
+    } else {
+      return c.json({ 
+        message: 'Historical player data not yet implemented in Cloudflare Worker',
+        season,
+        isHistorical: true
+      }, 501)
+    }
+  } catch (error) {
+    console.error('Error fetching players:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
 app.get('/api/fpl/fixtures', async (c) => {
   try {
     const season = c.req.query('season') || '2024-25'
