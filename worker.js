@@ -478,6 +478,148 @@ app.get('/api/fpl/player/:playerId', async (c) => {
   }
 })
 
+// Missing endpoints that your local server has
+app.get('/api/fpl/my-team/:managerId', async (c) => {
+  try {
+    const managerId = c.req.param('managerId')
+    const season = c.req.query('season') || '2024-25'
+    
+    console.log(`Fetching team data for managerId: ${managerId}, season: ${season}`)
+    
+    if (season === '2024-25') {
+      // Fetch team data from FPL API
+      const entryUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/`
+      const picksUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/event/1/picks/`
+      const historyUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/history/`
+      
+      const [entryRes, picksRes, historyRes] = await Promise.all([
+        fetchWithUserAgent(entryUrl),
+        fetchWithUserAgent(picksUrl),
+        fetchWithUserAgent(historyUrl)
+      ])
+      
+      if (!entryRes.ok) {
+        return c.json({ message: 'Failed to fetch team data' }, 500)
+      }
+      
+      const entryData = await entryRes.json()
+      const picksData = picksRes.ok ? await picksRes.json() : { picks: [] }
+      const historyData = historyRes.ok ? await historyRes.json() : { current: [] }
+      
+      const teamData = {
+        ...entryData,
+        picks: picksData.picks || [],
+        history: historyData.current || [],
+        season,
+        isHistorical: false
+      }
+      
+      return c.json(teamData)
+    } else {
+      return c.json({ 
+        message: 'Historical team data not yet implemented in Cloudflare Worker',
+        managerId,
+        season,
+        isHistorical: true
+      }, 501)
+    }
+  } catch (error) {
+    console.error('Error fetching team data:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
+app.post('/api/fpl/transfers', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { playerId, outId } = body
+    
+    console.log(`Making transfer: ${playerId} in, ${outId} out`)
+    
+    // This would need to be implemented with FPL API authentication
+    // For now, return a success response
+    return c.json({ 
+      message: 'Transfer functionality not implemented in Cloudflare Worker',
+      playerId,
+      outId
+    }, 501)
+  } catch (error) {
+    console.error('Error making transfer:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
+app.post('/api/fpl/captains', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { captainId, viceCaptainId } = body
+    
+    console.log(`Updating captains: ${captainId} (C), ${viceCaptainId} (VC)`)
+    
+    // This would need to be implemented with FPL API authentication
+    // For now, return a success response
+    return c.json({ 
+      message: 'Captain update functionality not implemented in Cloudflare Worker',
+      captainId,
+      viceCaptainId
+    }, 501)
+  } catch (error) {
+    console.error('Error updating captains:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
+app.get('/api/fpl/next-deadline', async (c) => {
+  try {
+    console.log('Fetching next deadline...')
+    
+    // Fetch bootstrap static to get current gameweek info
+    const bootstrapUrl = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+    const response = await fetchWithUserAgent(bootstrapUrl)
+    
+    if (!response.ok) {
+      return c.json({ message: 'Failed to fetch deadline data' }, 500)
+    }
+    
+    const data = await response.json()
+    
+    // Find current gameweek
+    const currentGameweek = data.events.find(event => event.is_current)
+    const nextGameweek = data.events.find(event => event.is_next)
+    
+    const deadline = nextGameweek ? nextGameweek.deadline_time : currentGameweek?.deadline_time
+    
+    return c.json({ 
+      deadline: deadline || new Date().toISOString(),
+      currentGameweek: currentGameweek?.id,
+      nextGameweek: nextGameweek?.id
+    })
+  } catch (error) {
+    console.error('Error fetching deadline:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
+app.get('/api/fpl/top-managers-team', async (c) => {
+  try {
+    console.log('Fetching top managers team...')
+    
+    // For now, return a mock response since this requires complex logic
+    // In a real implementation, you'd fetch the top manager's team
+    return c.json({
+      id: 1,
+      name: "Top Manager",
+      picks: [],
+      chips: [],
+      transfers: { limit: 1, made: 0, bank: 0, value: 0, cost: 0 },
+      message: "Top managers team functionality not fully implemented in Cloudflare Worker"
+    })
+  } catch (error) {
+    console.error('Error fetching top managers team:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
 // Health check endpoint
 app.get('/api/health', (c) => {
   return c.json({ 
