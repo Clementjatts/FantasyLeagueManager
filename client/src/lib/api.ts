@@ -1,6 +1,9 @@
 import { Player, Team, Fixture, BootstrapStatic } from "../types/fpl";
 
-const API_BASE = "/api/fpl";
+// Use environment variable for API base URL, fallback to relative path for development
+const API_BASE = import.meta.env.VITE_API_BASE_URL 
+  ? `${import.meta.env.VITE_API_BASE_URL}/api/fpl`
+  : "/api/fpl";
 
 export async function fetchMyTeam(managerId: number): Promise<Team> {
   console.log("Fetching my team...");

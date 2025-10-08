@@ -1,0 +1,27 @@
+name = "fpl-manager-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "fpl-manager-api"
+
+[env.production.vars]
+NODE_ENV = "production"
+
+# Environment variables that will be set as secrets
+# Run these commands to set secrets:
+# wrangler secret put FIREBASE_API_KEY
+# wrangler secret put FIREBASE_AUTH_DOMAIN
+# wrangler secret put FIREBASE_PROJECT_ID
+# wrangler secret put FIREBASE_STORAGE_BUCKET
+# wrangler secret put FIREBASE_MESSAGING_SENDER_ID
+# wrangler secret put FIREBASE_APP_ID
+
+# No database configuration needed - using Firebase/Firestore
+
+# KV namespaces (if needed for caching)
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your-kv-namespace-id"
+# preview_id = "your-preview-kv-namespace-id"

@@ -110,9 +110,11 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background-color: hsl(var(--background));
-    background-image: radial-gradient(circle at 1px 1px, hsl(var(--border) / 0.5) 1px, transparent 0);
-    background-size: 2rem 2rem;
+    background-color: #111827; /* Dark gray background */
+    background-image: 
+      radial-gradient(circle at 1px 1px, hsl(var(--border) / 0.3) 1px, transparent 0),
+      linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%);
+    background-size: 2rem 2rem, 100% 100%;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }

@@ -4,6 +4,7 @@ import { SeasonProvider } from "./contexts/SeasonContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Trophy } from "lucide-react";
 import DashboardPage from "./pages/DashboardPage";
 import TeamPage from "./pages/TeamPage";
 import PlayersPage from "./pages/PlayersPage";
@@ -39,21 +40,26 @@ function AuthGate() {
   if (loading) return null;
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="w-full max-w-md border border-glass-border shadow-glass">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gray-900/50 backdrop-blur-sm">
+        <Card className="w-full max-w-lg p-4 border border-glass-border shadow-glass-glow hover:shadow-aurora transition-all duration-500">
           <CardHeader className="text-center pb-2">
-            <CardTitle className="text-3xl font-extrabold tracking-tight">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 rounded-full bg-gradient-to-r from-radiant-violet to-pink-500 shadow-glass-glow animate-float">
+                <Trophy className="w-16 h-16 text-white" />
+              </div>
+            </div>
+            <CardTitle className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
               FPLManager
             </CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
-              Sign in to personalize your dashboard and sync your FPL team
+            <p className="text-base text-muted-foreground mt-3">
+              Sign in to access your dashboard and manage your team
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <Button
                 onClick={signInWithGoogle}
-                className="w-full h-11 inline-flex items-center justify-center gap-2"
+                className="w-full h-14 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-radiant-violet to-pink-500 hover:from-radiant-violet/90 hover:to-pink-500/90 shadow-glass-glow hover:shadow-aurora transition-all duration-300 transform hover:scale-105"
                 variant="default"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5">
