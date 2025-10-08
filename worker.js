@@ -1,4 +1,4 @@
-// Cloudflare Worker for FPL Manager API
+// Complete Cloudflare Worker for FPL Manager API
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
@@ -24,7 +24,35 @@ async function fetchWithUserAgent(url, options = {}) {
   })
 }
 
-// FPL API proxy endpoints
+// Helper function to parse CSV data
+function parseCSV(csvText) {
+  const lines = csvText.split('\n').filter(line => line.trim())
+  if (lines.length === 0) return []
+  
+  const headers = lines[0].split(',').map(h => h.trim())
+  const data = []
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim())
+    const row = {}
+    
+    headers.forEach((header, index) => {
+      const value = values[index] || ''
+      // Convert numeric values
+      if (['id', 'now_cost', 'total_points', 'event_points', 'selected_by_percent', 'form', 'influence', 'creativity', 'threat', 'ict_index', 'bonus', 'bps', 'minutes', 'goals_scored', 'assists', 'clean_sheets', 'goals_conceded', 'yellow_cards', 'red_cards', 'saves', 'penalties_saved', 'penalties_missed', 'own_goals'].includes(header)) {
+        row[header] = parseFloat(value) || 0
+      } else {
+        row[header] = value
+      }
+    })
+    
+    data.push(row)
+  }
+  
+  return data
+}
+
+// 1. Bootstrap Static Endpoint
 app.get('/api/fpl/bootstrap-static', async (c) => {
   try {
     const season = c.req.query('season') || '2024-25'
@@ -81,502 +109,7 @@ app.get('/api/fpl/bootstrap-static', async (c) => {
   }
 })
 
-app.get('/api/fpl/entry/:teamId', async (c) => {
-  try {
-    const teamId = c.req.param('teamId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching team data for teamId: ${teamId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/entry/${teamId}/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch team data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical team data not yet implemented in Cloudflare Worker',
-        teamId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching team data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/entry/:teamId/event/:gameweek/picks', async (c) => {
-  try {
-    const teamId = c.req.param('teamId')
-    const gameweek = c.req.param('gameweek')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching picks for teamId: ${teamId}, gameweek: ${gameweek}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/entry/${teamId}/event/${gameweek}/picks/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch picks data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical picks data not yet implemented in Cloudflare Worker',
-        teamId,
-        gameweek,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching picks data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/entry/:teamId/history', async (c) => {
-  try {
-    const teamId = c.req.param('teamId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching history for teamId: ${teamId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/entry/${teamId}/history/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch history data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical data not yet implemented in Cloudflare Worker',
-        teamId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching history data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/entry/:teamId/transfers', async (c) => {
-  try {
-    const teamId = c.req.param('teamId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching transfers for teamId: ${teamId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/entry/${teamId}/transfers/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch transfers data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical transfers data not yet implemented in Cloudflare Worker',
-        teamId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching transfers data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/entry/:teamId/cup', async (c) => {
-  try {
-    const teamId = c.req.param('teamId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching cup data for teamId: ${teamId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/entry/${teamId}/cup/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch cup data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical cup data not yet implemented in Cloudflare Worker',
-        teamId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching cup data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/entry/:teamId/event/:gameweek/live', async (c) => {
-  try {
-    const teamId = c.req.param('teamId')
-    const gameweek = c.req.param('gameweek')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching live data for teamId: ${teamId}, gameweek: ${gameweek}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/entry/${teamId}/event/${gameweek}/live/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch live data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical live data not yet implemented in Cloudflare Worker',
-        teamId,
-        gameweek,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching live data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/leagues-classic/:leagueId', async (c) => {
-  try {
-    const leagueId = c.req.param('leagueId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching league data for leagueId: ${leagueId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/leagues-classic/${leagueId}/standings/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch league data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical league data not yet implemented in Cloudflare Worker',
-        leagueId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching league data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/leagues-h2h/:leagueId', async (c) => {
-  try {
-    const leagueId = c.req.param('leagueId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching H2H league data for leagueId: ${leagueId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/leagues-h2h/${leagueId}/standings/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch H2H league data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical H2H league data not yet implemented in Cloudflare Worker',
-        leagueId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching H2H league data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/event/:gameweek/live', async (c) => {
-  try {
-    const gameweek = c.req.param('gameweek')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching live event data for gameweek: ${gameweek}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/event/${gameweek}/live/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch live event data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical live event data not yet implemented in Cloudflare Worker',
-        gameweek,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching live event data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/event/:gameweek', async (c) => {
-  try {
-    const gameweek = c.req.param('gameweek')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching event data for gameweek: ${gameweek}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/event/${gameweek}/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch event data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical event data not yet implemented in Cloudflare Worker',
-        gameweek,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching event data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/players', async (c) => {
-  try {
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching players for season: ${season}`)
-    
-    if (season === '2024-25') {
-      console.log("Fetching enhanced FPL data for current season")
-      
-      // Fetch enhanced FPL data from FPL-Elo-Insights (same as local server)
-      const enhancedDataUrl = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2024-25/players_raw.csv'
-      
-      try {
-        const enhancedResponse = await fetchWithUserAgent(enhancedDataUrl)
-        if (enhancedResponse.ok) {
-          const csvText = await enhancedResponse.text()
-          const lines = csvText.split('\n')
-          const headers = lines[0].split(',')
-          
-          console.log(`Parsing CSV with headers: ${headers.slice(0, 10).join(', ')}...`)
-          
-          const enhancedPlayers = []
-          for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim()) {
-              const values = lines[i].split(',')
-              const player = {}
-              
-              headers.forEach((header, index) => {
-                const value = values[index] || ''
-                // Convert numeric values
-                if (['id', 'now_cost', 'total_points', 'event_points', 'selected_by_percent', 'form', 'influence', 'creativity', 'threat', 'ict_index'].includes(header)) {
-                  player[header] = parseFloat(value) || 0
-                } else {
-                  player[header] = value
-                }
-              })
-              
-              enhancedPlayers.push(player)
-            }
-          }
-          
-          console.log(`Successfully fetched and merged ${enhancedPlayers.length} enhanced players`)
-          return c.json(enhancedPlayers)
-        }
-      } catch (enhancedError) {
-        console.error('Failed to fetch enhanced data, falling back to basic FPL data:', enhancedError)
-      }
-      
-      // Fallback to basic FPL data
-      const url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
-      const response = await fetchWithUserAgent(url)
-      
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch player data' }, 500)
-      }
-      
-      const data = await response.json()
-      const players = data.elements || []
-      
-      // Add season metadata to each player
-      players.forEach(player => {
-        player.season = season
-        player.isHistorical = false
-      })
-      
-      console.log(`Fetched ${players.length} basic FPL players`)
-      return c.json(players)
-    } else {
-      return c.json({ 
-        message: 'Historical player data not yet implemented in Cloudflare Worker',
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching players:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/fixtures', async (c) => {
-  try {
-    const season = c.req.query('season') || '2024-25'
-    const gameweek = c.req.query('event')
-    
-    console.log(`Fetching fixtures for season: ${season}, gameweek: ${gameweek || 'all'}`)
-    
-    if (season === '2024-25') {
-      let url = 'https://fantasy.premierleague.com/api/fixtures/'
-      if (gameweek) {
-        url += `?event=${gameweek}`
-      }
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch fixtures data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical fixtures data not yet implemented in Cloudflare Worker',
-        season,
-        gameweek,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching fixtures data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-app.get('/api/fpl/player/:playerId', async (c) => {
-  try {
-    const playerId = c.req.param('playerId')
-    const season = c.req.query('season') || '2024-25'
-    
-    console.log(`Fetching player data for playerId: ${playerId}, season: ${season}`)
-    
-    if (season === '2024-25') {
-      const url = `https://fantasy.premierleague.com/api/element-summary/${playerId}/`
-      
-      const response = await fetchWithUserAgent(url)
-      if (!response.ok) {
-        return c.json({ message: 'Failed to fetch player data' }, 500)
-      }
-      
-      const data = await response.json()
-      data.season = season
-      data.isHistorical = false
-      
-      return c.json(data)
-    } else {
-      return c.json({ 
-        message: 'Historical player data not yet implemented in Cloudflare Worker',
-        playerId,
-        season,
-        isHistorical: true
-      }, 501)
-    }
-  } catch (error) {
-    console.error('Error fetching player data:', error)
-    return c.json({ message: 'Internal server error' }, 500)
-  }
-})
-
-// Missing endpoints that your local server has
+// 2. My Team Endpoint
 app.get('/api/fpl/my-team/:managerId/', async (c) => {
   try {
     const managerId = c.req.param('managerId')
@@ -656,6 +189,127 @@ app.get('/api/fpl/my-team/:managerId/', async (c) => {
   }
 })
 
+// 3. Players Endpoint
+app.get('/api/fpl/players', async (c) => {
+  try {
+    const season = c.req.query('season') || '2024-25'
+    
+    console.log(`Fetching players for season: ${season}`)
+    
+    if (season === '2024-25') {
+      console.log("Fetching enhanced FPL data for current season")
+      
+      // Fetch enhanced FPL data from FPL-Elo-Insights (same as local server)
+      const enhancedDataUrl = 'https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/2024-25/players_raw.csv'
+      
+      try {
+        const enhancedResponse = await fetchWithUserAgent(enhancedDataUrl)
+        if (enhancedResponse.ok) {
+          const csvText = await enhancedResponse.text()
+          const enhancedPlayers = parseCSV(csvText)
+          
+          console.log(`Successfully fetched and merged ${enhancedPlayers.length} enhanced players`)
+          return c.json(enhancedPlayers)
+        }
+      } catch (enhancedError) {
+        console.error('Failed to fetch enhanced data, falling back to basic FPL data:', enhancedError)
+      }
+      
+      // Fallback to basic FPL data
+      const url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+      const response = await fetchWithUserAgent(url)
+      
+      if (!response.ok) {
+        return c.json({ message: 'Failed to fetch player data' }, 500)
+      }
+      
+      const data = await response.json()
+      const players = data.elements || []
+      
+      // Add season metadata to each player
+      players.forEach(player => {
+        player.season = season
+        player.isHistorical = false
+      })
+      
+      console.log(`Fetched ${players.length} basic FPL players`)
+      return c.json(players)
+    } else {
+      // For historical seasons, try to fetch historical data
+      try {
+        const historicalDataUrl = `https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/master/data/${season}/players_raw.csv`
+        const historicalResponse = await fetchWithUserAgent(historicalDataUrl)
+        
+        if (historicalResponse.ok) {
+          const csvText = await historicalResponse.text()
+          const historicalPlayers = parseCSV(csvText)
+          
+          console.log(`Successfully fetched ${historicalPlayers.length} historical players for season ${season}`)
+          return c.json(historicalPlayers)
+        }
+      } catch (historicalError) {
+        console.error(`Failed to fetch historical players for ${season}, falling back to mock data:`, historicalError)
+      }
+      
+      // Fallback to mock data
+      const url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+      const response = await fetchWithUserAgent(url)
+      
+      if (!response.ok) {
+        return c.json({ message: 'Failed to fetch FPL data' }, 500)
+      }
+      
+      const data = await response.json()
+      const players = data.elements || []
+      
+      console.log(`Used fallback mock data for ${players.length} players in season ${season}`)
+      return c.json(players)
+    }
+  } catch (error) {
+    console.error('Error fetching players:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
+// 4. Fixtures Endpoint
+app.get('/api/fpl/fixtures', async (c) => {
+  try {
+    const season = c.req.query('season') || '2024-25'
+    const gameweek = c.req.query('event')
+    
+    console.log(`Fetching fixtures for season: ${season}, gameweek: ${gameweek || 'all'}`)
+    
+    if (season === '2024-25') {
+      let url = 'https://fantasy.premierleague.com/api/fixtures/'
+      if (gameweek) {
+        url += `?event=${gameweek}`
+      }
+      
+      const response = await fetchWithUserAgent(url)
+      if (!response.ok) {
+        return c.json({ message: 'Failed to fetch fixtures data' }, 500)
+      }
+      
+      const data = await response.json()
+      data.season = season
+      data.isHistorical = false
+      
+      return c.json(data)
+    } else {
+      return c.json({ 
+        message: 'Historical fixtures data not yet implemented in Cloudflare Worker',
+        season,
+        gameweek,
+        isHistorical: true
+      }, 501)
+    }
+  } catch (error) {
+    console.error('Error fetching fixtures data:', error)
+    return c.json({ message: 'Internal server error' }, 500)
+  }
+})
+
+// 5. Transfers Endpoint (POST)
 app.post('/api/fpl/transfers', async (c) => {
   try {
     const body = await c.req.json()
@@ -676,6 +330,7 @@ app.post('/api/fpl/transfers', async (c) => {
   }
 })
 
+// 6. Captains Endpoint (POST)
 app.post('/api/fpl/captains', async (c) => {
   try {
     const body = await c.req.json()
@@ -696,6 +351,7 @@ app.post('/api/fpl/captains', async (c) => {
   }
 })
 
+// 7. Next Deadline Endpoint
 app.get('/api/fpl/next-deadline', async (c) => {
   try {
     console.log('Fetching next deadline...')
@@ -733,6 +389,7 @@ app.get('/api/fpl/next-deadline', async (c) => {
   }
 })
 
+// 8. Top Managers Team Endpoint
 app.get('/api/fpl/top-managers-team', async (c) => {
   try {
     console.log('Fetching top managers team...')
