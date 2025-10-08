@@ -42,20 +42,38 @@ app.get('/api/fpl/bootstrap-static', async (c) => {
       
       const data = await response.json()
       
-      // Add season metadata to the response
+      // Add season metadata to the response (same as local server)
       data.season = season
       data.isHistorical = false
       
       console.log(`Fetched current season bootstrap static for season ${season}`)
       return c.json(data)
     } else {
-      // For historical seasons, return a placeholder for now
-      // You can implement historical data fetching here
-      return c.json({ 
-        message: 'Historical data not yet implemented in Cloudflare Worker',
-        season,
-        isHistorical: true
-      }, 501)
+      // For historical seasons, try to fetch from FPL API and transform
+      try {
+        const url = 'https://fantasy.premierleague.com/api/bootstrap-static/'
+        const response = await fetchWithUserAgent(url)
+        
+        if (!response.ok) {
+          return c.json({ message: 'Failed to fetch FPL data' }, 500)
+        }
+        
+        const data = await response.json()
+        
+        // Add season metadata (same as local server fallback)
+        data.season = season
+        data.isHistorical = true
+        
+        console.log(`Used fallback data for season ${season}`)
+        return c.json(data)
+      } catch (historicalError) {
+        console.error(`Failed to fetch historical data for ${season}:`, historicalError)
+        return c.json({ 
+          message: 'Historical data not yet implemented in Cloudflare Worker',
+          season,
+          isHistorical: true
+        }, 501)
+      }
     }
   } catch (error) {
     console.error('Error fetching bootstrap static:', error)
@@ -487,29 +505,58 @@ app.get('/api/fpl/my-team/:managerId/', async (c) => {
     console.log(`Fetching team data for managerId: ${managerId}, season: ${season}`)
     
     if (season === '2024-25') {
-      // Fetch team data from FPL API
-      const entryUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/`
-      const picksUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/event/1/picks/`
-      const historyUrl = `https://fantasy.premierleague.com/api/entry/${managerId}/history/`
+      // First, fetch the manager/entry data (same as local server)
+      const entryResponse = await fetchWithUserAgent(`https://fantasy.premierleague.com/api/entry/${managerId}/`)
       
-      const [entryRes, picksRes, historyRes] = await Promise.all([
-        fetchWithUserAgent(entryUrl),
-        fetchWithUserAgent(picksUrl),
-        fetchWithUserAgent(historyUrl)
-      ])
-      
-      if (!entryRes.ok) {
-        return c.json({ message: 'Failed to fetch team data' }, 500)
+      if (!entryResponse.ok) {
+        console.error(`Entry response error: ${entryResponse.status}`)
+        return c.json({ message: "Team not found. Please check your team ID." }, 404)
       }
       
-      const entryData = await entryRes.json()
-      const picksData = picksRes.ok ? await picksRes.json() : { picks: [] }
-      const historyData = historyRes.ok ? await historyRes.json() : { current: [] }
+      const entryData = await entryResponse.json()
       
+      // Fetch transfer status which includes free transfers
+      let transferStatus = null
+      try {
+        console.log("Fetching transfer status for manager:", managerId)
+        const transfersResponse = await fetchWithUserAgent(`https://fantasy.premierleague.com/api/entry/${managerId}/transfers/`)
+        
+        if (transfersResponse.ok) {
+          transferStatus = await transfersResponse.json()
+          console.log("Transfer status response:", transferStatus)
+        }
+      } catch (error) {
+        console.error("Error fetching transfer status:", error)
+      }
+      
+      // Fetch history data which includes current gameweek stats
+      const historyResponse = await fetchWithUserAgent(`https://fantasy.premierleague.com/api/entry/${managerId}/history/`)
+      let historyData = { current: [] }
+      
+      if (historyResponse.ok) {
+        historyData = await historyResponse.json()
+      }
+      
+      // Calculate free transfers (same logic as local server)
+      const currentGameweekHistory = historyData.current || []
+      const consecutiveGameweeksWithNoTransfers = currentGameweekHistory.filter(gw => gw.event_transfers === 0).length
+      const calculatedFreeTransfers = Math.min(consecutiveGameweeksWithNoTransfers + 1, 2)
+      
+      // Build transfers object (same as local server)
+      const transfers = {
+        limit: calculatedFreeTransfers,
+        made: 0,
+        bank: entryData.bank || 0,
+        value: entryData.value || 0,
+        cost: 0
+      }
+      
+      // Build the response (same structure as local server)
       const teamData = {
         ...entryData,
-        picks: picksData.picks || [],
-        history: historyData.current || [],
+        picks: [], // Will be populated by frontend
+        chips: [], // Will be populated by frontend
+        transfers,
         season,
         isHistorical: false
       }
@@ -573,27 +620,33 @@ app.get('/api/fpl/next-deadline', async (c) => {
   try {
     console.log('Fetching next deadline...')
     
-    // Fetch bootstrap static to get current gameweek info
-    const bootstrapUrl = 'https://fantasy.premierleague.com/api/bootstrap-static/'
-    const response = await fetchWithUserAgent(bootstrapUrl)
+    // Fetch fixtures to find next deadline (same logic as local server)
+    const fixturesUrl = 'https://fantasy.premierleague.com/api/fixtures/'
+    const response = await fetchWithUserAgent(fixturesUrl)
     
     if (!response.ok) {
-      return c.json({ message: 'Failed to fetch deadline data' }, 500)
+      return c.json({ message: 'Failed to fetch fixtures' }, 500)
     }
     
-    const data = await response.json()
+    const fixtures = await response.json()
     
-    // Find current gameweek
-    const currentGameweek = data.events.find(event => event.is_current)
-    const nextGameweek = data.events.find(event => event.is_next)
+    // Get current timestamp
+    const now = new Date().getTime()
     
-    const deadline = nextGameweek ? nextGameweek.deadline_time : currentGameweek?.deadline_time
+    // Find the next fixture that hasn't started yet
+    const nextFixture = fixtures
+      .filter(f => new Date(f.kickoff_time).getTime() > now)
+      .sort((a, b) => 
+        new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
+      )[0]
     
-    return c.json({ 
-      deadline: deadline || new Date().toISOString(),
-      currentGameweek: currentGameweek?.id,
-      nextGameweek: nextGameweek?.id
-    })
+    if (!nextFixture) {
+      // If no future fixtures, return current time + 1 day
+      const fallbackDeadline = new Date(now + 24 * 60 * 60 * 1000).toISOString()
+      return c.json({ deadline: fallbackDeadline })
+    }
+    
+    return c.json({ deadline: nextFixture.kickoff_time })
   } catch (error) {
     console.error('Error fetching deadline:', error)
     return c.json({ message: 'Internal server error' }, 500)
