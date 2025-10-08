@@ -6,7 +6,7 @@ const app = new Hono()
 
 // Add CORS middleware
 app.use('/*', cors({
-  origin: ['https://fpl.clementadegbenro.com', 'http://localhost:5173', 'http://localhost:3000'],
+  origin: ['https://fpl.clementadegbenro.com', 'http://localhost:5173', 'http://localhost:3000', 'https://fpl-manager.pages.dev'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'User-Agent'],
 }))
@@ -479,7 +479,7 @@ app.get('/api/fpl/player/:playerId', async (c) => {
 })
 
 // Missing endpoints that your local server has
-app.get('/api/fpl/my-team/:managerId', async (c) => {
+app.get('/api/fpl/my-team/:managerId/', async (c) => {
   try {
     const managerId = c.req.param('managerId')
     const season = c.req.query('season') || '2024-25'
