@@ -27,6 +27,12 @@ A comprehensive Fantasy Premier League management system built with modern web t
   - Instant notifications
   - League chat system
 
+- **Design Systems**
+  - Aurora System: Modern glassmorphism with purple-pink gradients
+  - Electric Indigo System: Clean, vibrant design with Electric Indigo primary
+  - Easy switching between design systems
+  - Comprehensive color analysis documentation
+
 - **Draft System**
   - Automated draft scheduling
   - Live draft interface
@@ -49,8 +55,9 @@ A comprehensive Fantasy Premier League management system built with modern web t
 
 - **Backend**
   - Node.js/Express.js server with TypeScript
-  - PostgreSQL database for data storage
-  - Drizzle ORM for database operations
+  - Firebase Authentication for user management
+  - Firebase Firestore for user profiles and FPL team data
+  - Optional PostgreSQL with Drizzle ORM for additional data storage
   - WebSocket for real-time features
 
 - **Development & Deployment**
@@ -62,9 +69,9 @@ A comprehensive Fantasy Premier League management system built with modern web t
 
 ### Prerequisites
 - Node.js (v20 or higher)
-- PostgreSQL (v16 recommended)
 - npm package manager
 - Git for version control
+- Firebase project (for authentication)
 
 ### Local Development Setup
 
@@ -80,44 +87,34 @@ A comprehensive Fantasy Premier League management system built with modern web t
    npm install
    ```
 
-3. **Install PostgreSQL** (if not already installed)
-   ```bash
-   # macOS with Homebrew
-   brew install postgresql@16
-   brew services start postgresql@16
+3. **Set up Firebase project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project or use an existing one
+   - Enable Authentication with Google provider
+   - Enable Firestore Database
+   - Get your Firebase configuration
 
-   # Add to PATH
-   echo 'export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"' >> ~/.zshrc
-   ```
+4. **Configure environment variables**
 
-4. **Set up database**
-   ```bash
-   # Create user and database
-   createuser -s clementjatts
-   createdb -O clementjatts fantasy_league_manager
-
-   # Set password
-   psql -d fantasy_league_manager -c "ALTER USER clementjatts WITH PASSWORD '1234567890';"
-   ```
-
-5. **Configure environment variables**
-
-   Create a `.env` file in the project root:
+   Create a `.env.local` file in the project root:
    ```env
-   # Database connection
-   DATABASE_URL=postgresql://clementjatts:1234567890@localhost:5432/fantasy_league_manager
+   # Firebase Configuration (required)
+   VITE_FIREBASE_API_KEY=your_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+
+   # Optional: PostgreSQL (if you want to use local database)
+   DATABASE_URL=postgresql://username:password@localhost:5432/fantasy_league_manager
 
    # Application settings
    NODE_ENV=development
    PORT=4000
    ```
 
-6. **Initialize database schema**
-   ```bash
-   npm run db:push
-   ```
-
-7. **Start the development server**
+5. **Start the development server**
    ```bash
    npm run dev
    ```
@@ -196,14 +193,19 @@ This application connects to the official Fantasy Premier League API to provide:
 
 ### Common Issues
 
-**Database Connection Problems:**
-- Ensure PostgreSQL is running: `brew services start postgresql@16`
-- Verify DATABASE_URL in `.env` file is correct
-- Check that database and user exist
+**Firebase Configuration Problems:**
+- Ensure all `VITE_FIREBASE_*` environment variables are set in `.env.local`
+- Verify Firebase project has Authentication and Firestore enabled
+- Check that Google Auth provider is enabled in Firebase Console
+
+**Authentication Issues:**
+- Make sure Firebase project is properly configured
+- Verify Google OAuth is enabled in Firebase Console
+- Check browser console for Firebase configuration errors
 
 **Port Already in Use:**
 - Kill process using the port: `lsof -ti:4000 | xargs kill -9`
-- Or change PORT in `.env` file
+- Or change PORT in `.env.local` file
 
 **Node Modules Issues:**
 - Delete `node_modules` and `package-lock.json`
@@ -233,7 +235,7 @@ FantasyLeagueManager/
 │   ├── index.ts           # Main server file
 │   ├── routes.ts          # API routes
 │   └── vite.ts            # Development server setup
-├── db/                    # Database configuration
+├── db/                    # Optional PostgreSQL database configuration
 │   ├── index.ts           # Database connection
 │   └── schema.ts          # Database schema definitions
 ├── docs/                  # Documentation
