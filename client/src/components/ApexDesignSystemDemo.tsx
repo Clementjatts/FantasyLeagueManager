@@ -19,61 +19,61 @@ import {
   Info
 } from "lucide-react";
 
-export function ApexDesignSystemDemo() {
+export function ElectricDesignSystemDemo() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* Header */}
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-apex-green to-volt-magenta bg-clip-text text-transparent">
-          Apex Design System
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
+          Electric Design System
         </h1>
         <p className="text-lg text-slate-gray max-w-2xl mx-auto">
-          A vibrant, professional design system built for sports analytics and data-driven applications.
-          Featuring Apex Green primary colors, Volt Magenta accents, and modern glassmorphism effects.
+          A vibrant, bold design system built for tech-focused sports analytics and data-driven applications.
+          Featuring Electric Cyan primary colors, Vibrant Magenta accents, and high-saturation colors with modern glassmorphism effects.
         </p>
         <div className="flex justify-center gap-2">
-          <Badge className="apex-badge-success">Data-First</Badge>
-          <Badge className="apex-badge-neutral">Professional</Badge>
-          <Badge className="apex-badge-warning">Energetic</Badge>
+          <Badge className="electric-badge-success">Tech-Focused</Badge>
+          <Badge className="electric-badge-neutral">Bold & Vibrant</Badge>
+          <Badge className="electric-badge-warning">High Saturation</Badge>
         </div>
       </div>
 
       {/* Color Palette */}
-      <Card variant="apex">
+      <Card variant="electric">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-apex-green" />
+            <Target className="w-5 h-5 text-electric-cyan" />
             Color Palette
           </CardTitle>
           <CardDescription>
-            The Apex color system designed for optimal data clarity and accessibility
+            The Electric color system designed for maximum vibrancy and tech-focused appeal
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <div className="h-16 rounded-lg bg-apex-green flex items-center justify-center">
-                <span className="text-white font-semibold">Apex Green</span>
+              <div className="h-16 rounded-lg bg-electric-cyan flex items-center justify-center">
+                <span className="text-white font-semibold">Electric Cyan</span>
               </div>
               <p className="text-sm text-slate-gray">Primary</p>
             </div>
             <div className="space-y-2">
-              <div className="h-16 rounded-lg bg-volt-magenta flex items-center justify-center">
-                <span className="text-white font-semibold">Volt Magenta</span>
+              <div className="h-16 rounded-lg bg-vibrant-magenta flex items-center justify-center">
+                <span className="text-white font-semibold">Vibrant Magenta</span>
               </div>
               <p className="text-sm text-slate-gray">Secondary</p>
             </div>
             <div className="space-y-2">
               <div className="h-16 rounded-lg bg-success flex items-center justify-center">
-                <span className="text-white font-semibold">Success</span>
+                <span className="text-white font-semibold">Bright Mint</span>
               </div>
-              <p className="text-sm text-slate-gray">Positive</p>
+              <p className="text-sm text-slate-gray">Success</p>
             </div>
             <div className="space-y-2">
               <div className="h-16 rounded-lg bg-warning flex items-center justify-center">
-                <span className="text-white font-semibold">Warning</span>
+                <span className="text-white font-semibold">Vibrant Amber</span>
               </div>
-              <p className="text-sm text-slate-gray">Alert</p>
+              <p className="text-sm text-slate-gray">Warning</p>
             </div>
           </div>
         </CardContent>
@@ -89,7 +89,7 @@ export function ApexDesignSystemDemo() {
         </TabsList>
 
         <TabsContent value="buttons" className="space-y-6">
-          <Card variant="apex">
+          <Card variant="electric">
             <CardHeader>
               <CardTitle>Button Variants</CardTitle>
               <CardDescription>Different button styles for various use cases</CardDescription>
@@ -97,9 +97,9 @@ export function ApexDesignSystemDemo() {
             <CardContent>
               <div className="flex flex-wrap gap-4">
                 <Button variant="default">Primary Action</Button>
-                <Button variant="apex-primary">Apex Primary</Button>
-                <Button variant="apex-secondary">Apex Secondary</Button>
-                <Button variant="volt-accent">Volt Accent</Button>
+                <Button variant="electric-primary">Electric Primary</Button>
+                <Button variant="electric-secondary">Electric Secondary</Button>
+                <Button variant="magenta-accent">Magenta Accent</Button>
                 <Button variant="secondary">Secondary</Button>
                 <Button variant="outline">Outline</Button>
                 <Button variant="destructive">Destructive</Button>
@@ -110,49 +110,49 @@ export function ApexDesignSystemDemo() {
 
         <TabsContent value="cards" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card variant="apex">
+            <Card variant="electric">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-apex-green" />
+                  <Trophy className="w-5 h-5 text-electric-cyan" />
                   Performance Card
                 </CardTitle>
-                <CardDescription>Glassmorphism with Apex styling</CardDescription>
+                <CardDescription>Glassmorphism with Electric styling</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-slate-gray">Team Performance</span>
-                  <span className="text-2xl font-bold text-apex-green">85%</span>
+                  <span className="text-2xl font-bold text-electric-cyan">85%</span>
                 </div>
                 <Progress value={85} className="h-2" />
                 <div className="flex gap-2">
-                  <Badge className="apex-badge-success">Excellent</Badge>
-                  <Badge className="apex-badge-neutral">+12% vs last week</Badge>
+                  <Badge className="electric-badge-success">Excellent</Badge>
+                  <Badge className="electric-badge-neutral">+12% vs last week</Badge>
                 </div>
               </CardContent>
             </Card>
 
-            <Card variant="apex">
+            <Card variant="electric">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-volt-magenta" />
+                  <TrendingUp className="w-5 h-5 text-vibrant-magenta" />
                   Analytics Card
                 </CardTitle>
-                <CardDescription>Data visualization with Volt accents</CardDescription>
+                <CardDescription>Data visualization with Vibrant accents</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-volt-magenta">1,247</div>
+                    <div className="text-2xl font-bold text-vibrant-magenta">1,247</div>
                     <div className="text-sm text-slate-gray">Total Points</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-apex-green">+89</div>
+                    <div className="text-2xl font-bold text-electric-cyan">+89</div>
                     <div className="text-sm text-slate-gray">This Week</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Badge className="apex-badge-warning">Trending Up</Badge>
-                  <Badge className="apex-badge-success">Top 10%</Badge>
+                  <Badge className="electric-badge-warning">Trending Up</Badge>
+                  <Badge className="electric-badge-success">Top 10%</Badge>
                 </div>
               </CardContent>
             </Card>
@@ -160,7 +160,7 @@ export function ApexDesignSystemDemo() {
         </TabsContent>
 
         <TabsContent value="badges" className="space-y-6">
-          <Card variant="apex">
+          <Card variant="electric">
             <CardHeader>
               <CardTitle>Badge System</CardTitle>
               <CardDescription>Status indicators and labels</CardDescription>
@@ -168,19 +168,19 @@ export function ApexDesignSystemDemo() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="apex-badge-success">
+                  <Badge className="electric-badge-success">
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Success
                   </Badge>
-                  <Badge className="apex-badge-warning">
+                  <Badge className="electric-badge-warning">
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     Warning
                   </Badge>
-                  <Badge className="apex-badge-destructive">
+                  <Badge className="electric-badge-destructive">
                     <XCircle className="w-3 h-3 mr-1" />
                     Error
                   </Badge>
-                  <Badge className="apex-badge-neutral">
+                  <Badge className="electric-badge-neutral">
                     <Info className="w-3 h-3 mr-1" />
                     Info
                   </Badge>
@@ -189,10 +189,10 @@ export function ApexDesignSystemDemo() {
                 <div className="space-y-2">
                   <h4 className="font-semibold">Player Status Examples</h4>
                   <div className="flex flex-wrap gap-2">
-                    <Badge className="apex-badge-success">In Form</Badge>
-                    <Badge className="apex-badge-warning">Injured</Badge>
-                    <Badge className="apex-badge-neutral">Bench</Badge>
-                    <Badge className="apex-badge-destructive">Suspended</Badge>
+                    <Badge className="electric-badge-success">In Form</Badge>
+                    <Badge className="electric-badge-warning">Injured</Badge>
+                    <Badge className="electric-badge-neutral">Bench</Badge>
+                    <Badge className="electric-badge-destructive">Suspended</Badge>
                   </div>
                 </div>
               </div>
@@ -201,7 +201,7 @@ export function ApexDesignSystemDemo() {
         </TabsContent>
 
         <TabsContent value="forms" className="space-y-6">
-          <Card variant="apex">
+          <Card variant="electric">
             <CardHeader>
               <CardTitle>Form Elements</CardTitle>
               <CardDescription>Input fields and form controls</CardDescription>
@@ -212,7 +212,7 @@ export function ApexDesignSystemDemo() {
                 <Input 
                   id="team-name" 
                   placeholder="Enter your team name"
-                  className="focus:ring-apex-green focus:border-apex-green"
+                  className="focus:ring-electric-cyan focus:border-electric-cyan"
                 />
               </div>
               
@@ -222,16 +222,16 @@ export function ApexDesignSystemDemo() {
                   id="budget" 
                   type="number"
                   placeholder="100.0"
-                  className="focus:ring-apex-green focus:border-apex-green"
+                  className="focus:ring-electric-cyan focus:border-electric-cyan"
                 />
               </div>
               
               <div className="flex gap-2">
-                <Button variant="apex-primary" className="flex-1">
+                <Button variant="electric-primary" className="flex-1">
                   <Star className="w-4 h-4 mr-2" />
                   Save Team
                 </Button>
-                <Button variant="apex-secondary">
+                <Button variant="electric-secondary">
                   Cancel
                 </Button>
               </div>
@@ -241,44 +241,44 @@ export function ApexDesignSystemDemo() {
       </Tabs>
 
       {/* Design Principles */}
-      <Card variant="apex">
+      <Card variant="electric">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-apex-green" />
+            <Zap className="w-5 h-5 text-electric-cyan" />
             Design Principles
           </CardTitle>
           <CardDescription>
-            The core principles that guide the Apex design system
+            The core principles that guide the Electric design system
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <h4 className="font-semibold text-apex-green">Data-First Clarity</h4>
+              <h4 className="font-semibold text-electric-cyan">Tech-Focused Innovation</h4>
               <p className="text-sm text-slate-gray">
-                Colors and layouts prioritize data visualization and statistical information, 
-                ensuring that charts, tables, and metrics are the heroes of the interface.
+                Electric Cyan evokes technology, data streams, and modern analytics platforms, 
+                creating a cutting-edge feel perfect for sports tech applications.
               </p>
             </div>
             <div className="space-y-3">
-              <h4 className="font-semibold text-volt-magenta">Energetic & Professional</h4>
+              <h4 className="font-semibold text-vibrant-magenta">Bold & Vibrant</h4>
               <p className="text-sm text-slate-gray">
-                The aesthetic balances dynamic excitement with analytical precision, 
-                creating a trustworthy yet engaging experience for sports analytics.
+                High-saturation colors create maximum visual impact and energy, 
+                making the interface exciting and engaging for users.
               </p>
             </div>
             <div className="space-y-3">
-              <h4 className="font-semibold text-success">Accessibility Standard</h4>
+              <h4 className="font-semibold text-success">Premium Modern</h4>
               <p className="text-sm text-slate-gray">
-                All color combinations meet WCAG AA contrast standards, 
-                ensuring usability for users with different visual needs.
+                Rich, saturated colors combined with sophisticated glassmorphism 
+                create a premium, contemporary feel that reflects current tech trends.
               </p>
             </div>
             <div className="space-y-3">
-              <h4 className="font-semibold text-warning">Modern Aesthetics</h4>
+              <h4 className="font-semibold text-warning">Maximum Contrast</h4>
               <p className="text-sm text-slate-gray">
-                Leverages glassmorphism, gradients, and modern design trends 
-                to create a premium, contemporary feel that reflects current tech standards.
+                Vibrant colors against clean backgrounds ensure excellent readability 
+                and accessibility while maintaining visual excitement.
               </p>
             </div>
           </div>

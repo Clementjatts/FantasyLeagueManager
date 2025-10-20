@@ -9,18 +9,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "apex-gradient text-white shadow-apex-button hover:shadow-apex-button-hover transition-all duration-300 hover:-translate-y-0.5",
+        default: "electric-gradient text-white shadow-electric-button hover:shadow-electric-button-hover transition-all duration-300 hover:-translate-y-0.5",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "apex-card border border-glass-border text-foreground hover:shadow-apex-hover transition-all duration-300",
+          "electric-card border border-glass-border text-foreground hover:shadow-electric-hover transition-all duration-300",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        "apex-primary": "apex-button-primary text-white shadow-apex-button hover:shadow-apex-button-hover transition-all duration-300 hover:-translate-y-0.5",
-        "apex-secondary": "apex-button-secondary text-foreground hover:shadow-apex-hover transition-all duration-300",
-        "volt-accent": "bg-volt-magenta text-white shadow-volt hover:shadow-volt-lg transition-all duration-300 hover:-translate-y-0.5",
+        "electric-primary": "electric-button-primary text-white shadow-electric-button hover:shadow-electric-button-hover transition-all duration-300 hover:-translate-y-0.5",
+        "electric-secondary": "electric-button-secondary text-foreground hover:shadow-electric-hover transition-all duration-300",
+        "magenta-accent": "bg-vibrant-magenta text-white shadow-magenta hover:shadow-magenta-lg transition-all duration-300 hover:-translate-y-0.5",
       },
       size: {
         default: "h-10 px-4 py-2",

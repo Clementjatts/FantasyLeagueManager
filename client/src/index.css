@@ -26,20 +26,20 @@
 
 @layer base {
   :root {
-    /* Apex Palette - Light Mode */
-    --background: 203 22% 96%; /* Slate Echo */
-    --foreground: 222 84% 5%; /* Inkwell */
+    /* Electric Palette - Light Mode */
+    --background: 210 20% 98%; /* Clean Slate */
+    --foreground: 222 84% 5%; /* Deep Ink */
     
-    --card: 210 20% 95% / 0.6; /* Frosted Glass */
+    --card: 250 251 252 / 0.6; /* Frosted Glass */
     --card-foreground: 222 84% 5%;
 
-    --popover: 203 22% 96%;
+    --popover: 210 20% 98%;
     --popover-foreground: 222 84% 5%;
 
-    --primary: 158 81% 42%; /* Apex Green */
-    --primary-foreground: 203 22% 96%;
+    --primary: 191 100% 50%; /* Electric Cyan #00E5FF */
+    --primary-foreground: 210 20% 98%;
 
-    --secondary: 282 83% 58%; /* Volt Magenta */
+    --secondary: 328 100% 54%; /* Vibrant Magenta #FF1493 */
     --secondary-foreground: 210 40% 98%;
 
     --muted: 215 20% 65%; /* Slate Gray */
@@ -48,46 +48,46 @@
     --accent: 215 20% 90%;
     --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 345 100% 50%; /* Hot Red #FF0055 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 20% 65% / 0.3; /* Slate Border */
+    --border: 215 20% 65% / 0.3; /* Subtle Edge */
     --input: 215 20% 65% / 0.3;
-    --ring: 158 81% 42%; /* Apex Green */
+    --ring: 191 100% 50%; /* Electric Cyan */
 
     --radius: 0.75rem;
 
-    /* Semantic Colors */
-    --success: 142 71% 45%; /* Success Green */
-    --warning: 38 92% 50%; /* Warning Amber */
-    --info: 204 70% 53%; /* Sky Blue */
+    /* Semantic Colors - High Saturation */
+    --success: 151 100% 50%; /* Bright Mint #00FF88 */
+    --warning: 42 100% 50%; /* Vibrant Amber #FFB800 */
+    --info: 188 100% 50%; /* Bright Cyan #00D9FF */
     
-    /* Apex Gradients */
-    --apex-gradient: linear-gradient(135deg, hsl(158, 81%, 42%), hsl(158, 81%, 35%));
-    --apex-glow: linear-gradient(135deg, hsl(158, 81%, 50%), hsl(158, 81%, 30%));
+    /* Electric Gradients */
+    --electric-gradient: linear-gradient(135deg, hsl(191, 100%, 50%), hsl(195, 100%, 40%));
+    --electric-glow: linear-gradient(135deg, hsl(180, 100%, 50%), hsl(191, 100%, 42%));
     
     /* Glass effects */
-    --glass-bg: rgba(241, 245, 249, 0.6);
-    --glass-border: rgba(148, 163, 184, 0.3);
+    --glass-bg: rgba(250, 251, 252, 0.6);
+    --glass-border: rgba(100, 116, 139, 0.3);
     --glass-blur: blur(12px);
   }
 
   .dark {
-    /* Apex Palette - Dark Mode */
-    --background: 222 47% 11%; /* Slate Echo */
-    --foreground: 210 40% 98%; /* Inkwell */
+    /* Electric Palette - Dark Mode */
+    --background: 222 47% 4%; /* Deep Navy-Black */
+    --foreground: 210 40% 98%; /* Deep Ink */
 
-    --card: 216 34% 17% / 0.6; /* Frosted Glass */
+    --card: 10 14 26 / 0.6; /* Frosted Glass */
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 11%;
+    --popover: 222 47% 4%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 157 67% 53%; /* Apex Green */
-    --primary-foreground: 158 81% 10%;
+    --primary: 191 100% 42%; /* Electric Cyan #00B8D4 */
+    --primary-foreground: 222 47% 4%;
 
-    --secondary: 282 83% 80%; /* Volt Magenta */
-    --secondary-foreground: 282 83% 10%;
+    --secondary: 330 100% 59%; /* Hot Pink #FF69B4 */
+    --secondary-foreground: 222 47% 4%;
 
     --muted: 215 28% 17%; /* Slate Gray */
     --muted-foreground: 215 20% 65%;
@@ -95,24 +95,25 @@
     --accent: 215 28% 17%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 345 100% 55%; /* Hot Red */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 215 20% 65% / 0.2; /* Slate Border */
+    --border: 215 20% 65% / 0.2; /* Subtle Edge */
     --input: 215 20% 65% / 0.2;
-    --ring: 157 67% 53%; /* Apex Green */
+    --ring: 191 100% 42%; /* Electric Cyan */
     
-    /* Semantic Colors */
-    --success: 142 60% 55%;
-    --warning: 43 96% 56%;
+    /* Semantic Colors - High Saturation */
+    --success: 151 100% 55%; /* Bright Mint */
+    --warning: 42 100% 55%; /* Vibrant Amber */
+    --info: 188 100% 55%; /* Bright Cyan */
     
-    /* Apex Gradients - Dark Mode */
-    --apex-gradient: linear-gradient(135deg, hsl(157, 67%, 53%), hsl(157, 67%, 45%));
-    --apex-glow: linear-gradient(135deg, hsl(157, 67%, 60%), hsl(157, 67%, 40%));
+    /* Electric Gradients - Dark Mode */
+    --electric-gradient: linear-gradient(135deg, hsl(191, 100%, 42%), hsl(195, 100%, 35%));
+    --electric-glow: linear-gradient(135deg, hsl(180, 100%, 55%), hsl(191, 100%, 35%));
     
     /* Glass effects - Dark Mode */
-    --glass-bg: rgba(30, 41, 59, 0.6);
-    --glass-border: rgba(148, 163, 184, 0.2);
+    --glass-bg: rgba(10, 14, 26, 0.6);
+    --glass-border: rgba(100, 116, 139, 0.2);
     --glass-blur: blur(12px);
   }
 
@@ -155,68 +156,68 @@
 }
 
 @layer components {
-  /* Apex Glassmorphism Components */
-  .apex-card {
+  /* Electric Glassmorphism Components */
+  .electric-card {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.15);
     transition: all 0.3s ease;
   }
   
-  .apex-card:hover {
+  .electric-card:hover {
     border-color: hsl(var(--primary) / 0.5);
-    box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.25);
+    box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.25);
   }
   
-  .apex-navbar {
+  .electric-navbar {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border-bottom: 1px solid var(--glass-border);
-    box-shadow: 0 2px 16px 0 rgba(16, 185, 129, 0.1);
+    box-shadow: 0 2px 16px 0 rgba(0, 229, 255, 0.1);
   }
   
-  .apex-gradient {
-    background: var(--apex-gradient);
+  .electric-gradient {
+    background: var(--electric-gradient);
   }
   
-  .apex-glow {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.2);
+  .electric-glow {
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4), 0 0 40px rgba(0, 229, 255, 0.2);
   }
   
-  .apex-glow-lg {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5), 0 0 60px rgba(16, 185, 129, 0.3);
+  .electric-glow-lg {
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.5), 0 0 60px rgba(0, 229, 255, 0.3);
   }
   
-  .apex-hover {
+  .electric-hover {
     transition: all 0.3s ease;
   }
   
-  .apex-hover:hover {
+  .electric-hover:hover {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.2);
   }
   
-  /* Apex Button Components */
-  .apex-button-primary {
-    background: var(--apex-gradient);
+  /* Electric Button Components */
+  .electric-button-primary {
+    background: var(--electric-gradient);
     color: hsl(var(--primary-foreground));
-    box-shadow: 0 4px 12px 0 rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 12px 0 rgba(0, 229, 255, 0.3);
     border: none;
     transition: all 0.3s ease;
   }
   
-  .apex-button-primary:hover {
-    background: var(--apex-glow);
-    box-shadow: 0 6px 16px 0 rgba(16, 185, 129, 0.4);
+  .electric-button-primary:hover {
+    background: var(--electric-glow);
+    box-shadow: 0 6px 16px 0 rgba(0, 229, 255, 0.4);
     transform: translateY(-1px);
   }
   
-  .apex-button-secondary {
+  .electric-button-secondary {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
@@ -225,34 +226,34 @@
     transition: all 0.3s ease;
   }
   
-  .apex-button-secondary:hover {
+  .electric-button-secondary:hover {
     background: hsl(var(--primary) / 0.1);
     border-color: hsl(var(--primary) / 0.3);
-    box-shadow: 0 4px 12px 0 rgba(16, 185, 129, 0.2);
+    box-shadow: 0 4px 12px 0 rgba(0, 229, 255, 0.2);
   }
   
-  /* Apex Table Components */
-  .apex-table-hover:hover {
-    background: hsl(var(--primary) / 0.1);
+  /* Electric Table Components */
+  .electric-table-hover:hover {
+    background: hsl(var(--primary) / 0.15);
   }
   
-  /* Apex Badge Components */
-  .apex-badge-success {
+  /* Electric Badge Components */
+  .electric-badge-success {
     background: hsl(var(--success));
     color: white;
   }
   
-  .apex-badge-warning {
+  .electric-badge-warning {
     background: hsl(var(--warning));
     color: white;
   }
   
-  .apex-badge-destructive {
+  .electric-badge-destructive {
     background: hsl(var(--destructive));
     color: white;
   }
   
-  .apex-badge-neutral {
+  .electric-badge-neutral {
     background: hsl(var(--muted) / 0.2);
     color: hsl(var(--muted-foreground));
   }

@@ -15,11 +15,11 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="apex-navbar sticky top-0 z-50 shadow-glass">
+    <nav className="electric-navbar sticky top-0 z-50 shadow-glass">
       <div className="container mx-auto px-6 sm:px-8">
         <div className="flex h-20 items-center justify-between py-4">
           <div className="flex-shrink-0 mr-10">
-            <div className="text-3xl font-black tracking-tighter bg-gradient-to-r from-apex-green to-volt-magenta bg-clip-text text-transparent select-none hover:scale-105 hover:opacity-90 transition-all duration-200 [text-shadow:0_0_8px_rgba(16,185,129,0.5)]">
+            <div className="text-3xl font-black tracking-tighter bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent select-none hover:scale-105 hover:opacity-90 transition-all duration-200 [text-shadow:0_0_8px_rgba(0,229,255,0.5)]">
               FPLManager
             </div>
         </div>
@@ -31,10 +31,10 @@ export function Navbar() {
                 className={cn(
                   "relative flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
                   "transition-all duration-200 ease-in-out",
-                  "apex-hover",
+                  "electric-hover",
                   location === href
-                    ? "apex-gradient text-white shadow-apex"
-                    : "text-slate-gray hover:text-apex-green"
+                    ? "electric-gradient text-white shadow-electric"
+                    : "text-slate-gray hover:text-electric-cyan"
                 )}
               >
                 <Icon className={cn(
@@ -64,7 +64,7 @@ export function Navbar() {
                 </div>
                 <button
                   onClick={signOutUser}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium apex-gradient text-white shadow-apex hover:shadow-apex-lg transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium electric-gradient text-white shadow-electric hover:shadow-electric-lg transition-all duration-200"
                   aria-label="Log out"
                   title="Log out"
                 >
