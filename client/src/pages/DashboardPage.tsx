@@ -55,12 +55,12 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan via-vibrant-magenta to-electric-cyan bg-clip-text text-transparent">
                     Dashboard
                   </h1>
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-glass-bg backdrop-blur-sm border border-glass-border shadow-glass">
-                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Gameweek</span>
-                    <span className="text-xl font-bold text-primary">-</span>
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-electric-cyan/20 to-vibrant-magenta/20 backdrop-blur-sm border border-electric-cyan/30 shadow-electric">
+                    <span className="text-sm font-medium text-deep-ink dark:text-clean-slate">Gameweek</span>
+                    <span className="text-xl font-bold text-electric-cyan">-</span>
                   </div>
                 </div>
                 <p className="text-lg text-slate-600 dark:text-slate-300 font-medium">
@@ -70,12 +70,12 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <Card>
+          <Card variant="electric">
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
-                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground" />
-                <h2 className="text-2xl font-semibold">No Team Selected</h2>
-                <p className="text-muted-foreground">
+                <AlertCircle className="w-12 h-12 mx-auto text-electric-cyan" />
+                <h2 className="text-2xl font-semibold text-deep-ink dark:text-clean-slate">No Team Selected</h2>
+                <p className="text-slate-gray">
                   Enter your FPL team ID to view your dashboard
                 </p>
                 <TeamIdInput onTeamIdChange={setFplTeamId} />
@@ -128,33 +128,33 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan via-vibrant-magenta to-electric-cyan bg-clip-text text-transparent">
                   Dashboard
                 </h1>
-                <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10">
-                  <span className="text-sm font-medium text-muted-foreground">Gameweek</span>
-                  <span className="text-xl font-bold text-primary">{gameweekData.currentGameweek}</span>
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-electric-cyan/20 to-vibrant-magenta/20 border border-electric-cyan/30 shadow-electric">
+                  <span className="text-sm font-medium text-deep-ink dark:text-clean-slate">Gameweek</span>
+                  <span className="text-xl font-bold text-electric-cyan">{gameweekData.currentGameweek}</span>
                 </div>
               </div>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-slate-gray font-medium">
                 Your FPL overview and team management hub
               </p>
             </div>
             <div>
               <button
                 onClick={() => setMinimizeStats(v => !v)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-radiant-violet to-pink-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.35)] hover:opacity-90 transition w-44"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium electric-gradient text-white shadow-electric hover:shadow-electric-lg transition-all duration-300 w-44"
                 aria-pressed={minimizeStats}
                 title={minimizeStats ? "Show full overview" : "Focus on live match view"}
               >
                 {minimizeStats ? (
                   <>
-                    <span className="inline-block h-2 w-2 rounded-full bg-green-400" />
+                    <span className="inline-block h-2 w-2 rounded-full bg-success" />
                     Show Overview
                   </>
                 ) : (
                   <>
-                    <span className="inline-block h-2 w-2 rounded-full bg-yellow-300" />
+                    <span className="inline-block h-2 w-2 rounded-full bg-warning" />
                     Matchday Focus
                   </>
                 )}
@@ -168,16 +168,16 @@ export default function DashboardPage() {
         {!minimizeStats && (
           <div className="space-y-6">
             <div className="grid gap-6 md:grid-cols-3 items-stretch">
-              <Card className="group hover:shadow-lg transition-all duration-300">
+              <Card variant="electric" className="group hover:shadow-electric-hover transition-all duration-300">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                      <CardTitle className="text-lg">Overall Performance</CardTitle>
+                      <Trophy className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                      <CardTitle className="text-lg text-deep-ink dark:text-clean-slate">Overall Performance</CardTitle>
                     </div>
                     <div className="flex items-center gap-1.5 text-sm">
-                      <TrendingUp className="w-3.5 h-3.5 text-green-500" />
-                      <span className="text-green-500 font-medium">
+                      <TrendingUp className="w-3.5 h-3.5 text-success" />
+                      <span className="text-success font-medium">
                         +{(gameweekData.lastRank - gameweekData.rank).toLocaleString()}
                       </span>
                     </div>
@@ -185,15 +185,15 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                      <div className="text-sm text-muted-foreground">Total Points</div>
-                      <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                    <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-electric-cyan/20 to-vibrant-magenta/10 border border-electric-cyan/20">
+                      <div className="text-sm text-slate-gray">Total Points</div>
+                      <div className="text-2xl font-bold text-electric-cyan">
                         {gameweekData.totalPoints}
                       </div>
                     </div>
-                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                      <div className="text-sm text-muted-foreground">Overall Rank</div>
-                      <div className="text-2xl font-bold tabular-nums">
+                    <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-vibrant-magenta/20 to-electric-cyan/10 border border-vibrant-magenta/20">
+                      <div className="text-sm text-slate-gray">Overall Rank</div>
+                      <div className="text-2xl font-bold text-vibrant-magenta tabular-nums">
                         {gameweekData.rank.toLocaleString()}
                       </div>
                     </div>
@@ -201,26 +201,26 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card className="group hover:shadow-lg transition-all duration-300">
+              <Card variant="electric" className="group hover:shadow-electric-hover transition-all duration-300">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                      <CardTitle className="text-lg">Gameweek Points</CardTitle>
+                      <TrendingUp className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                      <CardTitle className="text-lg text-deep-ink dark:text-clean-slate">Gameweek Points</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                      <div className="text-sm text-muted-foreground">Gameweek Points</div>
-                      <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                    <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-electric-cyan/20 to-vibrant-magenta/10 border border-electric-cyan/20">
+                      <div className="text-sm text-slate-gray">Gameweek Points</div>
+                      <div className="text-2xl font-bold text-electric-cyan">
                         {gameweekData.points}
                       </div>
                     </div>
-                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                      <div className="text-sm text-muted-foreground">Gameweek Rank</div>
-                      <div className="text-2xl font-bold tabular-nums">
+                    <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-vibrant-magenta/20 to-electric-cyan/10 border border-vibrant-magenta/20">
+                      <div className="text-sm text-slate-gray">Gameweek Rank</div>
+                      <div className="text-2xl font-bold text-vibrant-magenta tabular-nums">
                         {(team.stats?.event_rank || 0).toLocaleString()}
                       </div>
                     </div>
@@ -240,26 +240,26 @@ export default function DashboardPage() {
         {/* Bottom row: Team Value, Transfers, Players to Watch */}
         {!minimizeStats && (
           <div className="grid gap-6 md:grid-cols-3 items-stretch">
-            <Card className="group hover:shadow-lg transition-all duration-300">
+            <Card variant="electric" className="group hover:shadow-electric-hover transition-all duration-300">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                    <CardTitle className="text-lg">Team Value</CardTitle>
+                    <Coins className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                    <CardTitle className="text-lg text-deep-ink dark:text-clean-slate">Team Value</CardTitle>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                    <div className="text-sm text-muted-foreground">Squad Value</div>
-                    <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                  <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-electric-cyan/20 to-vibrant-magenta/10 border border-electric-cyan/20">
+                    <div className="text-sm text-slate-gray">Squad Value</div>
+                    <div className="text-2xl font-bold text-electric-cyan">
                       £{gameweekData.teamValue}m
                     </div>
                   </div>
-                  <div className="space-y-1 p-2 rounded-lg bg-primary/5">
-                    <div className="text-sm text-muted-foreground">In Bank</div>
-                    <div className="text-2xl font-bold tabular-nums">
+                  <div className="space-y-1 p-3 rounded-lg bg-gradient-to-br from-vibrant-magenta/20 to-electric-cyan/10 border border-vibrant-magenta/20">
+                    <div className="text-sm text-slate-gray">In Bank</div>
+                    <div className="text-2xl font-bold text-vibrant-magenta tabular-nums">
                       £{gameweekData.bankValue}m
                     </div>
                   </div>
@@ -267,22 +267,22 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="group hover:shadow-lg transition-all duration-300">
+            <Card variant="electric" className="group hover:shadow-electric-hover transition-all duration-300">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-                    <CardTitle className="text-lg">Transfers</CardTitle>
+                    <Users className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                    <CardTitle className="text-lg text-deep-ink dark:text-clean-slate">Transfers</CardTitle>
                   </div>
-                  <Badge variant="secondary" className="bg-primary/10">
+                  <Badge variant="secondary" className="bg-electric-cyan/10 text-electric-cyan border-electric-cyan/20">
                     Cost: {team?.transfers?.cost || 0} pts
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="p-2 rounded-lg bg-primary/5">
-                  <div className="text-sm text-muted-foreground">Free Transfers</div>
-                  <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
+                <div className="p-3 rounded-lg bg-gradient-to-br from-electric-cyan/20 to-vibrant-magenta/10 border border-electric-cyan/20">
+                  <div className="text-sm text-slate-gray">Free Transfers</div>
+                  <div className="text-2xl font-bold text-electric-cyan">
                     {team?.transfers?.limit || 0}
                   </div>
                 </div>
@@ -296,9 +296,9 @@ export default function DashboardPage() {
 
         {/* Live Result below */}
         <div className="space-y-6">
-          <Card>
+          <Card variant="electric">
             <CardHeader>
-              <CardTitle>Live Result</CardTitle>
+              <CardTitle className="text-deep-ink dark:text-clean-slate">Live Result</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {allPlayers ? (
@@ -347,9 +347,9 @@ export default function DashboardPage() {
           {/* Removed Quick Actions and duplicate Next Deadline */}
         </div>
 
-        <Card>
+        <Card variant="electric">
           <CardHeader>
-            <CardTitle>Performance History</CardTitle>
+            <CardTitle className="text-deep-ink dark:text-clean-slate">Performance History</CardTitle>
           </CardHeader>
           <CardContent>
             <PerformanceTimeline data={pointsData} />
