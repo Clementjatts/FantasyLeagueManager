@@ -26,114 +26,94 @@
 
 @layer base {
   :root {
-    /* Aurora Palette - Light Mode */
-    --background: 210 40% 98%; /* White Smoke */
-    --foreground: 222 84% 5%; /* Deep Slate */
-    --card: 255 255 255 / 0.8; /* Semi-transparent white for glass effect */
-    --card-foreground: 222 84% 5%; /* Deep Slate */
-    --popover: 255 255 255 / 0.9;
+    /* Apex Palette - Light Mode */
+    --background: 203 22% 96%; /* Slate Echo */
+    --foreground: 222 84% 5%; /* Inkwell */
+    
+    --card: 210 20% 95% / 0.6; /* Frosted Glass */
+    --card-foreground: 222 84% 5%;
+
+    --popover: 203 22% 96%;
     --popover-foreground: 222 84% 5%;
-    --primary: 262 83% 58%; /* Radiant Violet */
-    --primary-foreground: 210 40% 98%; /* White Smoke */
-    --secondary: 215 25% 27%; /* Cool Slate */
+
+    --primary: 158 81% 42%; /* Apex Green */
+    --primary-foreground: 203 22% 96%;
+
+    --secondary: 282 83% 58%; /* Volt Magenta */
     --secondary-foreground: 210 40% 98%;
-    --muted: 215 25% 27%;
+
+    --muted: 215 20% 65%; /* Slate Gray */
     --muted-foreground: 215 16% 47%;
-    --accent: 215 25% 27%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%; /* Electric Red */
+
+    --accent: 215 20% 90%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27% / 0.2; /* Cool Slate with transparency */
-    --input: 215 25% 27% / 0.1;
-    --ring: 262 83% 58%;
+
+    --border: 215 20% 65% / 0.3; /* Slate Border */
+    --input: 215 20% 65% / 0.3;
+    --ring: 158 81% 42%; /* Apex Green */
+
     --radius: 0.75rem;
+
+    /* Semantic Colors */
+    --success: 142 71% 45%; /* Success Green */
+    --warning: 38 92% 50%; /* Warning Amber */
+    --info: 204 70% 53%; /* Sky Blue */
     
-    /* Aurora Glass & Glow Palette */
-    --radiant-violet: 262 83% 58%;
-    --cool-slate: 215 25% 27%;
-    --white-smoke: 210 40% 98%;
-    --deep-slate: 222 84% 5%;
-    --neon-green: 158 64% 52%;
-    --bright-amber: 43 96% 56%;
-    --electric-red: 0 84% 60%;
-    
-    /* Aurora Gradient */
-    --aurora-gradient: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(330, 81%, 60%));
-    
-    /* Electric Indigo Palette */
-    --electric-indigo: 266 100% 50%; /* #6F00FF */
-    --cool-gray: 204 12% 54%; /* #7A8C99 */
-    --neon-green-alt: 111 100% 54%; /* #39FF14 */
-    --bright-orange: 36 100% 50%; /* #FF9A00 */
-    --off-white: 210 17% 98%; /* #F8F9FA */
-    --midnight-blue: 215 27% 7%; /* #0D1117 */
-    --emerald-green: 145 63% 49%; /* #2ECC71 */
-    --amber: 48 89% 50%; /* #F1C40F */
-    --crimson-red: 5 74% 57%; /* #E74C3C */
-    --sky-blue: 204 70% 53%; /* #3498DB */
-    
-    /* Electric Indigo Gradient */
-    --electric-gradient: linear-gradient(135deg, hsl(266, 100%, 50%), hsl(266, 100%, 40%));
+    /* Apex Gradients */
+    --apex-gradient: linear-gradient(135deg, hsl(158, 81%, 42%), hsl(158, 81%, 35%));
+    --apex-glow: linear-gradient(135deg, hsl(158, 81%, 50%), hsl(158, 81%, 30%));
     
     /* Glass effects */
-    --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-blur: blur(10px);
+    --glass-bg: rgba(241, 245, 249, 0.6);
+    --glass-border: rgba(148, 163, 184, 0.3);
+    --glass-blur: blur(12px);
   }
 
   .dark {
-    /* Aurora Palette - Dark Mode */
-    --background: 222 84% 5%; /* Deep Slate */
-    --foreground: 210 40% 98%; /* White Smoke */
-    --card: 30 41 59 / 0.8; /* Semi-transparent dark slate for glass effect */
+    /* Apex Palette - Dark Mode */
+    --background: 222 47% 11%; /* Slate Echo */
+    --foreground: 210 40% 98%; /* Inkwell */
+
+    --card: 216 34% 17% / 0.6; /* Frosted Glass */
     --card-foreground: 210 40% 98%;
-    --popover: 30 41 59 / 0.9;
+
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 280 100% 70%; /* Brighter Radiant Violet for dark mode */
-    --primary-foreground: 222 84% 5%;
-    --secondary: 215 25% 27%; /* Cool Slate */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 215 25% 27%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 215 25% 27%;
+
+    --primary: 157 67% 53%; /* Apex Green */
+    --primary-foreground: 158 81% 10%;
+
+    --secondary: 282 83% 80%; /* Volt Magenta */
+    --secondary-foreground: 282 83% 10%;
+
+    --muted: 215 28% 17%; /* Slate Gray */
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 215 28% 17%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%; /* Electric Red */
+
+    --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27% / 0.3;
-    --input: 215 25% 27% / 0.2;
-    --ring: 280 100% 70%;
+
+    --border: 215 20% 65% / 0.2; /* Slate Border */
+    --input: 215 20% 65% / 0.2;
+    --ring: 157 67% 53%; /* Apex Green */
     
-    /* Aurora Glass & Glow Palette - Dark Mode */
-    --radiant-violet: 280 100% 70%;
-    --cool-slate: 215 25% 27%;
-    --white-smoke: 210 40% 98%;
-    --deep-slate: 222 84% 5%;
-    --neon-green: 158 64% 52%;
-    --bright-amber: 43 96% 56%;
-    --electric-red: 0 84% 60%;
+    /* Semantic Colors */
+    --success: 142 60% 55%;
+    --warning: 43 96% 56%;
     
-    /* Aurora Gradient - Dark Mode */
-    --aurora-gradient: linear-gradient(135deg, hsl(280, 100%, 70%), hsl(330, 81%, 70%));
-    
-    /* Electric Indigo Palette - Dark Mode */
-    --electric-indigo: 266 100% 60%; /* Brighter for dark mode */
-    --cool-gray: 204 12% 54%;
-    --neon-green-alt: 111 100% 54%;
-    --bright-orange: 36 100% 50%;
-    --off-white: 210 17% 98%;
-    --midnight-blue: 215 27% 7%;
-    --emerald-green: 145 63% 49%;
-    --amber: 48 89% 50%;
-    --crimson-red: 5 74% 57%;
-    --sky-blue: 204 70% 53%;
-    
-    /* Electric Indigo Gradient - Dark Mode */
-    --electric-gradient: linear-gradient(135deg, hsl(266, 100%, 60%), hsl(266, 100%, 50%));
+    /* Apex Gradients - Dark Mode */
+    --apex-gradient: linear-gradient(135deg, hsl(157, 67%, 53%), hsl(157, 67%, 45%));
+    --apex-glow: linear-gradient(135deg, hsl(157, 67%, 60%), hsl(157, 67%, 40%));
     
     /* Glass effects - Dark Mode */
-    --glass-bg: rgba(30, 41, 59, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-blur: blur(10px);
+    --glass-bg: rgba(30, 41, 59, 0.6);
+    --glass-border: rgba(148, 163, 184, 0.2);
+    --glass-blur: blur(12px);
   }
 
   .dark body {
@@ -175,90 +155,105 @@
 }
 
 @layer components {
-  /* Glassmorphism Components */
-  .glass-card {
+  /* Apex Glassmorphism Components */
+  .apex-card {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.15);
+    transition: all 0.3s ease;
   }
   
-  .glass-navbar {
+  .apex-card:hover {
+    border-color: hsl(var(--primary) / 0.5);
+    box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.25);
+  }
+  
+  .apex-navbar {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 2px 16px 0 rgba(16, 185, 129, 0.1);
   }
   
-  .aurora-gradient {
-    background: var(--aurora-gradient);
+  .apex-gradient {
+    background: var(--apex-gradient);
   }
   
-  .aurora-glow {
-    box-shadow: 0 0 40px rgba(var(--radiant-violet), 0.3), 0 0 80px rgba(var(--radiant-violet), 0.1);
+  .apex-glow {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), 0 0 40px rgba(16, 185, 129, 0.2);
   }
   
-  .glass-hover {
+  .apex-glow-lg {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5), 0 0 60px rgba(16, 185, 129, 0.3);
+  }
+  
+  .apex-hover {
     transition: all 0.3s ease;
   }
   
-  .glass-hover:hover {
+  .apex-hover:hover {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    box-shadow: 0 8px 32px 0 rgba(var(--radiant-violet), 0.2);
+    box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.2);
   }
   
-  /* Electric Indigo Components */
-  .electric-card {
-    background: hsl(var(--off-white));
-    border: 1px solid hsl(var(--cool-gray) / 0.3);
-    box-shadow: 0 4px 12px 0 rgba(111, 0, 255, 0.1);
-  }
-  
-  .electric-navbar {
-    background: hsl(var(--off-white));
-    border-bottom: 1px solid hsl(var(--cool-gray) / 0.3);
-    box-shadow: 0 2px 8px 0 rgba(111, 0, 255, 0.1);
-  }
-  
-  .electric-gradient {
-    background: var(--electric-gradient);
-  }
-  
-  .electric-glow {
-    box-shadow: 0 0 20px rgba(111, 0, 255, 0.4), 0 0 40px rgba(111, 0, 255, 0.2);
-  }
-  
-  .electric-hover {
+  /* Apex Button Components */
+  .apex-button-primary {
+    background: var(--apex-gradient);
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 4px 12px 0 rgba(16, 185, 129, 0.3);
+    border: none;
     transition: all 0.3s ease;
   }
   
-  .electric-hover:hover {
-    background: hsl(var(--electric-indigo) / 0.1);
-    box-shadow: 0 4px 12px 0 rgba(111, 0, 255, 0.2);
+  .apex-button-primary:hover {
+    background: var(--apex-glow);
+    box-shadow: 0 6px 16px 0 rgba(16, 185, 129, 0.4);
+    transform: translateY(-1px);
   }
   
-  .electric-button-primary {
-    background: hsl(var(--electric-indigo));
-    color: hsl(var(--off-white));
-    box-shadow: 0 4px 12px 0 rgba(111, 0, 255, 0.3);
+  .apex-button-secondary {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    color: hsl(var(--foreground));
+    transition: all 0.3s ease;
   }
   
-  .electric-button-primary:hover {
-    background: hsl(266, 100%, 45%);
-    box-shadow: 0 6px 16px 0 rgba(111, 0, 255, 0.4);
+  .apex-button-secondary:hover {
+    background: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: 0 4px 12px 0 rgba(16, 185, 129, 0.2);
   }
   
-  .electric-button-secondary {
-    background: hsl(var(--cool-gray));
-    color: hsl(var(--off-white));
-    box-shadow: 0 2px 8px 0 rgba(122, 140, 153, 0.3);
+  /* Apex Table Components */
+  .apex-table-hover:hover {
+    background: hsl(var(--primary) / 0.1);
   }
   
-  .electric-button-secondary:hover {
-    background: hsl(204, 12%, 48%);
-    box-shadow: 0 4px 12px 0 rgba(122, 140, 153, 0.4);
+  /* Apex Badge Components */
+  .apex-badge-success {
+    background: hsl(var(--success));
+    color: white;
+  }
+  
+  .apex-badge-warning {
+    background: hsl(var(--warning));
+    color: white;
+  }
+  
+  .apex-badge-destructive {
+    background: hsl(var(--destructive));
+    color: white;
+  }
+  
+  .apex-badge-neutral {
+    background: hsl(var(--muted) / 0.2);
+    color: hsl(var(--muted-foreground));
   }
 }
