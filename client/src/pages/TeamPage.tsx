@@ -10,14 +10,18 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { CaptainDialog } from "../components/CaptainDialog";
+import { TeamIdInput } from "../components/TeamIdInput";
 import { type Player } from "../types/fpl";
 import { useToast } from "@/hooks/use-toast";
-import { Trophy, Zap, Users } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Trophy, Zap, Users, AlertCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function TeamPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { profile, setFplTeamId } = useAuth();
 
   const { data: players, isLoading: isLoadingPlayers } = useQuery({
     queryKey: ["/api/fpl/players"],
@@ -34,7 +38,7 @@ export default function TeamPage() {
     queryFn: fetchFixtures
   });
 
-  const teamId = localStorage.getItem("fpl_team_id") ? parseInt(localStorage.getItem("fpl_team_id")!, 10) : null;
+  const teamId = profile?.fplTeamId || null;
 
   const { data: team, isLoading: isLoadingTeam } = useQuery({
     queryKey: ["/api/fpl/my-team", teamId],
@@ -62,11 +66,33 @@ export default function TeamPage() {
   if (!teamId) {
     return (
       <div className="p-6">
-        <Alert>
-          <AlertDescription>
-            Please connect your FPL account to view your team.
-          </AlertDescription>
-        </Alert>
+        <div className="space-y-8">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+                  Team Management
+                </h1>
+                <p className="text-lg text-slate-600 dark:text-slate-300 font-medium">
+                  Manage your FPL team transfers and captain selection
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground" />
+                <h2 className="text-2xl font-semibold">No Team Selected</h2>
+                <p className="text-muted-foreground">
+                  Enter your FPL team ID to view your team management page
+                </p>
+                <TeamIdInput onTeamIdChange={setFplTeamId} />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }

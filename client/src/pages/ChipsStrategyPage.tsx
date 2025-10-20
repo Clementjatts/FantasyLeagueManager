@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { fetchBootstrapStatic, fetchMyTeam } from "@/lib/api";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -118,7 +119,8 @@ const CHIP_ADVICE: ChipAdvice[] = [
 ];
 
 export default function ChipsStrategyPage() {
-  const teamId = localStorage.getItem("fpl_team_id");
+  const { profile } = useAuth();
+  const teamId = profile?.fplTeamId;
 
   const { data: bootstrapStatic, isLoading: isLoadingBootstrap } = useQuery({
     queryKey: ["bootstrap-static"],

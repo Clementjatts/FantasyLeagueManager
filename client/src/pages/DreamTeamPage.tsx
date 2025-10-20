@@ -10,6 +10,7 @@ import { DreamPitch } from "../components/pitch/DreamPitch";
 import { DreamTeamLegend } from "../components/DreamTeamLegend";
 import { TransferRecommendationCard } from "../components/TransferRecommendationCard";
 import { fetchPlayers, fetchFixtures, fetchBootstrapStatic, fetchMyTeam } from "../lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { type Player, type Team } from "../types/fpl";
 
 interface TransferRecommendation {
@@ -443,7 +444,8 @@ function calculateFixtureScore(teamId: number, fixtures: any[]): number {
 }
 
 export default function DreamTeamPage() {
-  const teamId = localStorage.getItem("fpl_team_id") ? parseInt(localStorage.getItem("fpl_team_id")!, 10) : null;
+  const { profile } = useAuth();
+  const teamId = profile?.fplTeamId || null;
 
   const { data: players, isLoading: playersLoading, error: playersError } = useQuery({
     queryKey: ['players'],

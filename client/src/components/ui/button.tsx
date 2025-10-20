@@ -9,15 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-radiant-violet to-pink-500 text-white hover:from-radiant-violet/90 hover:to-pink-500/90 shadow-glass-glow hover:shadow-aurora transition-all duration-300",
+        default: "aurora-gradient text-white shadow-aurora hover:shadow-aurora-lg transition-all duration-300",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-glass-bg backdrop-blur-sm border border-glass-border text-foreground hover:bg-glass-bg/80 shadow-glass hover:shadow-glass-glow transition-all duration-300",
+          "glass-card border border-glass-border text-foreground hover:shadow-glass-hover transition-all duration-300",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        "electric-primary": "electric-button-primary text-white shadow-electric hover:shadow-electric-lg transition-all duration-300",
+        "electric-secondary": "electric-button-secondary text-white shadow-electric-card hover:shadow-electric-hover transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",

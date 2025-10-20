@@ -109,7 +109,7 @@ A comprehensive Fantasy Premier League management system built with modern web t
 
    # Application settings
    NODE_ENV=development
-   PORT=3000
+   PORT=4000
    ```
 
 6. **Initialize database schema**
@@ -123,8 +123,8 @@ A comprehensive Fantasy Premier League management system built with modern web t
    ```
 
 The application will be available at:
-- **Main Application**: http://localhost:3000
-- **API Endpoints**: http://localhost:3000/api/*
+- **Main Application**: http://localhost:4000
+- **API Endpoints**: http://localhost:4000/api/*
 
 #### Detailed Setup Guide
 For detailed setup instructions, troubleshooting, and additional configuration options, see [LOCAL_SETUP.md](LOCAL_SETUP.md).
@@ -202,7 +202,7 @@ This application connects to the official Fantasy Premier League API to provide:
 - Check that database and user exist
 
 **Port Already in Use:**
-- Kill process using the port: `lsof -ti:3000 | xargs kill -9`
+- Kill process using the port: `lsof -ti:4000 | xargs kill -9`
 - Or change PORT in `.env` file
 
 **Node Modules Issues:**

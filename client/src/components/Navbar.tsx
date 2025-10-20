@@ -15,7 +15,7 @@ export function Navbar() {
   ];
 
   return (
-    <nav className="border-b border-slate-900/10 dark:border-slate-300/10 bg-glass-bg backdrop-blur-xl supports-[backdrop-filter]:bg-glass-bg sticky top-0 z-50 shadow-glass">
+    <nav className="glass-navbar sticky top-0 z-50 shadow-glass">
       <div className="container mx-auto px-6 sm:px-8">
         <div className="flex h-20 items-center justify-between py-4">
           <div className="flex-shrink-0 mr-10">
@@ -31,9 +31,9 @@ export function Navbar() {
                 className={cn(
                   "relative flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
                   "transition-all duration-200 ease-in-out",
-                  "hover:bg-slate-500/10",
+                  "glass-hover",
                   location === href
-                    ? "text-primary"
+                    ? "aurora-gradient text-white shadow-aurora"
                     : "text-slate-500 hover:text-primary"
                 )}
               >
@@ -64,7 +64,7 @@ export function Navbar() {
                 </div>
                 <button
                   onClick={signOutUser}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-radiant-violet to-pink-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.35)] hover:opacity-90 transition"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium aurora-gradient text-white shadow-aurora hover:shadow-aurora-lg transition-all duration-200"
                   aria-label="Log out"
                   title="Log out"
                 >

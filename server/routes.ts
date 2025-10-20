@@ -14,8 +14,8 @@ interface GameweekHistory {
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
-  // Always use port 3000 (align with dev preference)
-  const port = 3000;
+  // Always use port 4000 (align with dev preference)
+  const port = 4000;
   
   // FPL API proxy endpoints
   app.get("/api/fpl/bootstrap-static", async (req, res) => {
