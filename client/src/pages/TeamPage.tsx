@@ -815,7 +815,10 @@ export default function TeamPage() {
                 transferCost={optimalTeam.transferCost}
                 gameweek={nextGameweek || 1}
                 teams={bootstrapData?.teams || []}
-            fixtures={fixtures || []}
+                fixtures={fixtures || []}
+                squadValue={team?.stats?.value}
+                bankBalance={team?.stats?.bank}
+                freeTransfers={team?.transfers?.limit}
               />
             )}
 

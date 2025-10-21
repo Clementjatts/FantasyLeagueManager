@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TintedGlassPlayerCard } from "./TintedGlassPlayerCard";
-import { ArrowRightIcon, TrendingUpIcon, UsersIcon, CoinsIcon } from "lucide-react";
+import { ArrowRightIcon, TrendingUpIcon, UsersIcon, CoinsIcon, Wallet, Users, RefreshCw } from "lucide-react";
 import { Player } from "../types/fpl";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,9 @@ interface TransferRecommendationCardProps {
   gameweek: number;
   teams: any[];
   fixtures: any[];
+  squadValue?: number;
+  bankBalance?: number;
+  freeTransfers?: number;
 }
 
 export function TransferRecommendationCard({
@@ -25,23 +28,70 @@ export function TransferRecommendationCard({
   transferCost,
   gameweek,
   teams,
-  fixtures
+  fixtures,
+  squadValue,
+  bankBalance,
+  freeTransfers
 }: TransferRecommendationCardProps) {
   if (recommendedTransfers.length === 0) {
     return (
       <Card className="bg-gradient-to-br from-emerald-500/10 via-primary/5 to-blue-500/10 backdrop-blur-xl border border-emerald-500/20 shadow-lg hover:shadow-emerald-500/20 transition-all duration-300">
         <CardContent className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center">
-              <TrendingUpIcon className="w-6 h-6 text-white" />
+          <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center">
+                <TrendingUpIcon className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-slate-800 mb-1">Optimal Transfer Plan - GW{gameweek}</h3>
+                <p className="text-sm text-slate-600">
+                  Your squad is already optimized. No transfers recommended.
+                </p>
+              </div>
+              <div className="text-2xl">🎯</div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-slate-800 mb-1">Optimal Transfer Plan - GW{gameweek}</h3>
-              <p className="text-sm text-slate-600">
-                Your squad is already optimized. No transfers recommended.
-              </p>
-            </div>
-            <div className="text-2xl">🎯</div>
+
+            {/* Financial Overview */}
+            {(squadValue !== undefined || bankBalance !== undefined || freeTransfers !== undefined) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-emerald-200/50">
+                {squadValue !== undefined && (
+                  <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-emerald-200/50">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
+                      <Users className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-600">Squad Value</div>
+                      <div className="text-lg font-bold text-slate-800">£{(squadValue / 10).toFixed(1)}m</div>
+                    </div>
+                  </div>
+                )}
+                
+                {bankBalance !== undefined && (
+                  <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-emerald-200/50">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center">
+                      <Wallet className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-600">Bank Balance</div>
+                      <div className="text-lg font-bold text-slate-800">£{(bankBalance / 10).toFixed(1)}m</div>
+                    </div>
+                  </div>
+                )}
+                
+                {freeTransfers !== undefined && (
+                  <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-emerald-200/50">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg flex items-center justify-center">
+                      <RefreshCw className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-slate-600">Free Transfers</div>
+                      <div className="text-lg font-bold text-slate-800">{freeTransfers}</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -54,35 +104,78 @@ export function TransferRecommendationCard({
     <Card className="bg-gradient-to-br from-emerald-500/10 via-primary/5 to-blue-500/10 backdrop-blur-xl border border-emerald-500/20 shadow-lg hover:shadow-emerald-500/20 transition-all duration-300">
       <CardContent className="p-6">
         {/* Header with Metrics */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg flex items-center justify-center">
-              <TrendingUpIcon className="w-5 h-5 text-white" />
+        <div className="space-y-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg flex items-center justify-center">
+                <TrendingUpIcon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-800">Optimal Transfer Plan - GW{gameweek}</h3>
+                <p className="text-sm text-slate-600">{recommendedTransfers.length} transfer{recommendedTransfers.length !== 1 ? 's' : ''} recommended</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-800">Optimal Transfer Plan - GW{gameweek}</h3>
-              <p className="text-sm text-slate-600">{recommendedTransfers.length} transfer{recommendedTransfers.length !== 1 ? 's' : ''} recommended</p>
+            
+            {/* Compact Metrics */}
+            <div className="flex items-center gap-6">
+              <div className="text-center">
+                <div className={cn(
+                  "text-2xl font-bold",
+                  pointsDelta > 0 ? "text-emerald-600" : "text-red-500"
+                )}>
+                  {pointsDelta > 0 ? '+' : ''}{pointsDelta.toFixed(1)}
+                </div>
+                <div className="text-xs text-slate-500">Points Gain</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-500">
+                  -{transferCost}
+                </div>
+                <div className="text-xs text-slate-500">Cost</div>
+              </div>
             </div>
           </div>
-          
-          {/* Compact Metrics */}
-          <div className="flex items-center gap-6">
-            <div className="text-center">
-              <div className={cn(
-                "text-2xl font-bold",
-                pointsDelta > 0 ? "text-emerald-600" : "text-red-500"
-              )}>
-                {pointsDelta > 0 ? '+' : ''}{pointsDelta.toFixed(1)}
-              </div>
-              <div className="text-xs text-slate-500">Points Gain</div>
+
+          {/* Financial Overview */}
+          {(squadValue !== undefined || bankBalance !== undefined || freeTransfers !== undefined) && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-emerald-200/50">
+              {squadValue !== undefined && (
+                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-emerald-200/50">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-lg flex items-center justify-center">
+                    <Users className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-600">Squad Value</div>
+                    <div className="text-lg font-bold text-slate-800">£{(squadValue / 10).toFixed(1)}m</div>
+                  </div>
+                </div>
+              )}
+              
+              {bankBalance !== undefined && (
+                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-emerald-200/50">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center">
+                    <Wallet className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-600">Bank Balance</div>
+                    <div className="text-lg font-bold text-slate-800">£{(bankBalance / 10).toFixed(1)}m</div>
+                  </div>
+                </div>
+              )}
+              
+              {freeTransfers !== undefined && (
+                <div className="flex items-center gap-3 p-3 bg-white/50 rounded-lg border border-emerald-200/50">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-500 rounded-lg flex items-center justify-center">
+                    <RefreshCw className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-slate-600">Free Transfers</div>
+                    <div className="text-lg font-bold text-slate-800">{freeTransfers}</div>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-500">
-                -{transferCost}
-              </div>
-              <div className="text-xs text-slate-500">Cost</div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Transfer Details - Expanded Layout */}
