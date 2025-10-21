@@ -21,11 +21,11 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
             <div className="text-sm font-medium text-muted-foreground">No data available</div>
             <div className="text-2xl font-bold text-muted-foreground">-</div>
           </div>
-          <div className="px-2 py-1 rounded-full text-sm font-medium bg-muted text-muted-foreground">
+          <div className="px-2 py-1 rounded-full text-sm font-medium bg-electric-cyan/20 text-electric-cyan">
             New Season
           </div>
         </div>
-        <div className="relative h-[60px] w-full bg-background/50 rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="relative h-[60px] w-full bg-electric-cyan/10 rounded-lg overflow-hidden flex items-center justify-center">
           <div className="text-muted-foreground text-sm">Performance data will appear after your first gameweek</div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-sm">
@@ -114,7 +114,7 @@ export function PerformanceTimeline({ data }: PerformanceTimelineProps) {
       </div>
 
       {/* Sparkline visualization */}
-      <div className="relative h-[60px] w-full bg-background/50 rounded-lg overflow-hidden">
+      <div className="relative h-[60px] w-full bg-electric-cyan/10 rounded-lg overflow-hidden">
         <svg width="100%" height="100%" preserveAspectRatio="none" viewBox={`0 0 ${width} ${height}`}>
           {/* Gradient definition */}
           <defs>

@@ -41,15 +41,15 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                 className={cn(
                   "group relative overflow-hidden",
                   "rounded-xl border",
-                  "bg-gradient-to-br from-background via-card to-muted/30",
-                  isUsed ? "border-border/40" : "border-primary/20",
+                  "bg-gradient-to-br from-electric-cyan/10 via-frosted-glass to-electric-cyan/5",
+                  isUsed ? "border-electric-cyan/40" : "border-electric-cyan/20",
                   "transition duration-300",
-                  "hover:shadow-md hover:shadow-primary/5",
-                  !isUsed && "hover:border-primary/40"
+                  "hover:shadow-electric hover:shadow-electric/5",
+                  !isUsed && "hover:border-electric-cyan/40"
                 )}
               >
                 {!isUsed && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-electric-cyan/5 via-electric-cyan/2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
                 <div className="relative p-3 flex flex-col gap-1">
                   <div className="flex items-center justify-between">
@@ -66,7 +66,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                       className={cn(
                         "shrink-0 px-2 text-xs font-medium",
                         isUsed 
-                          ? "bg-muted/80 text-muted-foreground" 
+                          ? "bg-electric-cyan/20 text-electric-cyan" 
                           : "bg-primary/10 text-primary"
                       )}
                     >

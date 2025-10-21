@@ -85,7 +85,7 @@ export function PriceChangeTracker({ player }: PriceChangeTrackerProps) {
         </div>
 
         {/* Price Prediction Section */}
-        <div className="space-y-2 bg-muted/30 p-3 rounded-lg">
+        <div className="space-y-2 bg-electric-cyan/10 p-3 rounded-lg border border-electric-cyan/20">
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium">Price Prediction</div>
             {Math.random() > 0.5 ? (
