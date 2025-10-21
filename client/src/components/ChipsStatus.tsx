@@ -41,7 +41,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                 className={cn(
                   "group relative overflow-hidden",
                   "rounded-xl border",
-                  "bg-gradient-to-br from-card via-background to-card",
+                  "bg-gradient-to-br from-white via-gray-50 to-white",
                   isUsed ? "border-border/40" : "border-primary/20",
                   "transition duration-300",
                   "hover:shadow-md hover:shadow-primary/5",
@@ -66,7 +66,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                       className={cn(
                         "shrink-0 px-2 text-xs font-medium",
                         isUsed 
-                          ? "bg-muted/80 text-muted-foreground" 
+                          ? "bg-dark-navy/80 text-white" 
                           : "bg-primary/10 text-primary"
                       )}
                     >
@@ -74,7 +74,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                     </Badge>
                   </div>
                   {isUsed && usedChip && (
-                    <div className="text-xs text-muted-foreground/80">
+                    <div className="text-xs text-dark-navy/80">
                       Used in Gameweek {usedChip.event}
                     </div>
                   )}
