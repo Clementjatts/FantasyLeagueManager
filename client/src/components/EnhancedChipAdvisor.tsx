@@ -200,10 +200,24 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       };
     }
 
-    // Gameweek Anomaly Detection
+    // Gameweek Anomaly Detection - Fixed Logic
     const allFixtures = bootstrapStatic.fixtures || [];
-    const nextGW = getNextFixtures(1)[0];
-    const nextGWFixtures = allFixtures.filter(f => f.event === nextGW?.id);
+    const nextGameweek = currentGameweek + 1;
+    
+    // Get fixtures for the next gameweek specifically
+    const nextGWFixtures = allFixtures.filter(f => f.event === nextGameweek);
+    
+    // Debug: Check if we have fixtures for next gameweek
+    if (nextGWFixtures.length === 0) {
+      return {
+        chip: "freehit",
+        label: "Free Hit",
+        score: 0,
+        priority: "none",
+        factors: [],
+        recommendation: `No fixtures found for Gameweek ${nextGameweek} - data may be unavailable`
+      };
+    }
     
     const teamsWithFixtures = new Set();
     nextGWFixtures.forEach(fixture => {
@@ -211,9 +225,15 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       teamsWithFixtures.add(fixture.team_a);
     });
     
+    // Only consider it a blank gameweek if MORE than half the teams are missing fixtures
+    // This prevents false positives from normal gameweeks
+    const totalTeams = bootstrapStatic.teams.length;
     const teamsWithBlanks = bootstrapStatic.teams.filter(team => 
       !teamsWithFixtures.has(team.id)
     ).length;
+    
+    // Blank gameweek threshold: more than 50% of teams missing fixtures
+    const isBlankGameweek = teamsWithBlanks > (totalTeams * 0.5);
     
     const teamAppearances = new Map<number, number>();
     nextGWFixtures.forEach(fixture => {
@@ -231,27 +251,31 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     const factors = [
       {
         name: "Blank Gameweek",
-        value: Math.min(teamsWithBlanks, 6),
+        value: isBlankGameweek ? Math.min(teamsWithBlanks, 6) : 0,
         maxValue: 6,
         icon: Shield,
-        description: `${teamsWithBlanks} teams without fixtures`,
-        color: "text-red-500"
+        description: isBlankGameweek 
+          ? `${teamsWithBlanks} teams without fixtures (${Math.round((teamsWithBlanks/totalTeams)*100)}% of league)`
+          : `Normal gameweek - only ${teamsWithBlanks} teams without fixtures`,
+        color: isBlankGameweek ? "text-red-500" : "text-gray-500"
       },
       {
         name: "Double Gameweek",
         value: Math.min(teamsWithDoubles, 4),
         maxValue: 4,
         icon: Zap,
-        description: `${teamsWithDoubles} teams with double fixtures`,
-        color: "text-green-500"
+        description: teamsWithDoubles > 0 
+          ? `${teamsWithDoubles} teams with double fixtures`
+          : "No double gameweeks detected",
+        color: teamsWithDoubles > 0 ? "text-green-500" : "text-gray-500"
       },
       {
         name: "Your Affected Players",
         value: Math.min(userPlayersWithoutFixtures, 8),
         maxValue: 8,
         icon: Users,
-        description: `${userPlayersWithoutFixtures} of your players affected`,
-        color: "text-orange-500"
+        description: `${userPlayersWithoutFixtures} of your players affected by gameweek anomalies`,
+        color: userPlayersWithoutFixtures > 3 ? "text-orange-500" : "text-gray-500"
       }
     ];
 
@@ -265,10 +289,12 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       priority,
       factors,
       recommendation: priority === "high" 
-        ? "Excellent free hit opportunity - significant gameweek anomalies detected"
+        ? `Excellent free hit opportunity - ${isBlankGameweek ? 'blank gameweek' : 'double gameweek'} detected with ${userPlayersWithoutFixtures} affected players`
         : priority === "medium"
-        ? "Good free hit opportunity - some gameweek anomalies present"
-        : "Save free hit - no significant gameweek anomalies"
+        ? `Good free hit opportunity - ${isBlankGameweek ? 'blank gameweek' : 'some anomalies'} present with ${userPlayersWithoutFixtures} affected players`
+        : isBlankGameweek || teamsWithDoubles > 0
+        ? `Minor free hit opportunity - ${isBlankGameweek ? 'blank gameweek' : 'double gameweek'} detected but limited impact`
+        : "Save free hit - normal gameweek with no significant anomalies"
     };
   };
 
