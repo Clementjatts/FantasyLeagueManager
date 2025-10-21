@@ -172,7 +172,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     ];
 
     const totalScore = factors.reduce((acc, factor) => acc + factor.value, 0);
-    const priority = totalScore > 18 ? "high" : totalScore > 12 ? "medium" : totalScore > 6 ? "low" : "none";
+    const priority = totalScore > 15 ? "high" : totalScore > 10 ? "medium" : totalScore > 5 ? "low" : "none";
 
     return {
       chip: "wildcard",
@@ -181,10 +181,10 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       priority,
       factors,
       recommendation: priority === "high" 
-        ? "Strong wildcard opportunity - multiple factors suggest team overhaul needed"
+        ? "Use Wildcard Now - Multiple factors strongly suggest team overhaul needed"
         : priority === "medium"
-        ? "Consider wildcard - some factors indicate potential benefits"
-        : "Hold wildcard - current team structure appears stable"
+        ? "Consider Wildcard - Several factors indicate potential benefits"
+        : "Hold Wildcard - Current team structure appears stable"
     };
   };
 
@@ -280,7 +280,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     ];
 
     const totalScore = factors.reduce((acc, factor) => acc + factor.value, 0);
-    const priority = totalScore > 10 ? "high" : totalScore > 7 ? "medium" : totalScore > 3 ? "low" : "none";
+    const priority = totalScore > 8 ? "high" : totalScore > 5 ? "medium" : totalScore > 2 ? "low" : "none";
 
     return {
       chip: "freehit",
@@ -289,12 +289,12 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       priority,
       factors,
       recommendation: priority === "high" 
-        ? `Excellent free hit opportunity - ${isBlankGameweek ? 'blank gameweek' : 'double gameweek'} detected with ${userPlayersWithoutFixtures} affected players`
+        ? `Use Free Hit Now - ${isBlankGameweek ? 'Blank gameweek' : 'Double gameweek'} detected with ${userPlayersWithoutFixtures} affected players`
         : priority === "medium"
-        ? `Good free hit opportunity - ${isBlankGameweek ? 'blank gameweek' : 'some anomalies'} present with ${userPlayersWithoutFixtures} affected players`
+        ? `Consider Free Hit - ${isBlankGameweek ? 'Blank gameweek' : 'Some anomalies'} present with ${userPlayersWithoutFixtures} affected players`
         : isBlankGameweek || teamsWithDoubles > 0
-        ? `Minor free hit opportunity - ${isBlankGameweek ? 'blank gameweek' : 'double gameweek'} detected but limited impact`
-        : "Save free hit - normal gameweek with no significant anomalies"
+        ? `Minor Free Hit Opportunity - ${isBlankGameweek ? 'Blank gameweek' : 'Double gameweek'} detected but limited impact`
+        : "Save Free Hit - Normal gameweek with no significant anomalies"
     };
   };
 
@@ -378,7 +378,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     ];
 
     const totalScore = factors.reduce((acc, factor) => acc + factor.value, 0);
-    const priority = totalScore > 12 ? "high" : totalScore > 9 ? "medium" : totalScore > 5 ? "low" : "none";
+    const priority = totalScore > 10 ? "high" : totalScore > 7 ? "medium" : totalScore > 4 ? "low" : "none";
 
     return {
       chip: "3xc",
@@ -387,14 +387,14 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       priority,
       factors,
       recommendation: priority === "high" 
-        ? "Excellent triple captain opportunity - elite player with high ceiling"
+        ? "Use Triple Captain Now - Elite player with high ceiling detected"
         : priority === "medium"
-        ? "Good triple captain opportunity - solid player with decent potential"
-        : "Save triple captain - no standout candidates this week"
+        ? "Consider Triple Captain - Solid player with decent potential"
+        : "Save Triple Captain - No standout candidates this week"
     };
   };
 
-  const getBestRecommendation = (): ChipAnalysis => {
+  const getBestRecommendation = (): ChipAnalysis | null => {
     const analyses = [
       analyzeWildcard(),
       analyzeFreeHit(),
@@ -418,7 +418,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     );
 
     if (worthwhileRecommendations.length === 0) {
-      return null; // Don't show the component at all when no recommendations
+      return null; // Don't show the component at all when no worthwhile recommendations
     }
 
     return worthwhileRecommendations.reduce((best, current) => 
