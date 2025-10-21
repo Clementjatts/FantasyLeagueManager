@@ -33,7 +33,7 @@ export function Navbar() {
                   "transition-all duration-200 ease-in-out",
                   "glass-hover",
                   location === href
-                    ? "colorhunt-gradient text-white shadow-colorhunt"
+                    ? "colorhunt-gradient text-white shadow-colorhunt hover:text-white"
                     : "text-slate-500 hover:text-primary"
                 )}
               >
