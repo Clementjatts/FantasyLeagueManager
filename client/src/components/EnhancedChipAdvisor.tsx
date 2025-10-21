@@ -418,7 +418,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     );
 
     if (worthwhileRecommendations.length === 0) {
-      return null; // Don't show the component at all when no worthwhile recommendations
+      return null; // Don't show recommendation section when no worthwhile recommendations
     }
 
     return worthwhileRecommendations.reduce((best, current) => 
@@ -427,8 +427,6 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
   };
 
   const recommendation = getBestRecommendation();
-
-  if (!recommendation) return null;
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 via-primary/2 to-transparent border-primary/20 hover:border-primary/30 transition-colors shadow-colorhunt">
@@ -451,8 +449,9 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {/* Main Recommendation */}
-          <div className="space-y-3">
+          {/* Main Recommendation - Only show if there's a worthwhile recommendation */}
+          {recommendation && (
+            <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm text-muted-foreground">RECOMMENDATION</span>
@@ -502,13 +501,14 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
                 </TooltipProvider>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {recommendation.recommendation}
-            </p>
-          </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {recommendation.recommendation}
+              </p>
+            </div>
+          )}
 
-          {/* Analysis Factors */}
-          {recommendation.factors.length > 0 && (
+          {/* Analysis Factors - Only show if there's a worthwhile recommendation */}
+          {recommendation && recommendation.factors.length > 0 && (
             <div className="space-y-3">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Analysis Factors
@@ -580,6 +580,17 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* No Recommendation Message - Show when no worthwhile recommendations */}
+          {!recommendation && (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">No Chip Recommendations</h3>
+              <p className="text-sm text-muted-foreground">
+                All chips are in good shape. Focus on transfers and captain choices for now.
+              </p>
             </div>
           )}
         </div>
