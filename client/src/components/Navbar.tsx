@@ -31,10 +31,9 @@ export function Navbar() {
                 className={cn(
                   "relative flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium",
                   "transition-all duration-200 ease-in-out",
-                  "glass-hover",
                   location === href
-                    ? "colorhunt-gradient text-white shadow-colorhunt hover:text-white"
-                    : "text-slate-500 hover:text-primary"
+                    ? "colorhunt-gradient text-white shadow-colorhunt"
+                    : "text-slate-500 hover:text-primary glass-hover"
                 )}
               >
                 <Icon className={cn(
