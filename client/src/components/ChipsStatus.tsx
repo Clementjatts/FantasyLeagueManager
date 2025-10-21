@@ -41,7 +41,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                 className={cn(
                   "group relative overflow-hidden",
                   "rounded-xl border",
-                  "bg-gradient-to-br from-background via-card to-muted/30",
+                  "bg-gradient-to-br from-card via-background to-card",
                   isUsed ? "border-border/40" : "border-primary/20",
                   "transition duration-300",
                   "hover:shadow-md hover:shadow-primary/5",
@@ -49,7 +49,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                 )}
               >
                 {!isUsed && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-teal/2 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 )}
                 <div className="relative p-3 flex flex-col gap-1">
                   <div className="flex items-center justify-between">
