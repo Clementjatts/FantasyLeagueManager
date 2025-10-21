@@ -495,11 +495,6 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {recommendation.recommendation}
-              {currentGameweek && (
-                <span className="block mt-1 text-xs text-muted-foreground/80">
-                  💡 This recommendation is for Gameweek {currentGameweek + 1}
-                </span>
-              )}
             </p>
           </div>
 
