@@ -42,11 +42,11 @@ function AuthGate() {
         <Card className="w-full max-w-lg p-4 border border-glass-border shadow-glass-glow hover:shadow-aurora transition-all duration-500">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-r from-radiant-violet to-pink-500 shadow-glass-glow animate-float">
+              <div className="p-3 rounded-full colorhunt-gradient shadow-colorhunt animate-float">
                 <Trophy className="w-16 h-16 text-white" />
               </div>
             </div>
-            <CardTitle className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+            <CardTitle className="text-5xl font-extrabold tracking-tight colorhunt-gradient bg-clip-text text-transparent">
               FPLManager
             </CardTitle>
             <p className="text-base text-muted-foreground mt-3">
@@ -57,7 +57,7 @@ function AuthGate() {
             <div className="space-y-4">
               <Button
                 onClick={signInWithGoogle}
-                className="w-full h-14 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-radiant-violet to-pink-500 hover:from-radiant-violet/90 hover:to-pink-500/90 shadow-glass-glow hover:shadow-aurora transition-all duration-300 transform hover:scale-105"
+                className="w-full h-14 inline-flex items-center justify-center gap-3 colorhunt-gradient hover:opacity-90 shadow-colorhunt hover:shadow-colorhunt-lg transition-all duration-300 transform hover:scale-105"
                 variant="default"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5">

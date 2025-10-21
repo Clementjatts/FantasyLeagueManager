@@ -38,7 +38,7 @@ export function HistoricalPlayerSummary({ player, team }: { player: Player; team
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-radiant-violet to-pink-500 flex items-center justify-center text-white font-bold">
+            <div className="h-10 w-10 rounded-lg colorhunt-gradient flex items-center justify-center text-white font-bold">
               {player.web_name?.charAt(0) || "P"}
             </div>
             <div className="min-w-0">

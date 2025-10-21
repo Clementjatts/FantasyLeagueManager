@@ -120,7 +120,7 @@ export default function PlayersPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                 Players
               </h1>
             </div>

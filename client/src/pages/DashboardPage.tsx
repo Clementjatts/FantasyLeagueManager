@@ -56,7 +56,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                     Dashboard
                   </h1>
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-glass-bg backdrop-blur-sm border border-glass-border shadow-glass">
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <div>
               <button
                 onClick={() => setMinimizeStats(v => !v)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-radiant-violet to-pink-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.35)] hover:opacity-90 transition w-44"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium colorhunt-gradient text-white shadow-colorhunt hover:shadow-colorhunt-lg transition w-44"
                 aria-pressed={minimizeStats}
                 title={minimizeStats ? "Show full overview" : "Focus on live match view"}
               >

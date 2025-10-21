@@ -646,7 +646,7 @@ export default function TeamPage() {
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                   Team Management
                 </h1>
                 <p className="text-lg text-slate-600 dark:text-slate-300 font-medium">
