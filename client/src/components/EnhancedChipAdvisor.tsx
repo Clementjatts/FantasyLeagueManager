@@ -402,6 +402,11 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary animate-pulse" />
             <CardTitle className="text-xl">Enhanced Chip Advisor</CardTitle>
+            {currentGameweek && (
+              <Badge variant="outline" className="text-xs bg-medium-blue/10 text-medium-blue border-medium-blue/30">
+                Current: GW {currentGameweek}
+              </Badge>
+            )}
           </div>
           <Badge 
             variant={recommendation.priority === "high" ? "default" : "secondary"}
@@ -430,6 +435,11 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
                 >
                   {recommendation.label}
                 </Badge>
+                {currentGameweek && (
+                  <Badge variant="outline" className="text-xs bg-teal/10 text-teal border-teal/30">
+                    GW {currentGameweek + 1}
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-medium text-muted-foreground uppercase">Score</span>
@@ -464,6 +474,11 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
               {recommendation.recommendation}
+              {currentGameweek && (
+                <span className="block mt-1 text-xs text-muted-foreground/80">
+                  💡 This recommendation is for Gameweek {currentGameweek + 1}
+                </span>
+              )}
             </p>
           </div>
 
