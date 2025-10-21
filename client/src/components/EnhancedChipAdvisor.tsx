@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Chip, BootstrapStatic, Pick, Team, Player } from "@/types/fpl";
 import { cn } from "@/lib/utils";
 import { 
@@ -13,7 +14,8 @@ import {
   Activity,
   Zap,
   Shield,
-  Clock
+  Clock,
+  HelpCircle
 } from "lucide-react";
 import { useCallback } from "react";
 
@@ -431,12 +433,33 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-medium text-muted-foreground uppercase">Score</span>
-                <span className={cn(
-                  "text-sm font-semibold",
-                  recommendation.score > 10 ? "text-primary" : "text-muted-foreground"
-                )}>
-                  {recommendation.score.toFixed(1)}/16.0
-                </span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1">
+                        <span className={cn(
+                          "text-sm font-semibold",
+                          recommendation.score > 10 ? "text-primary" : "text-muted-foreground"
+                        )}>
+                          {recommendation.score.toFixed(1)}/16.0
+                        </span>
+                        <HelpCircle className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <div className="space-y-1 text-xs">
+                        <p className="font-semibold">Chip Recommendation Score</p>
+                        <p>Based on multiple factors analyzed for optimal chip usage timing.</p>
+                        <div className="space-y-0.5 pt-1">
+                          <p><span className="text-green-500">12+</span> = High Priority</p>
+                          <p><span className="text-yellow-500">8-11</span> = Medium Priority</p>
+                          <p><span className="text-gray-500">4-7</span> = Low Priority</p>
+                          <p><span className="text-gray-400">0-3</span> = Not Recommended</p>
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -462,20 +485,53 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
                           <IconComponent className={cn("w-4 h-4", factor.color)} />
                           <span className="text-sm font-medium">{factor.name}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className={cn("text-sm font-semibold", factor.color)}>
-                            {factor.value.toFixed(1)}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            /{factor.maxValue}
-                          </span>
-                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1">
+                                <span className={cn("text-sm font-semibold", factor.color)}>
+                                  {factor.value.toFixed(1)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  /{factor.maxValue}
+                                </span>
+                                <HelpCircle className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              <div className="space-y-1 text-xs">
+                                <p className="font-semibold">{factor.name} Score</p>
+                                <p>{factor.description}</p>
+                                <p className="text-muted-foreground">
+                                  Score: {factor.value.toFixed(1)} out of {factor.maxValue} possible points
+                                </p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <div className="space-y-1">
-                        <Progress 
-                          value={percentage} 
-                          className="h-2 bg-primary/10" 
-                        />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="cursor-help">
+                                <Progress 
+                                  value={percentage} 
+                                  className="h-2 bg-primary/10" 
+                                />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              <div className="space-y-1 text-xs">
+                                <p className="font-semibold">Progress Bar</p>
+                                <p>Visual representation of {factor.name} strength</p>
+                                <p className="text-muted-foreground">
+                                  {percentage.toFixed(0)}% of maximum possible score
+                                </p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <p className="text-xs text-muted-foreground">
                           {factor.description}
                         </p>
