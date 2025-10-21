@@ -745,7 +745,7 @@ export default function TeamPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                 Gameweek {nextGameweek} Transfer Planning
               </h1>
               <p className="text-lg text-muted-foreground">
@@ -755,14 +755,14 @@ export default function TeamPage() {
             <div className="flex items-center gap-3">
               <Link 
                 href="/chips"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10 hover:from-purple-500/20 hover:via-primary/20 hover:to-blue-500/20 text-primary transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg colorhunt-gradient/10 hover:colorhunt-gradient/20 text-primary transition-all duration-200 font-medium"
               >
                 <Zap className="w-4 h-4" />
                 Chips Strategy
               </Link>
               <Link 
                 href="/top-managers-team"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10 hover:from-purple-500/20 hover:via-primary/20 hover:to-blue-500/20 text-primary transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg colorhunt-gradient/10 hover:colorhunt-gradient/20 text-primary transition-all duration-200 font-medium"
               >
                 <Users className="w-4 h-4" />
                 Top Managers' Team

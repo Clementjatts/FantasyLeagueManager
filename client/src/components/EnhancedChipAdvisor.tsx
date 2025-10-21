@@ -394,7 +394,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
   if (!recommendation) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 via-primary/2 to-transparent border-primary/20 hover:border-primary/30 transition-colors">
+    <Card className="bg-gradient-to-br from-primary/5 via-primary/2 to-transparent border-primary/20 hover:border-primary/30 transition-colors shadow-colorhunt">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

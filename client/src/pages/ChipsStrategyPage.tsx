@@ -152,7 +152,7 @@ export default function ChipsStrategyPage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                 Chips Strategy
               </h1>
             </div>
@@ -189,7 +189,7 @@ export default function ChipsStrategyPage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                 Chips Strategy
               </h1>
             </div>
@@ -247,7 +247,7 @@ export default function ChipsStrategyPage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                 Chips Strategy
               </h1>
             </div>
@@ -278,7 +278,7 @@ export default function ChipsStrategyPage() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
                 Chips Strategy
               </h1>
             </div>
@@ -310,7 +310,7 @@ export default function ChipsStrategyPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
               Chips Strategy
             </h1>
           </div>

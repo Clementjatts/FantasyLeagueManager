@@ -18,7 +18,7 @@ const ALL_CHIPS = [
 
 export function ChipsStatus({ chips }: ChipsStatusProps) {
   return (
-    <Card className="border-2 border-primary/20">
+    <Card className="border-2 border-primary/20 shadow-colorhunt">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -44,7 +44,7 @@ export function ChipsStatus({ chips }: ChipsStatusProps) {
                   "bg-gradient-to-br from-background via-card to-muted/30",
                   isUsed ? "border-border/40" : "border-primary/20",
                   "transition duration-300",
-                  "hover:shadow-md hover:shadow-primary/5",
+                  "hover:shadow-colorhunt hover:shadow-primary/5",
                   !isUsed && "hover:border-primary/40"
                 )}
               >
