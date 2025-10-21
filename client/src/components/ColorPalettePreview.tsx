@@ -1,6 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export function ColorPalettePreview() {
+  const [isOpen, setIsOpen] = useState(false);
+  
   const colors = [
     { name: "Deep Red", hex: "#BF092F", cssVar: "--deep-red", description: "Primary color for buttons and highlights" },
     { name: "Dark Navy", hex: "#132440", cssVar: "--dark-navy", description: "Secondary color for backgrounds and text" },
@@ -10,12 +15,23 @@ export function ColorPalettePreview() {
 
   return (
     <Card variant="colorhunt" className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center colorhunt-gradient bg-clip-text text-transparent">
-          Color Hunt Palette Implementation
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover:bg-primary/5 transition-colors">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold colorhunt-gradient bg-clip-text text-transparent">
+                Color Hunt Palette Implementation
+              </CardTitle>
+              {isOpen ? (
+                <ChevronDown className="w-5 h-5 text-primary" />
+              ) : (
+                <ChevronRight className="w-5 h-5 text-primary" />
+              )}
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {colors.map((color) => (
             <div key={color.name} className="text-center">
@@ -55,7 +71,9 @@ export function ColorPalettePreview() {
             <p className="text-xs text-muted-foreground">Teal Background</p>
           </div>
         </div>
-      </CardContent>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
