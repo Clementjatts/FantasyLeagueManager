@@ -497,10 +497,10 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
                 {remainingChips.map((chip) => (
                   <Badge 
                     key={chip.name} 
-                    variant="secondary"
+                    variant="outline"
                     className={cn(
-                      "text-xs bg-background/80 hover:bg-background transition-colors",
-                      chip.name === recommendation.chip && "border-primary/50"
+                      "text-xs bg-background/80 hover:bg-background transition-colors text-foreground",
+                      chip.name === recommendation.chip && "border-primary/50 bg-primary/10"
                     )}
                   >
                     {chip.label}
