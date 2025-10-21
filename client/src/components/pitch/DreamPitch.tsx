@@ -139,7 +139,7 @@ export function DreamPitch({
               isViceCaptain={player.id === viceCaptainId}
               isNewPlayer={!player.isUserPlayer} // Show as new if not a user's original player
               className={cn(
-                "w-[160px] h-[140px]",
+                "w-[180px] h-[150px]",
                 "transition-transform hover:scale-105 text-center cursor-pointer",
                 isSubstitute && "opacity-80 hover:opacity-100"
               )}

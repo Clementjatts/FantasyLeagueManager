@@ -42,7 +42,7 @@ export function TopManagersPitch({
             teams={teams}
             isCaptain={false}
             isViceCaptain={false}
-            className="w-[160px] h-[140px]"
+            className="w-[180px] h-[150px]"
           />
         );
       }}

@@ -4,16 +4,14 @@ import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { variant?: "electric" | "glass" | "apex" }
->(({ className, variant = "electric", ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { variant?: "glass" | "electric" }
+>(({ className, variant = "glass", ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      variant === "electric"
-        ? "electric-card rounded-lg border text-card-foreground shadow-electric-card hover:shadow-electric-hover transition-all duration-300"
-        : variant === "glass"
+      variant === "glass" 
         ? "glass-card rounded-lg border text-card-foreground shadow-glass-card hover:shadow-glass-hover transition-all duration-300"
-        : "apex-card rounded-lg border text-card-foreground shadow-apex-card hover:shadow-apex-hover transition-all duration-300",
+        : "electric-card rounded-lg border text-card-foreground shadow-electric-card hover:shadow-electric-hover transition-all duration-300",
       className
     )}
     {...props}

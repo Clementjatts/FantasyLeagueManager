@@ -29,7 +29,6 @@ interface CaptainSuggestionsProps {
   allPlayers: any[];
   fixtures: any[];
   teams: any[];
-  onSelectCaptain: (playerId: number) => void;
   currentCaptainId: number | null;
   currentViceCaptainId: number | null;
 }
@@ -38,7 +37,6 @@ export default function CaptainSuggestions({
   allPlayers,
   fixtures,
   teams,
-  onSelectCaptain,
   currentCaptainId,
   currentViceCaptainId,
 }: CaptainSuggestionsProps) {
@@ -125,20 +123,12 @@ export default function CaptainSuggestions({
         };
       })
       .sort((a, b) => b.haulPotential - a.haulPotential)
-      .slice(0, 5);
+      .slice(0, 3);
   }, [allPlayers, fixtures, teams]);
 
   return (
     <Card className="border-yellow-200/50 bg-gradient-to-br from-yellow-50/80 to-white/80 backdrop-blur-sm shadow-glass-glow">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-bright-amber" />
-          <span className="bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
-            Captain Picks
-          </span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <div className="grid grid-cols-3 gap-4">
           {suggestions.map((player, index) => (
             <div key={player.id} className="group relative">
@@ -230,18 +220,24 @@ export default function CaptainSuggestions({
                     </div>
                     <Progress value={Math.min(player.haulPotential * 2, 100)} className="h-2" />
                   </div>
-                  <Badge 
-                    variant="outline" 
-                    className={cn(
-                      "cursor-pointer",
-                      player.id === currentCaptainId 
-                        ? "bg-yellow-100 text-yellow-700 border-yellow-300" 
-                        : "hover:bg-yellow-50"
+                  <div className="flex flex-col items-end gap-1">
+                    {player.id === currentCaptainId && (
+                      <Badge 
+                        variant="outline" 
+                        className="bg-yellow-100 text-yellow-700 border-yellow-300"
+                      >
+                        Current Captain
+                      </Badge>
                     )}
-                    onClick={() => onSelectCaptain(player.id)}
-                  >
-                    {player.id === currentCaptainId ? "Captain" : "Set Captain"}
-                  </Badge>
+                    {player.id === currentViceCaptainId && (
+                      <Badge 
+                        variant="outline" 
+                        className="bg-blue-100 text-blue-700 border-blue-300"
+                      >
+                        Vice Captain
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

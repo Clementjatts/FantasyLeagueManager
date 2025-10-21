@@ -86,7 +86,7 @@ const TeamValueProjection: React.FC<TeamValueProjectionProps> = ({ players, next
             ? 'bg-primary/10 text-primary' 
             : valueDifference < 0 
               ? 'bg-destructive/10 text-destructive'
-              : 'bg-electric-cyan/20 text-electric-cyan'
+              : 'bg-muted/50 text-muted-foreground'
         )}>
           {valueDifference > 0 ? '+' : ''}{valueDifference.toFixed(1)}m
         </span>
@@ -94,11 +94,11 @@ const TeamValueProjection: React.FC<TeamValueProjectionProps> = ({ players, next
       
       <CardContent>
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-electric-cyan/10 rounded-lg p-3 border border-electric-cyan/20">
+          <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
             <p className="text-sm text-muted-foreground mb-1">Current Value</p>
             <p className="text-2xl font-bold text-foreground">£{projection.currentValue}m</p>
           </div>
-          <div className="bg-electric-cyan/10 rounded-lg p-3 border border-electric-cyan/20">
+          <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
             <p className="text-sm text-muted-foreground mb-1">Projected Value</p>
             <p className="text-2xl font-bold text-foreground">£{projection.totalProjectedValue}m</p>
           </div>

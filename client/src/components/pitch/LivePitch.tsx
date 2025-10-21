@@ -1,5 +1,5 @@
 import { Player } from "../../types/fpl";
-import { PlayerCard } from "../PlayerCard";
+import { TintedGlassPlayerCard } from "../TintedGlassPlayerCard";
 import { cn } from "@/lib/utils";
 import { BasePitch } from "./BasePitch";
 import { Badge } from "@/components/ui/badge";
@@ -166,24 +166,30 @@ export function LivePitch({
       <BasePitch
         players={players}
         substitutes={substitutes}
-        renderPlayer={(player: Player & { is_captain?: boolean; is_vice_captain?: boolean; multiplier?: number }, isSubstitute: boolean) => (
-          <div className="relative w-[160px]">
-            <PlayerCard
-              player={player}
-              className={cn(
-                "w-[160px] h-[120px]",
-                "transition-all duration-300",
-                isSubstitute && "opacity-80 hover:opacity-100"
-              )}
-              teams={teams}
-              fixtures={fixtures}
-              isCaptain={player.id === captainId}
-              isViceCaptain={player.id === viceCaptainId}
-              showLiveStats={showLiveStats}
-              displayContext="live"
-            />
-          </div>
-        )}
+        renderPlayer={(player: Player & { is_captain?: boolean; is_vice_captain?: boolean; multiplier?: number }, isSubstitute: boolean) => {
+          const teamInfo = teams?.find(t => t.id === player.team) || { short_name: 'UNK', name: 'Unknown' };
+          return (
+            <div className="relative w-[180px]">
+              <TintedGlassPlayerCard
+                player={{
+                  ...player,
+                  position: player.position || 1
+                }}
+                team={teamInfo}
+                className={cn(
+                  "w-[180px] h-[150px]",
+                  "transition-all duration-300",
+                  isSubstitute && "opacity-80 hover:opacity-100"
+                )}
+                teams={teams}
+                fixtures={fixtures}
+                isCaptain={player.id === captainId}
+                isViceCaptain={player.id === viceCaptainId}
+                showGameweekPoints={true}
+              />
+            </div>
+          );
+        }}
       />
     </div>
   );

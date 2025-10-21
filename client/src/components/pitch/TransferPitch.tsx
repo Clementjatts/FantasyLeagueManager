@@ -117,7 +117,7 @@ export function TransferPitch({
             player={player}
             onClick={() => isSubstitute ? onSubstituteClick?.(player) : onPlayerClick?.(player)}
             className={cn(
-              "w-[160px] h-[120px]",
+              "w-[180px] h-[130px]",
               "transition-transform hover:scale-105 text-center cursor-pointer",
               isSubstitute && "opacity-80 hover:opacity-100",
               player.cost_change_event > 0 && "ring-2 ring-green-500/20",

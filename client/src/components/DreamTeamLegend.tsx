@@ -46,30 +46,30 @@ export function DreamTeamLegend({ formation, totalPoints, className }: DreamTeam
   return (
     <div className={cn("grid grid-cols-1 md:grid-cols-5 gap-4", className)}>
       {metrics.map((metric, index) => (
-        <Card key={index} variant="electric" className="relative overflow-hidden group">
+        <Card key={index} className="relative overflow-hidden group">
           {/* Ambient background effects */}
-          <div className="absolute inset-0 bg-gradient-to-br from-electric-cyan/5 via-transparent to-electric-cyan/5" />
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-electric-cyan/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5" />
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
           
           <div className="relative p-4 space-y-2">
-            <div className="flex items-center gap-2 text-electric-cyan">
+            <div className="flex items-center gap-2 text-muted-foreground">
               <metric.icon className="w-4 h-4" />
               <span className="text-sm font-medium">{metric.label}</span>
             </div>
             
             <div className="flex items-baseline gap-2">
-              <div className="text-xl font-bold text-electric-cyan">
+              <div className="text-xl font-bold text-foreground">
                 {metric.value}
               </div>
             </div>
             
-            <div className="text-xs text-slate-gray/80">
+            <div className="text-xs text-muted-foreground/80">
               {metric.description}
             </div>
           </div>
           
           {/* Hover effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-electric-cyan/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         </Card>
       ))}
     </div>

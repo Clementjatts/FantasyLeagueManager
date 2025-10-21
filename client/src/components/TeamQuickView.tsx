@@ -47,7 +47,7 @@ export function TeamQuickView({ picks }: TeamQuickViewProps) {
       <div
         className={cn(
           "flex flex-col gap-1 px-3 py-2 rounded-lg",
-          "bg-gradient-to-br from-electric-cyan/10 to-electric-cyan/5",
+          "bg-gradient-to-br from-background/80 to-muted/50",
           "border border-border/50",
           pick.is_captain && "ring-2 ring-primary ring-offset-1",
           "transition-all duration-200 hover:scale-105 hover:shadow-md",

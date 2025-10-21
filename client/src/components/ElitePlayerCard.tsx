@@ -88,7 +88,7 @@ export function ElitePlayerCard({
       <DialogTrigger asChild>
           <Card 
             className={cn(
-              "elite-card relative w-[160px] h-[140px] cursor-pointer transition-all duration-300",
+              "elite-card relative w-[180px] h-[150px] cursor-pointer transition-all duration-300",
               "bg-slate-900 border border-slate-700 shadow-lg shadow-black/20",
               "hover:shadow-primary/30 hover:scale-[1.03] hover:border-slate-600",
               "group overflow-hidden",

@@ -29,21 +29,19 @@ export function TransferRecommendationCard({
 }: TransferRecommendationCardProps) {
   if (recommendedTransfers.length === 0) {
     return (
-      <Card className="bg-gradient-to-br from-slate-900/70 to-slate-900/40 backdrop-blur-xl border border-white/20">
-        <CardHeader>
-          <CardTitle className="text-slate-100 flex items-center gap-2">
-            <TrendingUpIcon className="w-5 h-5 text-green-400" />
-            Optimal Transfer Plan for Gameweek {gameweek}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="text-6xl mb-4">🎯</div>
-            <h3 className="text-xl font-semibold text-slate-100 mb-2">Hold Your Transfers</h3>
-            <p className="text-slate-400">
-              Your current squad is already optimized for Gameweek {gameweek}. 
-              No transfers are recommended at this time.
-            </p>
+      <Card className="bg-gradient-to-br from-emerald-500/10 via-primary/5 to-blue-500/10 backdrop-blur-xl border border-emerald-500/20 shadow-lg hover:shadow-emerald-500/20 transition-all duration-300">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-emerald-400 to-green-500 rounded-xl flex items-center justify-center">
+              <TrendingUpIcon className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-slate-800 mb-1">Optimal Transfer Plan - GW{gameweek}</h3>
+              <p className="text-sm text-slate-600">
+                Your squad is already optimized. No transfers recommended.
+              </p>
+            </div>
+            <div className="text-2xl">🎯</div>
           </div>
         </CardContent>
       </Card>
@@ -53,96 +51,94 @@ export function TransferRecommendationCard({
   const getTeam = (teamId: number) => teams.find(t => t.id === teamId) || { short_name: 'UNK', name: 'Unknown' };
 
   return (
-    <Card className="bg-gradient-to-br from-slate-900/70 to-slate-900/40 backdrop-blur-xl border border-white/20">
-      <CardHeader>
-        <CardTitle className="text-slate-100 flex items-center gap-2">
-          <TrendingUpIcon className="w-5 h-5 text-green-400" />
-          Optimal Transfer Plan for Gameweek {gameweek}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Key Metrics */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className={cn(
-              "text-3xl font-bold mb-1",
-              pointsDelta > 0 ? "text-green-400" : "text-red-400"
-            )}>
-              {pointsDelta > 0 ? '+' : ''}{pointsDelta.toFixed(1)}
+    <Card className="bg-gradient-to-br from-emerald-500/10 via-primary/5 to-blue-500/10 backdrop-blur-xl border border-emerald-500/20 shadow-lg hover:shadow-emerald-500/20 transition-all duration-300">
+      <CardContent className="p-6">
+        {/* Header with Metrics */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-500 rounded-lg flex items-center justify-center">
+              <TrendingUpIcon className="w-5 h-5 text-white" />
             </div>
-            <div className="text-sm text-slate-400">Projected Points Gain</div>
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Optimal Transfer Plan - GW{gameweek}</h3>
+              <p className="text-sm text-slate-600">{recommendedTransfers.length} transfer{recommendedTransfers.length !== 1 ? 's' : ''} recommended</p>
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-slate-100 mb-1">
-              {recommendedTransfers.length}
+          
+          {/* Compact Metrics */}
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <div className={cn(
+                "text-2xl font-bold",
+                pointsDelta > 0 ? "text-emerald-600" : "text-red-500"
+              )}>
+                {pointsDelta > 0 ? '+' : ''}{pointsDelta.toFixed(1)}
+              </div>
+              <div className="text-xs text-slate-500">Points Gain</div>
             </div>
-            <div className="text-sm text-slate-400">Transfers</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-400 mb-1">
-              -{transferCost}
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-500">
+                -{transferCost}
+              </div>
+              <div className="text-xs text-slate-500">Cost</div>
             </div>
-            <div className="text-sm text-slate-400">Transfer Cost</div>
           </div>
         </div>
 
-        {/* Transfer Details */}
+        {/* Transfer Details - Expanded Layout */}
         <div className="space-y-4">
-          <h4 className="font-semibold text-slate-100 flex items-center gap-2">
-            <UsersIcon className="w-4 h-4" />
-            Transfer Details
-          </h4>
-          
           {recommendedTransfers.map((transfer, index) => (
-            <div key={index} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+            <div key={index} className="flex items-center gap-6 p-6 bg-white/50 rounded-xl border border-emerald-200/50 hover:bg-white/70 transition-all duration-200">
               {/* Outgoing Player */}
               <div className="flex-1">
-                <div className="text-sm text-slate-400 mb-2">Transfer Out</div>
+                <div className="text-sm text-slate-500 mb-3 font-medium">TRANSFER OUT</div>
                 <TintedGlassPlayerCard
                   player={transfer.out}
                   team={getTeam(transfer.out.team)}
                   teams={teams}
                   fixtures={fixtures}
-                  className="w-[120px] h-[100px]"
+                  className="w-[180px] h-[150px]"
                 />
               </div>
 
-              {/* Arrow */}
-              <div className="flex flex-col items-center mx-4">
-                <ArrowRightIcon className="w-6 h-6 text-primary mb-2" />
-                <div className="text-xs text-slate-400">
-                  {transferCost > 0 && index === 0 && `-${transferCost} pts`}
-                </div>
+              {/* Arrow with Cost */}
+              <div className="flex flex-col items-center px-4">
+                <ArrowRightIcon className="w-8 h-8 text-emerald-600 mb-2" />
+                {transferCost > 0 && index === 0 && (
+                  <div className="text-sm text-red-500 font-medium bg-red-50 px-2 py-1 rounded">
+                    -{transferCost} pts
+                  </div>
+                )}
               </div>
 
               {/* Incoming Player */}
               <div className="flex-1">
-                <div className="text-sm text-slate-400 mb-2">Transfer In</div>
+                <div className="text-sm text-slate-500 mb-3 font-medium">TRANSFER IN</div>
                 <TintedGlassPlayerCard
                   player={transfer.in}
                   team={getTeam(transfer.in.team)}
                   teams={teams}
                   fixtures={fixtures}
                   isNewPlayer={true}
-                  className="w-[120px] h-[100px]"
+                  className="w-[180px] h-[150px]"
                 />
               </div>
             </div>
           ))}
         </div>
 
-        {/* Summary */}
-        <div className="p-4 bg-gradient-to-r from-primary/10 to-blue-500/10 rounded-lg border border-primary/20">
-          <div className="flex items-center gap-2 mb-2">
-            <CoinsIcon className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-slate-100">Net Benefit</span>
+        {/* Compact Summary */}
+        <div className="mt-4 p-3 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-lg border border-emerald-200/50">
+          <div className="flex items-center gap-2">
+            <CoinsIcon className="w-4 h-4 text-emerald-600" />
+            <span className="text-sm font-medium text-slate-700">Net Benefit:</span>
+            <span className={cn(
+              "text-sm font-semibold",
+              pointsDelta > 0 ? "text-emerald-600" : "text-red-500"
+            )}>
+              {pointsDelta > 0 ? '+' : ''}{pointsDelta.toFixed(1)} points
+            </span>
           </div>
-          <p className="text-sm text-slate-400">
-            These transfers are projected to gain you <span className={cn(
-              "font-semibold",
-              pointsDelta > 0 ? "text-green-400" : "text-red-400"
-            )}>{pointsDelta > 0 ? '+' : ''}{pointsDelta.toFixed(1)} points</span> after accounting for the {transferCost}-point transfer cost.
-          </p>
         </div>
       </CardContent>
     </Card>

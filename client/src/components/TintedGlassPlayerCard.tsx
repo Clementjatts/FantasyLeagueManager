@@ -29,6 +29,7 @@ interface TintedGlassPlayerCardProps {
   isViceCaptain?: boolean;
   className?: string;
   isNewPlayer?: boolean; // For players being transferred IN
+  showGameweekPoints?: boolean; // Show gameweek points instead of expected points
 }
 
 const getFormColor = (form: string) => {
@@ -52,7 +53,8 @@ export function TintedGlassPlayerCard({
   isCaptain = false,
   isViceCaptain = false,
   className,
-  isNewPlayer = false
+  isNewPlayer = false,
+  showGameweekPoints = false
 }: TintedGlassPlayerCardProps) {
   const form = parseFloat(player.form || "0");
   const epNext = parseFloat(player.ep_next || "0");
@@ -80,7 +82,7 @@ export function TintedGlassPlayerCard({
       <DialogTrigger asChild>
         <Card 
           className={cn(
-            "tinted-glass-card relative w-[160px] h-[140px] cursor-pointer transition-all duration-300",
+            "tinted-glass-card relative w-[180px] h-[150px] cursor-pointer transition-all duration-300",
             "bg-slate-900 border border-slate-700 shadow-lg shadow-black/20",
             "hover:shadow-primary/30 hover:scale-[1.03] hover:border-slate-600",
             "group overflow-hidden",
@@ -134,17 +136,20 @@ export function TintedGlassPlayerCard({
             </h3>
           </div>
 
-          {/* Body - Expected Points (Hero Stat) */}
+          {/* Body - Points Display (Hero Stat) */}
           <div className="relative z-10 px-2 py-2 text-center">
             <div className="space-y-1">
               <div className={cn(
                 "text-2xl font-bold",
-                getExpectedPointsColor(epNext)
+                showGameweekPoints 
+                  ? (player.event_points || 0) >= 6 ? "text-green-400" : 
+                    (player.event_points || 0) >= 4 ? "text-yellow-400" : "text-red-400"
+                  : getExpectedPointsColor(epNext)
               )}>
-                {epNext.toFixed(1)}
+                {showGameweekPoints ? (player.event_points || 0) : epNext.toFixed(1)}
               </div>
               <div className="text-xs text-slate-400">
-                Expected Points
+                {showGameweekPoints ? "Gameweek Points" : "Expected Points"}
               </div>
             </div>
           </div>
@@ -152,11 +157,19 @@ export function TintedGlassPlayerCard({
           {/* Footer - Key indicators */}
           <div className="relative z-10 px-2 pb-3">
             <div className="flex items-center justify-between text-xs">
-              {/* Form */}
+              {/* Price Change */}
               <div className="flex items-center gap-1">
-                <TrendingUpIcon className={cn("w-3 h-3", getFormColor(player.form))} />
-                <span className={cn("font-medium", getFormColor(player.form))}>
-                  {form.toFixed(1)}
+                <TrendingUpIcon className={cn(
+                  "w-3 h-3",
+                  player.cost_change_event > 0 ? "text-green-400" : 
+                  player.cost_change_event < 0 ? "text-red-400" : "text-slate-400"
+                )} />
+                <span className={cn(
+                  "font-medium text-xs",
+                  player.cost_change_event > 0 ? "text-green-400" : 
+                  player.cost_change_event < 0 ? "text-red-400" : "text-slate-400"
+                )}>
+                  {player.cost_change_event > 0 ? '+' : ''}{(player.cost_change_event / 10).toFixed(1)}
                 </span>
               </div>
 

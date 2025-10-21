@@ -92,8 +92,8 @@ export function PlayerCard({
       case 'dream':
         return (
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-electric-cyan/20 to-electric-cyan/10 rounded-lg blur-sm group-hover:blur-md transition-all" />
-            <div className="relative flex items-center gap-2 bg-electric-cyan/40 backdrop-blur-md px-3 py-1.5 rounded-lg">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg blur-sm group-hover:blur-md transition-all" />
+            <div className="relative flex items-center gap-2 bg-background/40 backdrop-blur-md px-3 py-1.5 rounded-lg">
               <ChevronUp className={`h-4 w-4 ${formColor}`} />
               <span className={`text-xs font-semibold ${formColor}`}>{formValue}</span>
               {showOptimalStats && player.is_optimal && (
@@ -113,9 +113,9 @@ export function PlayerCard({
         onClick={onClick}
         className={cn(
           "relative overflow-hidden border-0",
-          "bg-gradient-to-br from-electric-cyan/10 to-frosted-glass",
-          "hover:from-electric-cyan/15 hover:to-electric-cyan/5",
-          "backdrop-blur-sm shadow-electric",
+          "bg-gradient-to-br from-background/95 to-background/50",
+          "hover:from-background/90 hover:to-background/40",
+          "backdrop-blur-sm shadow-xl",
           "transition-all duration-200",
           className
         )}

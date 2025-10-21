@@ -55,12 +55,12 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
                     Dashboard
                   </h1>
                   <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-glass-bg backdrop-blur-sm border border-glass-border shadow-glass">
-                    <span className="text-sm font-medium text-slate-gray">Gameweek</span>
-                    <span className="text-xl font-bold text-electric-cyan">-</span>
+                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Gameweek</span>
+                    <span className="text-xl font-bold text-primary">-</span>
                   </div>
                 </div>
                 <p className="text-lg text-slate-600 dark:text-slate-300 font-medium">
@@ -128,12 +128,12 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
                   Dashboard
                 </h1>
-                <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-electric-cyan/10 via-primary/10 to-vibrant-magenta/10">
-                  <span className="text-sm font-medium text-slate-gray">Gameweek</span>
-                  <span className="text-xl font-bold text-electric-cyan">{gameweekData.currentGameweek}</span>
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10">
+                  <span className="text-sm font-medium text-muted-foreground">Gameweek</span>
+                  <span className="text-xl font-bold text-primary">{gameweekData.currentGameweek}</span>
                 </div>
               </div>
               <p className="text-lg text-muted-foreground">
@@ -143,7 +143,7 @@ export default function DashboardPage() {
             <div>
               <button
                 onClick={() => setMinimizeStats(v => !v)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium electric-gradient text-white shadow-electric hover:shadow-electric-lg transition w-44"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-radiant-violet to-pink-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.35)] hover:opacity-90 transition w-44"
                 aria-pressed={minimizeStats}
                 title={minimizeStats ? "Show full overview" : "Focus on live match view"}
               >
@@ -168,16 +168,16 @@ export default function DashboardPage() {
         {!minimizeStats && (
           <div className="space-y-6">
             <div className="grid gap-6 md:grid-cols-3 items-stretch">
-              <Card variant="electric" className="group hover:shadow-electric-lg transition-all duration-300">
+              <Card className="group hover:shadow-lg transition-all duration-300">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                      <Trophy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                       <CardTitle className="text-lg">Overall Performance</CardTitle>
                     </div>
                     <div className="flex items-center gap-1.5 text-sm">
-                      <TrendingUp className="w-3.5 h-3.5 text-success" />
-                      <span className="text-success font-medium">
+                      <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                      <span className="text-green-500 font-medium">
                         +{(gameweekData.lastRank - gameweekData.rank).toLocaleString()}
                       </span>
                     </div>
@@ -185,15 +185,15 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1 p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                      <div className="text-sm text-slate-gray">Total Points</div>
-                      <div className="text-2xl font-bold bg-gradient-to-br from-electric-cyan to-electric-cyan/80 bg-clip-text text-transparent">
+                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                      <div className="text-sm text-muted-foreground">Total Points</div>
+                      <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
                         {gameweekData.totalPoints}
                       </div>
                     </div>
-                    <div className="space-y-1 p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                      <div className="text-sm text-slate-gray">Overall Rank</div>
-                      <div className="text-2xl font-bold tabular-nums text-electric-cyan">
+                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                      <div className="text-sm text-muted-foreground">Overall Rank</div>
+                      <div className="text-2xl font-bold tabular-nums">
                         {gameweekData.rank.toLocaleString()}
                       </div>
                     </div>
@@ -201,26 +201,26 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card variant="electric" className="group hover:shadow-electric-lg transition-all duration-300">
+              <Card className="group hover:shadow-lg transition-all duration-300">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                      <TrendingUp className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                       <CardTitle className="text-lg">Gameweek Points</CardTitle>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1 p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                      <div className="text-sm text-slate-gray">Gameweek Points</div>
-                      <div className="text-2xl font-bold bg-gradient-to-br from-electric-cyan to-electric-cyan/80 bg-clip-text text-transparent">
+                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                      <div className="text-sm text-muted-foreground">Gameweek Points</div>
+                      <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
                         {gameweekData.points}
                       </div>
                     </div>
-                    <div className="space-y-1 p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                      <div className="text-sm text-slate-gray">Gameweek Rank</div>
-                      <div className="text-2xl font-bold tabular-nums text-electric-cyan">
+                    <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                      <div className="text-sm text-muted-foreground">Gameweek Rank</div>
+                      <div className="text-2xl font-bold tabular-nums">
                         {(team.stats?.event_rank || 0).toLocaleString()}
                       </div>
                     </div>
@@ -240,26 +240,26 @@ export default function DashboardPage() {
         {/* Bottom row: Team Value, Transfers, Players to Watch */}
         {!minimizeStats && (
           <div className="grid gap-6 md:grid-cols-3 items-stretch">
-            <Card variant="electric" className="group hover:shadow-electric-lg transition-all duration-300">
+            <Card className="group hover:shadow-lg transition-all duration-300">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                    <Coins className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                     <CardTitle className="text-lg">Team Value</CardTitle>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1 p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                    <div className="text-sm text-slate-gray">Squad Value</div>
-                    <div className="text-2xl font-bold bg-gradient-to-br from-electric-cyan to-electric-cyan/80 bg-clip-text text-transparent">
+                  <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                    <div className="text-sm text-muted-foreground">Squad Value</div>
+                    <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
                       £{gameweekData.teamValue}m
                     </div>
                   </div>
-                  <div className="space-y-1 p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                    <div className="text-sm text-slate-gray">In Bank</div>
-                    <div className="text-2xl font-bold tabular-nums text-electric-cyan">
+                  <div className="space-y-1 p-2 rounded-lg bg-primary/5">
+                    <div className="text-sm text-muted-foreground">In Bank</div>
+                    <div className="text-2xl font-bold tabular-nums">
                       £{gameweekData.bankValue}m
                     </div>
                   </div>
@@ -267,22 +267,22 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card variant="electric" className="group hover:shadow-electric-lg transition-all duration-300">
+            <Card className="group hover:shadow-lg transition-all duration-300">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-electric-cyan group-hover:scale-110 transition-transform" />
+                    <Users className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
                     <CardTitle className="text-lg">Transfers</CardTitle>
                   </div>
-                  <Badge variant="secondary" className="bg-electric-cyan/10 text-electric-cyan border-electric-cyan/20">
+                  <Badge variant="secondary" className="bg-primary/10">
                     Cost: {team?.transfers?.cost || 0} pts
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="p-2 rounded-lg bg-electric-cyan/10 border border-electric-cyan/20">
-                  <div className="text-sm text-slate-gray">Free Transfers</div>
-                  <div className="text-2xl font-bold bg-gradient-to-br from-electric-cyan to-electric-cyan/80 bg-clip-text text-transparent">
+                <div className="p-2 rounded-lg bg-primary/5">
+                  <div className="text-sm text-muted-foreground">Free Transfers</div>
+                  <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/80 bg-clip-text text-transparent">
                     {team?.transfers?.limit || 0}
                   </div>
                 </div>
@@ -296,7 +296,7 @@ export default function DashboardPage() {
 
         {/* Live Result below */}
         <div className="space-y-6">
-          <Card variant="electric">
+          <Card>
             <CardHeader>
               <CardTitle>Live Result</CardTitle>
             </CardHeader>
@@ -347,7 +347,7 @@ export default function DashboardPage() {
           {/* Removed Quick Actions and duplicate Next Deadline */}
         </div>
 
-        <Card variant="electric">
+        <Card>
           <CardHeader>
             <CardTitle>Performance History</CardTitle>
           </CardHeader>
