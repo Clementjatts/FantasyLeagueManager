@@ -19,7 +19,7 @@ export function Navbar() {
       <div className="container mx-auto px-6 sm:px-8">
         <div className="flex h-20 items-center justify-between py-4">
           <div className="flex-shrink-0 mr-10">
-            <div className="text-3xl font-black tracking-tighter bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent select-none hover:scale-105 hover:opacity-90 transition-all duration-200 [text-shadow:0_0_8px_rgba(124,58,237,0.5)]">
+            <div className="text-3xl font-black tracking-tighter colorhunt-gradient bg-clip-text text-transparent select-none hover:scale-105 hover:opacity-90 transition-all duration-200 [text-shadow:0_0_8px_rgba(191,9,47,0.5)]">
               FPLManager
             </div>
         </div>
@@ -33,7 +33,7 @@ export function Navbar() {
                   "transition-all duration-200 ease-in-out",
                   "glass-hover",
                   location === href
-                    ? "aurora-gradient text-white shadow-aurora"
+                    ? "colorhunt-gradient text-white shadow-colorhunt"
                     : "text-slate-500 hover:text-primary"
                 )}
               >
@@ -64,7 +64,7 @@ export function Navbar() {
                 </div>
                 <button
                   onClick={signOutUser}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium aurora-gradient text-white shadow-aurora hover:shadow-aurora-lg transition-all duration-200"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium colorhunt-gradient text-white shadow-colorhunt hover:shadow-colorhunt-lg transition-all duration-200"
                   aria-label="Log out"
                   title="Log out"
                 >

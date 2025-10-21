@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "aurora-gradient text-white shadow-aurora hover:shadow-aurora-lg transition-all duration-300",
+        default: "colorhunt-gradient text-white shadow-colorhunt hover:shadow-colorhunt-lg transition-all duration-300",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
@@ -18,8 +18,9 @@ const buttonVariants = cva(
           "glass-card border border-glass-border text-foreground hover:shadow-glass-hover transition-all duration-300",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        "electric-primary": "electric-button-primary text-white shadow-electric hover:shadow-electric-lg transition-all duration-300",
-        "electric-secondary": "electric-button-secondary text-white shadow-electric-card hover:shadow-electric-hover transition-all duration-300",
+        "colorhunt-primary": "colorhunt-button-primary text-white shadow-colorhunt hover:shadow-colorhunt-lg transition-all duration-300",
+        "colorhunt-secondary": "colorhunt-button-secondary text-white shadow-navy-card hover:shadow-navy-hover transition-all duration-300",
+        "colorhunt-accent": "colorhunt-button-accent text-white shadow-teal-glow hover:shadow-teal-glow-lg transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",

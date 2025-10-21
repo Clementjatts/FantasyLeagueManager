@@ -26,113 +26,91 @@
 
 @layer base {
   :root {
-    /* Aurora Palette - Light Mode */
-    --background: 210 40% 98%; /* White Smoke */
-    --foreground: 222 84% 5%; /* Deep Slate */
-    --card: 255 255 255 / 0.8; /* Semi-transparent white for glass effect */
-    --card-foreground: 222 84% 5%; /* Deep Slate */
-    --popover: 255 255 255 / 0.9;
-    --popover-foreground: 222 84% 5%;
-    --primary: 262 83% 58%; /* Radiant Violet */
-    --primary-foreground: 210 40% 98%; /* White Smoke */
-    --secondary: 215 25% 27%; /* Cool Slate */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 215 25% 27%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 215 25% 27%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%; /* Electric Red */
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27% / 0.2; /* Cool Slate with transparency */
-    --input: 215 25% 27% / 0.1;
-    --ring: 262 83% 58%;
+    /* Color Hunt Palette - Light Mode */
+    --background: 0 0% 100%; /* White background */
+    --foreground: 210 40% 15%; /* Dark navy text */
+    --card: 255 255 255 / 0.9; /* Semi-transparent white for glass effect */
+    --card-foreground: 210 40% 15%; /* Dark navy text */
+    --popover: 255 255 255 / 0.95;
+    --popover-foreground: 210 40% 15%;
+    --primary: 0 70% 40%; /* Deep Red #BF092F */
+    --primary-foreground: 0 0% 100%; /* White text */
+    --secondary: 210 40% 20%; /* Dark Navy #132440 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 210 40% 20%;
+    --muted-foreground: 210 20% 50%;
+    --accent: 180 50% 45%; /* Teal #3B9797 */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 40%; /* Deep Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 40% 20% / 0.2; /* Dark navy with transparency */
+    --input: 210 40% 20% / 0.1;
+    --ring: 0 70% 40%;
     --radius: 0.75rem;
     
-    /* Aurora Glass & Glow Palette */
-    --radiant-violet: 262 83% 58%;
-    --cool-slate: 215 25% 27%;
-    --white-smoke: 210 40% 98%;
-    --deep-slate: 222 84% 5%;
-    --neon-green: 158 64% 52%;
-    --bright-amber: 43 96% 56%;
-    --electric-red: 0 84% 60%;
+    /* Color Hunt Palette Variables */
+    --deep-red: 0 70% 40%; /* #BF092F */
+    --dark-navy: 210 40% 20%; /* #132440 */
+    --medium-blue: 210 60% 30%; /* #16476A */
+    --teal: 180 50% 45%; /* #3B9797 */
     
-    /* Aurora Gradient */
-    --aurora-gradient: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(330, 81%, 60%));
+    /* Color Hunt Gradient */
+    --colorhunt-gradient: linear-gradient(135deg, hsl(0, 70%, 40%), hsl(180, 50%, 45%));
     
-    /* Electric Indigo Palette */
-    --electric-indigo: 266 100% 50%; /* #6F00FF */
-    --cool-gray: 204 12% 54%; /* #7A8C99 */
-    --neon-green-alt: 111 100% 54%; /* #39FF14 */
-    --bright-orange: 36 100% 50%; /* #FF9A00 */
-    --off-white: 210 17% 98%; /* #F8F9FA */
-    --midnight-blue: 215 27% 7%; /* #0D1117 */
-    --emerald-green: 145 63% 49%; /* #2ECC71 */
-    --amber: 48 89% 50%; /* #F1C40F */
-    --crimson-red: 5 74% 57%; /* #E74C3C */
-    --sky-blue: 204 70% 53%; /* #3498DB */
-    
-    /* Electric Indigo Gradient */
-    --electric-gradient: linear-gradient(135deg, hsl(266, 100%, 50%), hsl(266, 100%, 40%));
+    /* Chart colors using Color Hunt palette */
+    --chart-1: 0 70% 40%; /* Deep Red */
+    --chart-2: 180 50% 45%; /* Teal */
+    --chart-3: 210 60% 30%; /* Medium Blue */
+    --chart-4: 210 40% 20%; /* Dark Navy */
+    --chart-5: 0 70% 50%; /* Lighter Red */
     
     /* Glass effects */
     --glass-bg: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-border: rgba(19, 36, 64, 0.2);
     --glass-blur: blur(10px);
   }
 
   .dark {
-    /* Aurora Palette - Dark Mode */
-    --background: 222 84% 5%; /* Deep Slate */
-    --foreground: 210 40% 98%; /* White Smoke */
-    --card: 30 41 59 / 0.8; /* Semi-transparent dark slate for glass effect */
-    --card-foreground: 210 40% 98%;
-    --popover: 30 41 59 / 0.9;
-    --popover-foreground: 210 40% 98%;
-    --primary: 280 100% 70%; /* Brighter Radiant Violet for dark mode */
-    --primary-foreground: 222 84% 5%;
-    --secondary: 215 25% 27%; /* Cool Slate */
-    --secondary-foreground: 210 40% 98%;
-    --muted: 215 25% 27%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 215 25% 27%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%; /* Electric Red */
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 25% 27% / 0.3;
-    --input: 215 25% 27% / 0.2;
-    --ring: 280 100% 70%;
+    /* Color Hunt Palette - Dark Mode */
+    --background: 210 40% 8%; /* Very dark navy background */
+    --foreground: 0 0% 95%; /* Light text */
+    --card: 210 40% 12% / 0.8; /* Semi-transparent dark navy for glass effect */
+    --card-foreground: 0 0% 95%;
+    --popover: 210 40% 12% / 0.9;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 70% 50%; /* Brighter Deep Red for dark mode */
+    --primary-foreground: 0 0% 95%;
+    --secondary: 210 40% 20%; /* Dark Navy */
+    --secondary-foreground: 0 0% 95%;
+    --muted: 210 40% 20%;
+    --muted-foreground: 210 20% 60%;
+    --accent: 180 50% 55%; /* Brighter Teal for dark mode */
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 70% 50%; /* Brighter Deep Red */
+    --destructive-foreground: 0 0% 95%;
+    --border: 210 40% 20% / 0.3;
+    --input: 210 40% 20% / 0.2;
+    --ring: 0 70% 50%;
     
-    /* Aurora Glass & Glow Palette - Dark Mode */
-    --radiant-violet: 280 100% 70%;
-    --cool-slate: 215 25% 27%;
-    --white-smoke: 210 40% 98%;
-    --deep-slate: 222 84% 5%;
-    --neon-green: 158 64% 52%;
-    --bright-amber: 43 96% 56%;
-    --electric-red: 0 84% 60%;
+    /* Color Hunt Palette Variables - Dark Mode */
+    --deep-red: 0 70% 50%; /* Brighter for dark mode */
+    --dark-navy: 210 40% 20%; /* Same */
+    --medium-blue: 210 60% 40%; /* Brighter for dark mode */
+    --teal: 180 50% 55%; /* Brighter for dark mode */
     
-    /* Aurora Gradient - Dark Mode */
-    --aurora-gradient: linear-gradient(135deg, hsl(280, 100%, 70%), hsl(330, 81%, 70%));
+    /* Color Hunt Gradient - Dark Mode */
+    --colorhunt-gradient: linear-gradient(135deg, hsl(0, 70%, 50%), hsl(180, 50%, 55%));
     
-    /* Electric Indigo Palette - Dark Mode */
-    --electric-indigo: 266 100% 60%; /* Brighter for dark mode */
-    --cool-gray: 204 12% 54%;
-    --neon-green-alt: 111 100% 54%;
-    --bright-orange: 36 100% 50%;
-    --off-white: 210 17% 98%;
-    --midnight-blue: 215 27% 7%;
-    --emerald-green: 145 63% 49%;
-    --amber: 48 89% 50%;
-    --crimson-red: 5 74% 57%;
-    --sky-blue: 204 70% 53%;
-    
-    /* Electric Indigo Gradient - Dark Mode */
-    --electric-gradient: linear-gradient(135deg, hsl(266, 100%, 60%), hsl(266, 100%, 50%));
+    /* Chart colors using Color Hunt palette - Dark Mode */
+    --chart-1: 0 70% 50%; /* Brighter Deep Red */
+    --chart-2: 180 50% 55%; /* Brighter Teal */
+    --chart-3: 210 60% 40%; /* Brighter Medium Blue */
+    --chart-4: 210 40% 20%; /* Dark Navy */
+    --chart-5: 0 70% 60%; /* Even brighter Red */
     
     /* Glass effects - Dark Mode */
-    --glass-bg: rgba(30, 41, 59, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(19, 36, 64, 0.8);
+    --glass-border: rgba(59, 151, 151, 0.2);
     --glass-blur: blur(10px);
   }
 
@@ -150,10 +128,10 @@
 
   body {
     @apply font-sans antialiased text-foreground;
-    background-color: #111827; /* Dark gray background */
+    background-color: hsl(var(--background));
     background-image: 
       radial-gradient(circle at 1px 1px, hsl(var(--border) / 0.3) 1px, transparent 0),
-      linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%);
+      linear-gradient(135deg, hsl(var(--dark-navy)) 0%, hsl(var(--medium-blue)) 50%, hsl(var(--teal)) 100%);
     background-size: 2rem 2rem, 100% 100%;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
@@ -175,13 +153,13 @@
 }
 
 @layer components {
-  /* Glassmorphism Components */
+  /* Color Hunt Glassmorphism Components */
   .glass-card {
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    box-shadow: 0 8px 32px 0 rgba(19, 36, 64, 0.37);
   }
   
   .glass-navbar {
@@ -191,12 +169,12 @@
     border-bottom: 1px solid var(--glass-border);
   }
   
-  .aurora-gradient {
-    background: var(--aurora-gradient);
+  .colorhunt-gradient {
+    background: var(--colorhunt-gradient);
   }
   
-  .aurora-glow {
-    box-shadow: 0 0 40px rgba(var(--radiant-violet), 0.3), 0 0 80px rgba(var(--radiant-violet), 0.1);
+  .colorhunt-glow {
+    box-shadow: 0 0 40px rgba(var(--deep-red), 0.3), 0 0 80px rgba(var(--teal), 0.1);
   }
   
   .glass-hover {
@@ -207,58 +185,40 @@
     background: var(--glass-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    box-shadow: 0 8px 32px 0 rgba(var(--radiant-violet), 0.2);
+    box-shadow: 0 8px 32px 0 rgba(var(--deep-red), 0.2);
   }
   
-  /* Electric Indigo Components */
-  .electric-card {
-    background: hsl(var(--off-white));
-    border: 1px solid hsl(var(--cool-gray) / 0.3);
-    box-shadow: 0 4px 12px 0 rgba(111, 0, 255, 0.1);
+  /* Color Hunt Button Components */
+  .colorhunt-button-primary {
+    background: hsl(var(--deep-red));
+    color: hsl(var(--primary-foreground));
+    box-shadow: 0 4px 12px 0 rgba(191, 9, 47, 0.3);
   }
   
-  .electric-navbar {
-    background: hsl(var(--off-white));
-    border-bottom: 1px solid hsl(var(--cool-gray) / 0.3);
-    box-shadow: 0 2px 8px 0 rgba(111, 0, 255, 0.1);
+  .colorhunt-button-primary:hover {
+    background: hsl(0, 70%, 35%);
+    box-shadow: 0 6px 16px 0 rgba(191, 9, 47, 0.4);
   }
   
-  .electric-gradient {
-    background: var(--electric-gradient);
+  .colorhunt-button-secondary {
+    background: hsl(var(--dark-navy));
+    color: hsl(var(--secondary-foreground));
+    box-shadow: 0 2px 8px 0 rgba(19, 36, 64, 0.3);
   }
   
-  .electric-glow {
-    box-shadow: 0 0 20px rgba(111, 0, 255, 0.4), 0 0 40px rgba(111, 0, 255, 0.2);
+  .colorhunt-button-secondary:hover {
+    background: hsl(210, 40%, 15%);
+    box-shadow: 0 4px 12px 0 rgba(19, 36, 64, 0.4);
   }
   
-  .electric-hover {
-    transition: all 0.3s ease;
+  .colorhunt-button-accent {
+    background: hsl(var(--teal));
+    color: hsl(var(--accent-foreground));
+    box-shadow: 0 2px 8px 0 rgba(59, 151, 151, 0.3);
   }
   
-  .electric-hover:hover {
-    background: hsl(var(--electric-indigo) / 0.1);
-    box-shadow: 0 4px 12px 0 rgba(111, 0, 255, 0.2);
-  }
-  
-  .electric-button-primary {
-    background: hsl(var(--electric-indigo));
-    color: hsl(var(--off-white));
-    box-shadow: 0 4px 12px 0 rgba(111, 0, 255, 0.3);
-  }
-  
-  .electric-button-primary:hover {
-    background: hsl(266, 100%, 45%);
-    box-shadow: 0 6px 16px 0 rgba(111, 0, 255, 0.4);
-  }
-  
-  .electric-button-secondary {
-    background: hsl(var(--cool-gray));
-    color: hsl(var(--off-white));
-    box-shadow: 0 2px 8px 0 rgba(122, 140, 153, 0.3);
-  }
-  
-  .electric-button-secondary:hover {
-    background: hsl(204, 12%, 48%);
-    box-shadow: 0 4px 12px 0 rgba(122, 140, 153, 0.4);
+  .colorhunt-button-accent:hover {
+    background: hsl(180, 50%, 40%);
+    box-shadow: 0 4px 12px 0 rgba(59, 151, 151, 0.4);
   }
 }

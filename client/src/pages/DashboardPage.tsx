@@ -13,6 +13,7 @@ import { fetchMyTeam, fetchPlayers, getNextGameweekDeadline, fetchBootstrapStati
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { PlayersToWatch } from "@/components/PlayersToWatch";
+import { ColorPalettePreview } from "@/components/ColorPalettePreview";
 
 export default function DashboardPage() {
   const { profile, setFplTeamId } = useAuth();
@@ -355,6 +356,11 @@ export default function DashboardPage() {
             <PerformanceTimeline data={pointsData} />
           </CardContent>
         </Card>
+
+        {/* Color Palette Preview */}
+        <div className="col-span-full">
+          <ColorPalettePreview />
+        </div>
       </div>
     </div>
   );
