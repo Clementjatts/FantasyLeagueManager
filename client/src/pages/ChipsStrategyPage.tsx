@@ -349,14 +349,17 @@ export default function ChipsStrategyPage() {
         </TabsContent>
 
         <TabsContent value="community" className="mt-6">
-          <Card>
+          <Card className="shadow-colorhunt">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-primary" />
+                  <div className="relative">
+                    <Users className="w-5 h-5 text-primary" />
+                    <div className="absolute inset-0 text-primary blur-sm opacity-50 animate-pulse" />
+                  </div>
                   <CardTitle>Community Insights</CardTitle>
                 </div>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
                   GW {currentGameweek?.id}
                 </Badge>
               </div>
@@ -378,55 +381,55 @@ export default function ChipsStrategyPage() {
                   return (
                     <div 
                       key={stat.chip_name} 
-                      className="space-y-4 p-3 rounded-lg bg-muted/30 border border-border/50 transition-all duration-300 hover:border-primary/30"
+                      className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-white via-gray-50 to-white border border-primary/20 transition-all duration-300 hover:border-primary/40 hover:shadow-colorhunt"
                     >
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-sm">{chipLabel}</span>
-                          <Badge variant="secondary" className="text-xs">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-semibold text-sm text-dark-navy">{chipLabel}</span>
+                          <Badge variant="outline" className="text-xs bg-teal/10 text-teal border-teal/30">
                             {stat.num_played.toLocaleString()} this GW
                           </Badge>
                         </div>
                         <div className="relative">
                           <Progress 
                             value={percentage} 
-                            className="h-2 bg-primary/10" 
+                            className="h-3 bg-primary/10 rounded-full" 
                           />
                           <div 
-                            className="absolute -top-1 left-0 h-3 w-0.5 bg-primary rounded-full transition-all"
+                            className="absolute -top-1 left-0 h-4 w-1 bg-primary rounded-full transition-all shadow-colorhunt"
                             style={{ left: `${percentage}%` }}
                           />
                         </div>
-                        <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                          <span>{percentage.toFixed(2)}% usage</span>
+                        <div className="flex items-center justify-between mt-2 text-xs text-dark-navy/70">
+                          <span className="font-medium">{percentage.toFixed(2)}% usage</span>
                           {stat.average_entry_score && (
-                            <span>{stat.average_entry_score} pts avg</span>
+                            <span className="font-medium text-medium-blue">{stat.average_entry_score} pts avg</span>
                           )}
                         </div>
                       </div>
 
                       {seasonTotal && (
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-muted-foreground">Season Total</span>
-                            <Badge variant="outline" className="text-xs">
+                        <div className="pt-3 border-t border-primary/10">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-dark-navy/60 font-medium">Season Total</span>
+                            <Badge variant="outline" className="text-xs bg-medium-blue/10 text-medium-blue border-medium-blue/30">
                               {seasonTotal.num_played.toLocaleString()} total
                             </Badge>
                           </div>
                           <div className="relative">
                             <Progress 
                               value={seasonPercentage} 
-                              className="h-2 bg-primary/10" 
+                              className="h-3 bg-teal/10 rounded-full" 
                             />
                             <div 
-                              className="absolute -top-1 left-0 h-3 w-0.5 bg-primary rounded-full transition-all"
+                              className="absolute -top-1 left-0 h-4 w-1 bg-teal rounded-full transition-all shadow-teal-glow"
                               style={{ left: `${seasonPercentage}%` }}
                             />
                           </div>
-                          <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
-                            <span>{seasonPercentage.toFixed(2)}% used</span>
+                          <div className="flex items-center justify-between mt-2 text-xs text-dark-navy/70">
+                            <span className="font-medium">{seasonPercentage.toFixed(2)}% used</span>
                             {averagePoints && (
-                              <span>{averagePoints} pts avg</span>
+                              <span className="font-medium text-teal">{averagePoints} pts avg</span>
                             )}
                           </div>
                         </div>
