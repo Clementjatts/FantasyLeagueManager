@@ -225,7 +225,7 @@ export function HistoricalPlayerTable({
                     variant="outline" 
                     className={cn(
                       "mx-auto font-medium transition-all duration-200",
-                      player.element_type === 1 && "bg-yellow-500/10 text-yellow-700 border-yellow-200/50",
+                      player.element_type === 1 && "bg-teal/10 text-teal border-teal/50",
                       player.element_type === 2 && "bg-blue-500/10 text-blue-700 border-blue-200/50",
                       player.element_type === 3 && "bg-green-500/10 text-green-700 border-green-200/50",
                       player.element_type === 4 && "bg-red-500/10 text-red-700 border-red-200/50"

@@ -103,7 +103,7 @@ function StatCard({ label, value, tooltip }: { label: string; value: string | nu
 function PlayerStatCard({ player }: { player: Player }) {
   const formValue = parseFloat(player.form || "0");
   const formColor = formValue >= 6 ? "text-green-500" :
-                    formValue >= 4 ? "text-yellow-500" : "text-red-500";
+                    formValue >= 4 ? "text-teal" : "text-red-500";
   
   const ppgValue = parseFloat(player.points_per_game || "0");
   const ppgProgress = (ppgValue / 8) * 100; // 8 points per game as maximum

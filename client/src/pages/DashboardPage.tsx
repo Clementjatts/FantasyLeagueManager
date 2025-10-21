@@ -155,7 +155,7 @@ export default function DashboardPage() {
                   </>
                 ) : (
                   <>
-                    <span className="inline-block h-2 w-2 rounded-full bg-yellow-300" />
+                    <span className="inline-block h-2 w-2 rounded-full bg-teal" />
                     Matchday Focus
                   </>
                 )}
