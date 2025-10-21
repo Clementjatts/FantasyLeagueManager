@@ -297,9 +297,20 @@ export default function DashboardPage() {
 
         {/* Live Result below */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Live Result</CardTitle>
+          <Card className="shadow-colorhunt border-primary/20">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Trophy className="w-5 h-5 text-primary" />
+                    <div className="absolute inset-0 text-primary blur-sm opacity-50 animate-pulse" />
+                  </div>
+                  <CardTitle className="text-xl">Live Result</CardTitle>
+                </div>
+                <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                  GW {gameweekData.currentGameweek}
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent className="p-0">
               {allPlayers ? (
