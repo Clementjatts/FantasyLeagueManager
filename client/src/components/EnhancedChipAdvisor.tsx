@@ -172,7 +172,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     ];
 
     const totalScore = factors.reduce((acc, factor) => acc + factor.value, 0);
-    const priority = totalScore > 15 ? "high" : totalScore > 10 ? "medium" : totalScore > 5 ? "low" : "none";
+    const priority = totalScore > 18 ? "high" : totalScore > 12 ? "medium" : totalScore > 6 ? "low" : "none";
 
     return {
       chip: "wildcard",
@@ -280,7 +280,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     ];
 
     const totalScore = factors.reduce((acc, factor) => acc + factor.value, 0);
-    const priority = totalScore > 8 ? "high" : totalScore > 5 ? "medium" : totalScore > 2 ? "low" : "none";
+    const priority = totalScore > 10 ? "high" : totalScore > 7 ? "medium" : totalScore > 3 ? "low" : "none";
 
     return {
       chip: "freehit",
@@ -378,7 +378,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     ];
 
     const totalScore = factors.reduce((acc, factor) => acc + factor.value, 0);
-    const priority = totalScore > 10 ? "high" : totalScore > 7 ? "medium" : totalScore > 4 ? "low" : "none";
+    const priority = totalScore > 12 ? "high" : totalScore > 9 ? "medium" : totalScore > 5 ? "low" : "none";
 
     return {
       chip: "3xc",
@@ -418,14 +418,7 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
     );
 
     if (worthwhileRecommendations.length === 0) {
-      return {
-        chip: "none",
-        label: "No Recommendations",
-        score: 0,
-        priority: "none",
-        factors: [],
-        recommendation: "No chips are recommended this gameweek. Your current strategy appears optimal."
-      };
+      return null; // Don't show the component at all when no recommendations
     }
 
     return worthwhileRecommendations.reduce((best, current) => 
