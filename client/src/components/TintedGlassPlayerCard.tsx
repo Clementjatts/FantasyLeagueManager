@@ -35,13 +35,13 @@ interface TintedGlassPlayerCardProps {
 const getFormColor = (form: string) => {
   const formValue = parseFloat(form || "0");
   if (formValue >= 6) return "text-green-400";
-  if (formValue >= 4) return "text-teal";
+  if (formValue >= 4) return "text-yellow-400";
   return "text-red-400";
 };
 
 const getExpectedPointsColor = (epNext: number) => {
   if (epNext >= 6) return "text-green-400";
-  if (epNext >= 4) return "text-teal";
+  if (epNext >= 4) return "text-yellow-400";
   return "text-red-400";
 };
 
@@ -107,7 +107,7 @@ export function TintedGlassPlayerCard({
                 "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold",
                 "bg-gradient-to-br backdrop-blur-sm shadow-lg",
                 isCaptain 
-                  ? "from-teal/90 to-teal/90" 
+                  ? "from-yellow-500/90 to-yellow-600/90" 
                   : "from-gray-500/90 to-gray-600/90"
               )}>
                 {isCaptain ? <CrownIcon className="w-3 h-3" /> : <StarIcon className="w-3 h-3" />}
@@ -143,7 +143,7 @@ export function TintedGlassPlayerCard({
                 "text-2xl font-bold",
                 showGameweekPoints 
                   ? (player.event_points || 0) >= 6 ? "text-green-400" : 
-                    (player.event_points || 0) >= 4 ? "text-teal" : "text-red-400"
+                    (player.event_points || 0) >= 4 ? "text-yellow-400" : "text-red-400"
                   : getExpectedPointsColor(epNext)
               )}>
                 {showGameweekPoints ? (player.event_points || 0) : epNext.toFixed(1)}
@@ -183,7 +183,7 @@ export function TintedGlassPlayerCard({
 
               {/* Price */}
               <div className="flex items-center gap-1">
-                <CoinsIcon className="w-3 h-3 text-teal" />
+                <CoinsIcon className="w-3 h-3 text-yellow-400" />
                 <span className="font-medium text-white">
                   £{price}m
                 </span>
@@ -304,7 +304,7 @@ export function TintedGlassPlayerCard({
                         className={cn(
                           "text-xs",
                           difficulty <= 2 ? "border-green-500 text-green-500" :
-                          difficulty <= 3 ? "border-teal text-teal" :
+                          difficulty <= 3 ? "border-yellow-500 text-yellow-500" :
                           "border-red-500 text-red-500"
                         )}
                       >

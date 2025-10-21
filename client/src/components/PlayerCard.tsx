@@ -28,7 +28,7 @@ const positionMap: Record<number, string> = {
 };
 
 const positionColors: Record<number, string> = {
-  1: "from-teal/20 to-teal/20",
+  1: "from-yellow-500/20 to-yellow-600/20",
   2: "from-blue-500/20 to-blue-600/20",
   3: "from-green-500/20 to-green-600/20",
   4: "from-red-500/20 to-red-600/20"
@@ -51,7 +51,7 @@ export function PlayerCard({
   const teamInfo = teams?.find(t => t.id === player.team) || { short_name: '' };
   const teamAbbr = teamInfo.short_name;
   const formValue = parseFloat(player.form || "0");
-  const formColor = formValue >= 6 ? "text-green-500" : formValue >= 4 ? "text-teal" : "text-red-500";
+  const formColor = formValue >= 6 ? "text-green-500" : formValue >= 4 ? "text-yellow-500" : "text-red-500";
 
   // Filter fixtures and calculate predicted points
   const playerFixtures = fixtures?.filter(f => 

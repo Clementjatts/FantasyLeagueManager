@@ -156,7 +156,7 @@ export function PlayerComparison({ player, comparedPlayer }: PlayerComparisonPro
     {
       title: "Overall Performance",
       description: "Key performance indicators and match statistics",
-      icon: <Star className="w-5 h-5 text-teal" />,
+      icon: <Star className="w-5 h-5 text-yellow-500" />,
       stats: [
         { label: "Total Points", value: "total_points", showTrend: true },
         { label: "Points Per Game", value: "points_per_game" },

@@ -119,7 +119,7 @@ export function LivePitch({
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-teal" />
+                    <div className="w-2 h-2 rounded-full bg-yellow-500" />
                     <span className="text-lg font-semibold text-white">{allPlayersToPlay}</span>
                   </div>
                   <div className="text-xs text-white/40">To Play</div>

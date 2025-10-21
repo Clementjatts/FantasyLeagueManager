@@ -745,7 +745,7 @@ export default function TeamPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold colorhunt-gradient bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
                 Gameweek {nextGameweek} Transfer Planning
               </h1>
               <p className="text-lg text-muted-foreground">
@@ -755,14 +755,14 @@ export default function TeamPage() {
             <div className="flex items-center gap-3">
               <Link 
                 href="/chips"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg colorhunt-gradient/10 hover:colorhunt-gradient/20 text-primary transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10 hover:from-purple-500/20 hover:via-primary/20 hover:to-blue-500/20 text-primary transition-all duration-200 font-medium"
               >
                 <Zap className="w-4 h-4" />
                 Chips Strategy
               </Link>
               <Link 
                 href="/top-managers-team"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg colorhunt-gradient/10 hover:colorhunt-gradient/20 text-primary transition-all duration-200 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/10 via-primary/10 to-blue-500/10 hover:from-purple-500/20 hover:via-primary/20 hover:to-blue-500/20 text-primary transition-all duration-200 font-medium"
               >
                 <Users className="w-4 h-4" />
                 Top Managers' Team
@@ -821,34 +821,34 @@ export default function TeamPage() {
 
             {/* Squad Builder Summary - Only show for builder mode */}
             {optimalTeam?.mode === 'builder' && (
-              <Card className="bg-gradient-to-br from-teal/10 to-medium-blue/10 border border-teal/20 shadow-colorhunt">
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-lg">
                 <CardContent className="pt-6">
                   <div className="text-center space-y-4">
                     <div className="text-6xl mb-4">🏗️</div>
-                    <h3 className="text-2xl font-semibold text-dark-navy mb-2">Your Optimal Starting Squad</h3>
-                    <p className="text-medium-blue max-w-2xl mx-auto">
+                    <h3 className="text-2xl font-semibold text-slate-800 mb-2">Your Optimal Starting Squad</h3>
+                    <p className="text-slate-600 max-w-2xl mx-auto">
                       This optimized squad is built using the Value_3GW algorithm, prioritizing players with the best 
                       expected points per million over the next 3 gameweeks. Perfect for new managers looking for a 
                       competitive starting team.
                     </p>
                     <div className="grid grid-cols-3 gap-4 mt-6">
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-teal mb-1">
+                        <div className="text-2xl font-bold text-green-600 mb-1">
                           £{(100 - (optimalTeam.remainingBudget || 0)).toFixed(1)}m
                         </div>
-                        <div className="text-sm text-medium-blue">Total Cost</div>
+                        <div className="text-sm text-slate-600">Total Cost</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-medium-blue mb-1">
+                        <div className="text-2xl font-bold text-blue-600 mb-1">
                           £{(optimalTeam.remainingBudget || 0).toFixed(1)}m
                         </div>
-                        <div className="text-sm text-medium-blue">Remaining Budget</div>
+                        <div className="text-sm text-slate-600">Remaining Budget</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold text-dark-navy mb-1">
+                        <div className="text-2xl font-bold text-indigo-600 mb-1">
                           {optimalTeam.totalPoints.toFixed(1)}
                         </div>
-                        <div className="text-sm text-medium-blue">Expected Points</div>
+                        <div className="text-sm text-slate-600">Expected Points</div>
                       </div>
                     </div>
         </div>

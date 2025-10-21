@@ -19,14 +19,14 @@ interface TransferPitchProps {
 const getFormColor = (form: string) => {
   const formValue = parseFloat(form || "0");
   if (formValue >= 6) return "from-green-500/90 to-green-600/90";
-  if (formValue >= 4) return "from-teal/90 to-teal/90";
+  if (formValue >= 4) return "from-yellow-500/90 to-yellow-600/90";
   return "from-red-500/90 to-red-600/90";
 };
 
 const getFormGlowColor = (form: string) => {
   const formValue = parseFloat(form || "0");
   if (formValue >= 6) return "bg-green-500/30";
-  if (formValue >= 4) return "bg-teal/30";
+  if (formValue >= 4) return "bg-yellow-500/30";
   return "bg-red-500/30";
 };
 

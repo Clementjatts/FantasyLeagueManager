@@ -34,21 +34,21 @@ interface ElitePlayerCardProps {
 const getFormColor = (form: string) => {
   const formValue = parseFloat(form || "0");
   if (formValue >= 6) return "text-green-400";
-  if (formValue >= 4) return "text-teal";
+  if (formValue >= 4) return "text-yellow-400";
   return "text-red-400";
 };
 
 const getEliteOwnershipColor = (eliteOwnership: number) => {
   if (eliteOwnership >= 80) return "text-green-400";
-  if (eliteOwnership >= 60) return "text-teal";
-  if (eliteOwnership >= 40) return "text-medium-blue";
+  if (eliteOwnership >= 60) return "text-yellow-400";
+  if (eliteOwnership >= 40) return "text-orange-400";
   return "text-red-400";
 };
 
 const getEliteOwnershipGlow = (eliteOwnership: number) => {
   if (eliteOwnership >= 80) return "shadow-green-500/50";
-  if (eliteOwnership >= 60) return "shadow-teal/50";
-  if (eliteOwnership >= 40) return "shadow-medium-blue/50";
+  if (eliteOwnership >= 60) return "shadow-yellow-500/50";
+  if (eliteOwnership >= 40) return "shadow-orange-500/50";
   return "shadow-red-500/50";
 };
 
@@ -104,7 +104,7 @@ export function ElitePlayerCard({
                   "w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold",
                   "bg-gradient-to-br backdrop-blur-sm shadow-lg",
                   isCaptain 
-                    ? "from-teal/90 to-teal/90" 
+                    ? "from-yellow-500/90 to-yellow-600/90" 
                     : "from-gray-500/90 to-gray-600/90"
                 )}>
                   {isCaptain ? <CrownIcon className="w-3 h-3" /> : <StarIcon className="w-3 h-3" />}
@@ -169,8 +169,8 @@ export function ElitePlayerCard({
 
                 {/* Price */}
                 <div className="flex items-center gap-1">
-                  <CoinsIcon className="w-3 h-3 text-teal" />
-                  <span className="font-medium text-teal">
+                  <CoinsIcon className="w-3 h-3 text-yellow-400" />
+                  <span className="font-medium text-yellow-400">
                     £{price}m
                   </span>
                 </div>
@@ -276,7 +276,7 @@ export function ElitePlayerCard({
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Captain:</span>
-                  <span className="font-medium text-teal">{player.captaincyCount || 0} managers</span>
+                  <span className="font-medium text-yellow-400">{player.captaincyCount || 0} managers</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Vice-Captain:</span>
@@ -307,7 +307,7 @@ export function ElitePlayerCard({
                           className={cn(
                             "text-xs",
                             difficulty <= 2 ? "border-green-500 text-green-500" :
-                            difficulty <= 3 ? "border-teal text-teal" :
+                            difficulty <= 3 ? "border-yellow-500 text-yellow-500" :
                             "border-red-500 text-red-500"
                           )}
                         >

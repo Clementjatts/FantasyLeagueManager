@@ -127,7 +127,7 @@ export default function CaptainSuggestions({
   }, [allPlayers, fixtures, teams]);
 
   return (
-    <Card className="border-teal/50 bg-gradient-to-br from-teal/10 to-white/80 backdrop-blur-sm shadow-colorhunt">
+    <Card className="border-yellow-200/50 bg-gradient-to-br from-yellow-50/80 to-white/80 backdrop-blur-sm shadow-glass-glow">
       <CardContent className="pt-6">
         <div className="grid grid-cols-3 gap-4">
           {suggestions.map((player, index) => (
@@ -142,9 +142,9 @@ export default function CaptainSuggestions({
               >
                 <div className="flex items-center gap-3 mb-3">
                   {index === 0 ? (
-                    <Crown className="h-4 w-4 text-teal" />
+                    <Crown className="h-4 w-4 text-yellow-500" />
                   ) : (
-                    <Star className="h-4 w-4 text-teal" />
+                    <Star className="h-4 w-4 text-yellow-500" />
                   )}
                   <div>
                     <p className="font-medium">{player.name}</p>
@@ -224,7 +224,7 @@ export default function CaptainSuggestions({
                     {player.id === currentCaptainId && (
                       <Badge 
                         variant="outline" 
-                        className="bg-teal/10 text-teal border-teal/50"
+                        className="bg-yellow-100 text-yellow-700 border-yellow-300"
                       >
                         Current Captain
                       </Badge>
