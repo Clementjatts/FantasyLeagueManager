@@ -21,7 +21,7 @@ export function DreamTeamLegend({ formation, totalPoints, className }: DreamTeam
       icon: Target,
       label: "Expected Points",
       value: Math.round(totalPoints).toLocaleString(),
-      description: "Predicted points for next 3 gameweeks"
+      description: "Predicted points for upcoming gameweek"
     },
     {
       icon: Sparkles,
@@ -32,8 +32,8 @@ export function DreamTeamLegend({ formation, totalPoints, className }: DreamTeam
     {
       icon: Calendar,
       label: "Prediction Window",
-      value: "3 GWs",
-      description: "Considering next three gameweeks"
+      value: "1 GW",
+      description: "Focusing on upcoming gameweek"
     },
     {
       icon: TrendingUp,
