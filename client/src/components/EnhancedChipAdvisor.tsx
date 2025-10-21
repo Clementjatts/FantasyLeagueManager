@@ -437,13 +437,13 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
             <CardTitle className="text-xl">Enhanced Chip Advisor</CardTitle>
           </div>
           <Badge 
-            variant={recommendation.priority === "high" ? "default" : "secondary"}
+            variant={recommendation?.priority === "high" ? "default" : "secondary"}
             className={cn(
               "text-xs font-semibold uppercase tracking-wider",
-              recommendation.priority === "high" && "animate-pulse bg-primary/90 hover:bg-primary"
+              recommendation?.priority === "high" && "animate-pulse bg-primary/90 hover:bg-primary"
             )}
           >
-            {recommendation.priority === "none" ? "INFO" : `${recommendation.priority} PRIORITY`}
+            {!recommendation ? "INFO" : recommendation.priority === "none" ? "INFO" : `${recommendation.priority} PRIORITY`}
           </Badge>
         </div>
       </CardHeader>
