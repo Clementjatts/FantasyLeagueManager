@@ -486,29 +486,6 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
               </div>
             </div>
           )}
-
-          {/* Available Chips */}
-          {remainingChips.length > 0 && (
-            <div className="space-y-2 pt-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Available Chips
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {remainingChips.map((chip) => (
-                  <Badge 
-                    key={chip.name} 
-                    variant="outline"
-                    className={cn(
-                      "text-xs bg-background/80 hover:bg-background transition-colors text-foreground",
-                      chip.name === recommendation.chip && "border-primary/50 bg-primary/10"
-                    )}
-                  >
-                    {chip.label}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
