@@ -80,12 +80,12 @@ export default function TeamPage() {
             </div>
           </div>
 
-          <Card>
+          <Card variant="electric">
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
-                <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground" />
+                <AlertCircle className="w-12 h-12 mx-auto text-electric-cyan" />
                 <h2 className="text-2xl font-semibold">No Team Selected</h2>
-                <p className="text-muted-foreground">
+                <p className="text-slate-gray">
                   Enter your FPL team ID to view your team management page
                 </p>
                 <TeamIdInput onTeamIdChange={setFplTeamId} />
@@ -169,7 +169,7 @@ export default function TeamPage() {
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
                 Gameweek {nextGameweek} Transfer Planning
               </h1>
               <p className="text-lg text-muted-foreground">

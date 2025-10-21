@@ -41,14 +41,14 @@ function AuthGate() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-gray-900/50 backdrop-blur-sm">
-        <Card className="w-full max-w-lg p-4 border border-glass-border shadow-glass-glow hover:shadow-aurora transition-all duration-500">
+        <Card variant="electric" className="w-full max-w-lg p-4 border border-glass-border shadow-electric hover:shadow-electric-lg transition-all duration-500">
           <CardHeader className="text-center pb-2">
             <div className="flex justify-center mb-4">
-              <div className="p-3 rounded-full bg-gradient-to-r from-radiant-violet to-pink-500 shadow-glass-glow animate-float">
+              <div className="p-3 rounded-full electric-gradient shadow-electric animate-float">
                 <Trophy className="w-16 h-16 text-white" />
               </div>
             </div>
-            <CardTitle className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-radiant-violet to-pink-500 bg-clip-text text-transparent">
+            <CardTitle className="text-5xl font-extrabold tracking-tight bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
               FPLManager
             </CardTitle>
             <p className="text-base text-muted-foreground mt-3">

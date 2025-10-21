@@ -495,7 +495,7 @@ export default function DreamTeamPage() {
               >
                 <ArrowLeft className="w-5 h-5" />
               </Link>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
                 Dream Team
               </h1>
             </div>
@@ -542,7 +542,7 @@ export default function DreamTeamPage() {
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-primary to-blue-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-electric-cyan to-vibrant-magenta bg-clip-text text-transparent">
               {optimalTeam.mode === 'optimizer' ? 'Personalized Dream Team' : 'Initial Squad Builder'}
             </h1>
           </div>
@@ -569,7 +569,7 @@ export default function DreamTeamPage() {
 
           {/* Squad Builder Summary - Only show for builder mode */}
           {optimalTeam.mode === 'builder' && (
-            <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 shadow-lg">
+            <Card variant="electric" className="bg-gradient-to-br from-electric-cyan/10 to-vibrant-magenta/10 border border-electric-cyan/20 shadow-electric">
               <CardContent className="pt-6">
                 <div className="text-center space-y-4">
                   <div className="text-6xl mb-4">🏗️</div>
