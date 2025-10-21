@@ -412,7 +412,23 @@ export function EnhancedChipAdvisor({ chips, currentGameweek, bootstrapStatic, t
       };
     }
 
-    return analyses.reduce((best, current) => 
+    // Only show recommendations with medium or high priority
+    const worthwhileRecommendations = analyses.filter(analysis => 
+      analysis.priority === "high" || analysis.priority === "medium"
+    );
+
+    if (worthwhileRecommendations.length === 0) {
+      return {
+        chip: "none",
+        label: "No Recommendations",
+        score: 0,
+        priority: "none",
+        factors: [],
+        recommendation: "No chips are recommended this gameweek. Your current strategy appears optimal."
+      };
+    }
+
+    return worthwhileRecommendations.reduce((best, current) => 
       current.score > best.score ? current : best
     );
   };
